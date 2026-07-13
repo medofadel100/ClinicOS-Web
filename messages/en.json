@@ -1,0 +1,20 @@
+{
+  "Index": {
+    "title": "Welcome to ClinicOS Web"
+  },
+  "Login": {
+    "title": "Sign In",
+    "description": "Enter your credentials to access your clinic.",
+    "email": "Email Address",
+    "password": "Password",
+    "submit": "Sign In",
+    "loading": "Signing in..."
+  },
+  "ClinicSwitcher": {
+    "title": "Select a Clinic",
+    "description": "Choose which clinic dashboard you want to access.",
+    "errorLoading": "Failed to load memberships. Please try again.",
+    "noClinicsTitle": "No Active Clinics",
+    "noClinicsDesc": "You don't have any active clinic memberships. Please contact your clinic administrator."
+  }
+}
