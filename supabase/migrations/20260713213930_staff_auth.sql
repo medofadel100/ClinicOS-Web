@@ -1,11 +1,20 @@
 -- Checkpoint 1: Staff Auth & Multi-Clinic Identity Data Models
 
 -- Enums
-CREATE TYPE language_pref AS ENUM ('ar', 'en');
-CREATE TYPE staff_role AS ENUM ('owner', 'doctor', 'reception', 'accountant', 'other');
+DO $$ BEGIN
+    CREATE TYPE language_pref AS ENUM ('ar', 'en');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE staff_role AS ENUM ('owner', 'doctor', 'reception', 'accountant', 'other');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Staff Members Table
-CREATE TABLE staff_members (
+CREATE TABLE IF NOT EXISTS staff_members (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   auth_user_id uuid UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name text NOT NULL,
@@ -16,7 +25,7 @@ CREATE TABLE staff_members (
 
 -- Clinic Staff Memberships Table
 -- Relies on `clinics` table which already exists in the shared database
-CREATE TABLE clinic_staff_memberships (
+CREATE TABLE IF NOT EXISTS clinic_staff_memberships (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   staff_member_id uuid REFERENCES staff_members(id) ON DELETE CASCADE,
   clinic_id uuid REFERENCES clinics(id) ON DELETE CASCADE,

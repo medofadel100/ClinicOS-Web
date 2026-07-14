@@ -80,6 +80,32 @@ export async function upsertDoctorProfile(clinicId: string, formData: FormData) 
   revalidatePath(`/[locale]/(dashboard)/[clinicId]/settings`, 'page')
 }
 
+export async function upsertPayrollConfig(
+  clinicId: string, 
+  membershipId: string, 
+  salaryType: 'fixed' | 'commission' | 'fixed_plus_commission', 
+  baseSalary: number | null, 
+  commissionPercentage: number | null
+) {
+  const supabase = await verifyOwner(clinicId)
+
+  const { error } = await supabase
+    .from('staff_payroll_config')
+    .upsert({
+      membership_id: membershipId,
+      salary_type: salaryType,
+      base_salary_egp: baseSalary,
+      commission_percentage: commissionPercentage
+    }, { onConflict: 'membership_id' })
+
+  if (error) {
+    console.error('Payroll Config Error:', error)
+    throw new Error('Failed to save payroll config')
+  }
+
+  revalidatePath(`/[locale]/(dashboard)/[clinicId]/settings`, 'page')
+}
+
 export async function upsertWorkingHours(clinicId: string, doctorProfileId: string, hours: { day_of_week: number, start_time: string, end_time: string, is_active: boolean }[]) {
   const supabase = await verifyOwner(clinicId)
 

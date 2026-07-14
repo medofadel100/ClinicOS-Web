@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import GeneralSettingsTab from './GeneralSettingsTab'
 import DoctorsTab from './DoctorsTab'
 import ServicesTab from './ServicesTab'
+import StaffSettingsTab from './StaffSettingsTab'
 
 export default async function SettingsPage({
   params: { locale, clinicId }
@@ -82,13 +83,16 @@ export default async function SettingsPage({
     .eq('clinic_id', clinicId)
     .order('order_index', { ascending: true })
 
-  const { data: staffMembers } = await supabase
+  const { data: staffMemberships } = await supabase
     .from('clinic_staff_memberships')
     .select(`
+      id,
+      role,
       staff_members (
         id,
         full_name
-      )
+      ),
+      staff_payroll_config (*)
     `)
     .eq('clinic_id', clinicId)
     .eq('is_active', true)
@@ -103,15 +107,20 @@ export default async function SettingsPage({
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="staff">Staff & Payroll</TabsTrigger>
           <TabsTrigger value="doctors">Doctors</TabsTrigger>
           <TabsTrigger value="services">Services Catalog</TabsTrigger>
         </TabsList>
         <TabsContent value="general" className="space-y-4">
           <GeneralSettingsTab clinicId={clinicId} initialData={clinicSettings} />
         </TabsContent>
+        <TabsContent value="staff" className="space-y-4">
+          {/* @ts-expect-error Supabase inference mismatch */}
+          <StaffSettingsTab clinicId={clinicId} staffMemberships={staffMemberships || []} />
+        </TabsContent>
         <TabsContent value="doctors" className="space-y-4">
           {/* @ts-expect-error Supabase inference mismatch */}
-          <DoctorsTab clinicId={clinicId} initialData={doctors || []} availableStaff={staffMembers?.map(m => m.staff_members) || []} />
+          <DoctorsTab clinicId={clinicId} initialData={doctors || []} availableStaff={staffMemberships?.map(m => m.staff_members) || []} />
         </TabsContent>
         <TabsContent value="services" className="space-y-4">
           <ServicesTab clinicId={clinicId} initialData={serviceCategories || []} />

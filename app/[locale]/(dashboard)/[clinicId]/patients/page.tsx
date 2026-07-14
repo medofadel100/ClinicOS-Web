@@ -31,6 +31,15 @@ export default async function PatientsPage({
 
   const { data: patients } = await dbQuery
 
+  // Fetch active campaigns
+  const { data: activeCampaignsData } = await supabase
+    .from('marketing_campaigns')
+    .select('id, name')
+    .eq('clinic_id', clinicId)
+    .eq('is_active', true)
+    
+  const activeCampaigns = activeCampaignsData || []
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -51,7 +60,7 @@ export default async function PatientsPage({
             <Button type="submit" variant="secondary">Search</Button>
           </form>
 
-          <AddPatientDialog clinicId={clinicId} locale={locale} />
+          <AddPatientDialog clinicId={clinicId} locale={locale} activeCampaigns={activeCampaigns} />
         </div>
       </div>
 

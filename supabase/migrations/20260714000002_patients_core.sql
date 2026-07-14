@@ -77,7 +77,7 @@ ALTER TABLE patient_medical_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE patient_uploaded_files ENABLE ROW LEVEL SECURITY;
 
 -- Helper function to check if the user is part of the clinic
-CREATE OR REPLACE FUNCTION auth.is_staff_member_of_clinic(clinic_uuid uuid)
+CREATE OR REPLACE FUNCTION public.is_staff_member_of_clinic(clinic_uuid uuid)
 RETURNS boolean AS $$
 BEGIN
   RETURN EXISTS (
@@ -94,19 +94,19 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- RLS Policies for patients
 CREATE POLICY "Staff can view all patients in their clinic"
     ON patients FOR SELECT
-    USING (auth.is_staff_member_of_clinic(clinic_id));
+    USING (public.is_staff_member_of_clinic(clinic_id));
 
 CREATE POLICY "Staff can insert patients in their clinic"
     ON patients FOR INSERT
-    WITH CHECK (auth.is_staff_member_of_clinic(clinic_id));
+    WITH CHECK (public.is_staff_member_of_clinic(clinic_id));
 
 CREATE POLICY "Staff can update patients in their clinic"
     ON patients FOR UPDATE
-    USING (auth.is_staff_member_of_clinic(clinic_id));
+    USING (public.is_staff_member_of_clinic(clinic_id));
 
 CREATE POLICY "Staff can delete patients in their clinic"
     ON patients FOR DELETE
-    USING (auth.is_staff_member_of_clinic(clinic_id));
+    USING (public.is_staff_member_of_clinic(clinic_id));
 
 
 -- RLS Policies for patient_medical_history
@@ -117,7 +117,7 @@ CREATE POLICY "Staff can view medical history of patients in their clinic"
         EXISTS (
             SELECT 1 FROM patients p
             WHERE p.id = patient_medical_history.patient_id
-            AND auth.is_staff_member_of_clinic(p.clinic_id)
+            AND public.is_staff_member_of_clinic(p.clinic_id)
         )
     );
 
@@ -127,7 +127,7 @@ CREATE POLICY "Staff can insert medical history of patients in their clinic"
         EXISTS (
             SELECT 1 FROM patients p
             WHERE p.id = patient_id
-            AND auth.is_staff_member_of_clinic(p.clinic_id)
+            AND public.is_staff_member_of_clinic(p.clinic_id)
         )
     );
 
@@ -137,7 +137,7 @@ CREATE POLICY "Staff can update medical history of patients in their clinic"
         EXISTS (
             SELECT 1 FROM patients p
             WHERE p.id = patient_medical_history.patient_id
-            AND auth.is_staff_member_of_clinic(p.clinic_id)
+            AND public.is_staff_member_of_clinic(p.clinic_id)
         )
     );
 
@@ -147,7 +147,7 @@ CREATE POLICY "Staff can delete medical history of patients in their clinic"
         EXISTS (
             SELECT 1 FROM patients p
             WHERE p.id = patient_medical_history.patient_id
-            AND auth.is_staff_member_of_clinic(p.clinic_id)
+            AND public.is_staff_member_of_clinic(p.clinic_id)
         )
     );
 
@@ -155,16 +155,16 @@ CREATE POLICY "Staff can delete medical history of patients in their clinic"
 -- RLS Policies for patient_uploaded_files
 CREATE POLICY "Staff can view files in their clinic"
     ON patient_uploaded_files FOR SELECT
-    USING (auth.is_staff_member_of_clinic(clinic_id));
+    USING (public.is_staff_member_of_clinic(clinic_id));
 
 CREATE POLICY "Staff can insert files in their clinic"
     ON patient_uploaded_files FOR INSERT
-    WITH CHECK (auth.is_staff_member_of_clinic(clinic_id));
+    WITH CHECK (public.is_staff_member_of_clinic(clinic_id));
 
 CREATE POLICY "Staff can update files in their clinic"
     ON patient_uploaded_files FOR UPDATE
-    USING (auth.is_staff_member_of_clinic(clinic_id));
+    USING (public.is_staff_member_of_clinic(clinic_id));
 
 CREATE POLICY "Staff can delete files in their clinic"
     ON patient_uploaded_files FOR DELETE
-    USING (auth.is_staff_member_of_clinic(clinic_id));
+    USING (public.is_staff_member_of_clinic(clinic_id));

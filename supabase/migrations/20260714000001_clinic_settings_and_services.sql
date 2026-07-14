@@ -1,7 +1,7 @@
 -- Checkpoint 2: Clinic profile, services catalog, doctor profiles
 
 -- 1. Clinic Settings
-CREATE TABLE clinic_settings (
+CREATE TABLE IF NOT EXISTS clinic_settings (
   clinic_id uuid PRIMARY KEY REFERENCES clinics(id) ON DELETE CASCADE,
   address text,
   contact_email text,
@@ -12,7 +12,7 @@ CREATE TABLE clinic_settings (
 );
 
 -- 2. Doctor Profiles
-CREATE TABLE doctor_profiles (
+CREATE TABLE IF NOT EXISTS doctor_profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   staff_member_id uuid REFERENCES staff_members(id) ON DELETE CASCADE,
   clinic_id uuid REFERENCES clinics(id) ON DELETE CASCADE,
@@ -22,7 +22,7 @@ CREATE TABLE doctor_profiles (
 );
 
 -- 3. Doctor Working Hours
-CREATE TABLE doctor_working_hours (
+CREATE TABLE IF NOT EXISTS doctor_working_hours (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   doctor_profile_id uuid REFERENCES doctor_profiles(id) ON DELETE CASCADE,
   day_of_week smallint CHECK (day_of_week >= 0 AND day_of_week <= 6),
@@ -32,7 +32,7 @@ CREATE TABLE doctor_working_hours (
 );
 
 -- 4. Service Categories
-CREATE TABLE service_categories (
+CREATE TABLE IF NOT EXISTS service_categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   clinic_id uuid REFERENCES clinics(id) ON DELETE CASCADE,
   name text NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE service_categories (
 );
 
 -- 5. Clinic Services
-CREATE TABLE clinic_services (
+CREATE TABLE IF NOT EXISTS clinic_services (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   clinic_id uuid REFERENCES clinics(id) ON DELETE CASCADE,
   category_id uuid REFERENCES service_categories(id) ON DELETE SET NULL,

@@ -47,9 +47,21 @@ export default async function DashboardLayout({
         <nav className="flex-1 space-y-2">
           <div className="text-xs uppercase text-muted-foreground font-semibold mb-2">Navigation</div>
           <a href={`/${locale}/${clinicId}`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Dashboard</a>
+          <a href={`/${locale}/${clinicId}/appointments`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Appointments</a>
           <a href={`/${locale}/${clinicId}/patients`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Patients</a>
+          <a href={`/${locale}/${clinicId}/inventory`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Inventory</a>
+          <a href={`/${locale}/${clinicId}/hr`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">My HR</a>
+          {membership.role === 'owner' || membership.role === 'admin' ? (
+            <>
+              <a href={`/${locale}/${clinicId}/marketing`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Marketing</a>
+              <a href={`/${locale}/${clinicId}/finance`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Finance</a>
+            </>
+          ) : null}
           {membership.role === 'owner' && (
-            <a href={`/${locale}/${clinicId}/settings`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Settings</a>
+            <>
+              <a href={`/${locale}/${clinicId}/whatsapp`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">WhatsApp Bot</a>
+              <a href={`/${locale}/${clinicId}/settings`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Settings</a>
+            </>
           )}
         </nav>
         <div className="mt-auto border-t pt-4">

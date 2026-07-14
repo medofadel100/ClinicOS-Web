@@ -40,6 +40,7 @@ export async function createPatient(clinicId: string, locale: string, formData: 
   const date_of_birth = formData.get('date_of_birth') as string || null
   const gender = formData.get('gender') as string || null
   const notes = formData.get('notes') as string
+  const marketing_campaign_id = formData.get('marketing_campaign_id') as string || null
 
   // Insert patient
   const { data: newPatient, error: patientError } = await supabase
@@ -50,7 +51,8 @@ export async function createPatient(clinicId: string, locale: string, formData: 
       phone,
       date_of_birth,
       gender,
-      notes
+      notes,
+      marketing_campaign_id
     })
     .select('id')
     .single()
