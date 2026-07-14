@@ -13,10 +13,10 @@
 | Checkpoint 8 — Clinic finance: expenses | Done | Complete with recurring expenses and occurrences |
 | Checkpoint 9 — Payroll & HR | Done | Complete with attendance, adjustments, and payroll runs |
 | Checkpoint 10 — Entitlements integration | Done | Locked UI pattern implemented and gated by Admin API |
-| Checkpoint 11 — WhatsApp connection (this repo's side) | Pending | |
-| Checkpoint 12 — Rule-based WhatsApp bot | Pending | |
-| Checkpoint 13 — AI WhatsApp bot | Pending | |
-| Checkpoint 14 — Automations | Pending | |
-| Checkpoint 15 — Patient file uploads via WhatsApp | Pending | |
-| Checkpoint 16 — Patient marketing | Pending | |
-| Checkpoint 17 — Reports | Pending | |
+| Checkpoint 11 — WhatsApp connection (this repo's side) | Done | Configured UI, client polling, and Baileys API wrapper |
+| Checkpoint 12 — Rule-based WhatsApp bot | Done | Configured webhook, bot engine, conversation state, and UI |
+| Checkpoint 13 — AI WhatsApp bot | Done | Configured AI prompt builder, function-calling tools, and OpenAI engine |
+| Checkpoint 14 — Automations | Done | Built Cron route, Waitlist autofill, and UI settings |
+| Checkpoint 15 — Patient file uploads via WhatsApp | Done | Webhook handles media, uploads to Supabase Storage, and adds to patient_uploaded_files |
+| Checkpoint 16 — Patient marketing | Done | Created bulk WhatsApp campaign sending with audience filtering |
+| Checkpoint 17 — Reports | Done | Built read-only analytics dashboard with Recharts |

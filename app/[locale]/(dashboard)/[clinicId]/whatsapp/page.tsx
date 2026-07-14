@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
 import { checkEntitlements } from '@/lib/entitlements'
-import LockedFeature from '@/components/LockedFeature'
+import ConnectionManager from './ConnectionManager'
+import BotModeSettings from './BotModeSettings'
+import RuleBasedSettings from './RuleBasedSettings'
+import AutomationsSettings from './AutomationsSettings'
 
 export default async function WhatsAppSettingsPage({
   params: { locale, clinicId }
@@ -18,6 +18,27 @@ export default async function WhatsAppSettingsPage({
   const entitlements = await checkEntitlements(clinicId)
   const hasAIBot = entitlements.features.includes('whatsapp_ai')
 
+  // Fetch whatsapp config
+  const { data: config } = await supabase
+    .from('whatsapp_bot_config')
+    .select('*')
+    .eq('clinic_id', clinicId)
+    .single()
+
+  // Fetch menu options
+  const { data: options } = await supabase
+    .from('whatsapp_menu_options')
+    .select('*')
+    .eq('clinic_id', clinicId)
+    .order('option_number', { ascending: true })
+
+  // Fetch automations settings
+  const { data: automations } = await supabase
+    .from('whatsapp_automation_settings')
+    .select('*')
+    .eq('clinic_id', clinicId)
+    .single()
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
@@ -25,57 +46,33 @@ export default async function WhatsAppSettingsPage({
         <p className="text-muted-foreground">Manage your clinic's WhatsApp automated assistant.</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Rule-Based Auto-Replies</CardTitle>
-          <CardDescription>Configure standard responses to common patient inquiries.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Switch id="rule-based" defaultChecked />
-            <Label htmlFor="rule-based">Enable Rule-Based Bot</Label>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Basic rule-based bot is included in all plans. More configuration options will be available here.
-          </p>
-        </CardContent>
-      </Card>
+      <ConnectionManager 
+        clinicId={clinicId} 
+        locale={locale}
+        initialIsConnected={config?.is_connected || false}
+        initialPhone={config?.connected_phone_number || null}
+      />
 
-      {hasAIBot ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Assistant Mode</CardTitle>
-            <CardDescription>Advanced conversational AI that understands medical context and books appointments naturally.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Switch id="ai-mode" />
-              <Label htmlFor="ai-mode">Enable AI Assistant</Label>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Configure your AI's personality, doctor bios, and booking rules here.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <LockedFeature clinicId={clinicId} featureCode="whatsapp_ai" featureName="AI WhatsApp Assistant">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Assistant Mode</CardTitle>
-              <CardDescription>Advanced conversational AI that understands medical context and books appointments naturally.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Switch id="ai-mode-locked" disabled />
-                <Label htmlFor="ai-mode-locked">Enable AI Assistant</Label>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Configure your AI's personality, doctor bios, and booking rules here.
-              </p>
-            </CardContent>
-          </Card>
-        </LockedFeature>
+      <BotModeSettings
+        clinicId={clinicId}
+        locale={locale}
+        hasAIBot={hasAIBot}
+        initialMode={config?.mode || 'none'}
+      />
+
+      {config?.mode === 'rule_based' && (
+        <RuleBasedSettings 
+          clinicId={clinicId}
+          locale={locale}
+          options={options || []}
+        />
       )}
+
+      <AutomationsSettings 
+        clinicId={clinicId}
+        locale={locale}
+        initialSettings={automations}
+      />
     </div>
   )
 }

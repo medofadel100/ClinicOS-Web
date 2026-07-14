@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import CampaignDialog from './CampaignDialog'
+import WhatsAppCampaigns from './WhatsAppCampaigns'
 
 export default async function MarketingPage({
   params: { locale, clinicId }
@@ -42,7 +43,7 @@ export default async function MarketingPage({
     redirect(`/${locale}/${clinicId}`)
   }
 
-  // Fetch campaigns and a count of patients
+  // Fetch tracking campaigns
   const { data: campaignsData } = await supabase
     .from('marketing_campaigns')
     .select(`
@@ -53,6 +54,18 @@ export default async function MarketingPage({
     .order('created_at', { ascending: false })
 
   const campaigns = campaignsData || []
+
+  // Fetch WhatsApp campaigns
+  const { data: waCampaignsData } = await supabase
+    .from('whatsapp_campaigns')
+    .select(`
+      *,
+      whatsapp_campaign_recipients (count)
+    `)
+    .eq('clinic_id', clinicId)
+    .order('created_at', { ascending: false })
+
+  const waCampaigns = waCampaignsData || []
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -121,6 +134,12 @@ export default async function MarketingPage({
           )}
         </CardContent>
       </Card>
+
+      <WhatsAppCampaigns 
+        clinicId={clinicId}
+        locale={locale}
+        campaigns={waCampaigns || []}
+      />
     </div>
   )
 }

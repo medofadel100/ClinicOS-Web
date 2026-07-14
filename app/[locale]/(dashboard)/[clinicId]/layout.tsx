@@ -55,6 +55,7 @@ export default async function DashboardLayout({
             <>
               <a href={`/${locale}/${clinicId}/marketing`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Marketing</a>
               <a href={`/${locale}/${clinicId}/finance`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Finance</a>
+              <a href={`/${locale}/${clinicId}/reports`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Reports</a>
             </>
           ) : null}
           {membership.role === 'owner' && (
