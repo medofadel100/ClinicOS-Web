@@ -24,6 +24,8 @@ CREATE INDEX IF NOT EXISTS idx_clinic_subscriptions_clinic_id ON clinic_subscrip
 -- RLS
 ALTER TABLE clinic_subscriptions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Staff can view their clinic subscriptions" ON clinic_subscriptions;
+
 CREATE POLICY "Staff can view their clinic subscriptions" ON clinic_subscriptions FOR SELECT USING (
     clinic_id IN (SELECT c.clinic_id FROM get_user_clinics() c)
 );

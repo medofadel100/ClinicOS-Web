@@ -13,6 +13,8 @@ $$ LANGUAGE plpgsql;
 
 DROP POLICY IF EXISTS "Staff can view memberships for their clinics" ON clinic_staff_memberships;
 DROP POLICY IF EXISTS "Owners can manage memberships" ON clinic_staff_memberships;
+DROP POLICY IF EXISTS "Staff can view their own memberships" ON clinic_staff_memberships;
+DROP POLICY IF EXISTS "Staff can view others in their clinics" ON clinic_staff_memberships;
 
 CREATE POLICY "Staff can view their own memberships"
   ON clinic_staff_memberships FOR SELECT
