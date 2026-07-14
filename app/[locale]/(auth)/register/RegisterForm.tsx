@@ -124,8 +124,8 @@ export default function RegisterForm({
       clinicId: clinicId
     })
 
-    if (!linkRes.success) {
-      setError(linkRes.error || 'Failed to link clinic owner.')
+    if (!linkRes || !linkRes.success) {
+      setError(linkRes?.error || 'Failed to link clinic owner (Network or Service Worker Error). Please disable PWA or hard refresh.')
       setLoading(false)
       return
     }
