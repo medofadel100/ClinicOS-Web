@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { linkClinicOwner } from './actions'
-import { CheckCircle2, Clock } from 'lucide-react'
+import { CheckCircle2, KeyRound } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 
@@ -36,7 +36,8 @@ export default function RegisterForm({
     clinicTypeId: initialClinicTypes[0]?.id || '',
     email: '',
     password: '',
-    planId: '' // empty means trial
+    planId: '', // empty means trial
+    otp: ''
   })
 
   const isArabic = locale === 'ar'
@@ -49,6 +50,7 @@ export default function RegisterForm({
   const handleRegister = async (selectedPlanId: string) => {
     setLoading(true)
     setError(null)
+    setFormData(prev => ({ ...prev, planId: selectedPlanId }))
 
     // 1. Sign up user
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -58,7 +60,6 @@ export default function RegisterForm({
         data: {
           full_name: formData.fullName,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/auth/callback`,
       }
     })
 
@@ -74,13 +75,36 @@ export default function RegisterForm({
       return
     }
 
-    // 2. Call RPC to create clinic and subscription
+    // Move to OTP verification step
+    setLoading(false)
+    setStep(3)
+  }
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    // Verify OTP
+    const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+      email: formData.email,
+      token: formData.otp,
+      type: 'signup'
+    })
+
+    if (verifyError || !verifyData.session) {
+      setError(verifyError?.message || 'Invalid code.')
+      setLoading(false)
+      return
+    }
+
+    // Now authenticated, call RPC
     const { data: clinicId, error: rpcError } = await supabase.rpc('create_clinic_self_signup', {
       clinic_name: formData.clinicName,
       clinic_type_id: formData.clinicTypeId,
       owner_full_name: formData.fullName,
-      owner_phone: formData.phone || '000000000', // fallback if empty
-      chosen_plan_id: selectedPlanId || null
+      owner_phone: formData.phone || '000000000',
+      chosen_plan_id: formData.planId || null
     })
 
     if (rpcError) {
@@ -89,9 +113,9 @@ export default function RegisterForm({
       return
     }
 
-    // 3. Link owner in ClinicOS Web tables via Server Action
+    // Link owner
     const linkRes = await linkClinicOwner({
-      userId: authData.user.id,
+      userId: verifyData.user!.id,
       fullName: formData.fullName,
       clinicId: clinicId
     })
@@ -102,9 +126,9 @@ export default function RegisterForm({
       return
     }
 
-    // 4. Complete
-    setLoading(false)
-    setStep(3)
+    // Success -> redirect
+    router.push(`/${locale}/clinic-switcher`)
+    router.refresh()
   }
 
   const handleResend = async () => {
@@ -113,9 +137,6 @@ export default function RegisterForm({
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email: formData.email,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/auth/callback`,
-      }
     })
     setLoading(false)
     if (error) {
@@ -138,35 +159,47 @@ export default function RegisterForm({
     return (
       <div className="flex flex-col space-y-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10">
-          <Clock className="h-8 w-8 text-blue-500" />
+          <KeyRound className="h-8 w-8 text-blue-500" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold tracking-tight">Check your email</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Enter Verification Code</h2>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            We sent a confirmation email to <strong>{formData.email}</strong>. Please open it and activate your account.
+            We sent a 6-digit code to <strong>{formData.email}</strong>. It will expire in 15 minutes.
           </p>
-          {formData.planId !== '' && (
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-4">
-              Note: You selected a paid plan. This is a 2-day provisional period. Our team will contact you to confirm your payment method.
-            </p>
-          )}
         </div>
-        {error && (
-          <div className="p-3 text-sm text-destructive-foreground bg-destructive/10 border border-destructive/20 rounded-md">
-            {error}
+        
+        <form onSubmit={handleVerifyOtp} className="space-y-4">
+          <div className="space-y-2 text-left max-w-xs mx-auto">
+            <Label htmlFor="otp">Verification Code</Label>
+            <Input
+              id="otp"
+              placeholder="000000"
+              value={formData.otp}
+              onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
+              className="h-14 text-center text-2xl tracking-widest bg-muted/50 focus:bg-background transition-colors"
+              required
+              maxLength={6}
+            />
           </div>
-        )}
-        <div className="space-y-3">
-          <Button onClick={handleResend} disabled={resendCooldown > 0 || loading} className="w-full h-11 text-base">
-            {resendCooldown > 0 ? `Resend Email in ${resendCooldown}s` : 'Resend Email'}
-          </Button>
-          <Button variant="outline" onClick={() => {
-            router.push(`/${locale}/login`)
-            router.refresh()
-          }} className="w-full h-11 text-base">
-            Go to Login
-          </Button>
-        </div>
+
+          {error && (
+            <div className="p-3 text-sm text-destructive-foreground bg-destructive/10 border border-destructive/20 rounded-md">
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-3 pt-2">
+            <Button type="submit" disabled={loading || formData.otp.length < 6} className="w-full h-11 text-base">
+              {loading ? 'Verifying...' : 'Verify & Continue'}
+            </Button>
+            <Button type="button" variant="ghost" onClick={handleResend} disabled={resendCooldown > 0 || loading} className="w-full h-11 text-base">
+              {resendCooldown > 0 ? `Resend Code in ${resendCooldown}s` : 'Resend Code'}
+            </Button>
+            <Button type="button" variant="link" onClick={() => setStep(1)} className="w-full">
+              Change Email
+            </Button>
+          </div>
+        </form>
       </div>
     )
   }
