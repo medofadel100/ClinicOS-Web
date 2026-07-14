@@ -39,13 +39,14 @@ export default function LoginForm({ locale }: { locale: string }) {
   }
 
   return (
-    <Card className="w-[400px]">
-      <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
-        <CardDescription>{t('description')}</CardDescription>
-      </CardHeader>
-      <form onSubmit={handleLogin}>
-        <CardContent className="space-y-4">
+    <div className="flex flex-col space-y-8">
+      <div className="flex flex-col space-y-2 text-center lg:text-start">
+        <h2 className="text-3xl font-semibold tracking-tight">{t('title')}</h2>
+        <p className="text-sm text-muted-foreground">{t('description')}</p>
+      </div>
+
+      <form onSubmit={handleLogin} className="space-y-6">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">{t('email')}</Label>
             <Input
@@ -54,27 +55,39 @@ export default function LoginForm({ locale }: { locale: string }) {
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="h-11 px-4 bg-muted/50 focus:bg-background transition-colors"
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">{t('password')}</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">{t('password')}</Label>
+            </div>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="h-11 px-4 bg-muted/50 focus:bg-background transition-colors"
               required
             />
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? t('loading') : t('submit')}
-          </Button>
-        </CardFooter>
+        </div>
+
+        {error && (
+          <div className="p-3 text-sm text-destructive-foreground bg-destructive/10 border border-destructive/20 rounded-md">
+            {error}
+          </div>
+        )}
+
+        <Button type="submit" className="w-full h-11 text-base font-medium shadow-sm transition-all hover:shadow-md" disabled={loading}>
+          {loading ? t('loading') : t('submit')}
+        </Button>
       </form>
-    </Card>
+
+      <p className="text-center text-sm text-muted-foreground pt-4">
+        By continuing, you agree to our Terms of Service and Privacy Policy.
+      </p>
+    </div>
   )
 }
