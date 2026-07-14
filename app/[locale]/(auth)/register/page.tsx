@@ -1,6 +1,29 @@
 import RegisterForm from './RegisterForm'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function RegisterPage({ params: { locale } }: { params: { locale: string } }) {
+  const supabase = createClient()
+  
+  // Fetch active clinic types
+  const { data: clinicTypes } = await supabase
+    .from('clinic_types')
+    .select('id, name_en, name_ar')
+    .eq('is_active', true)
+    
+  // Fetch active plans and their features
+  const { data: plans } = await supabase
+    .from('plans')
+    .select(`
+      id, name_en, name_ar, description_en, description_ar, price_egp,
+      plan_features (
+        feature_id,
+        features (
+          id, name_en, name_ar
+        )
+      )
+    `)
+    .eq('is_active', true)
+
   return (
     <div className="flex min-h-screen h-screen">
       {/* Left side - Branding/Hero (hidden on mobile) */}
@@ -41,7 +64,11 @@ export default async function RegisterPage({ params: { locale } }: { params: { l
             <span className="text-2xl font-bold tracking-tight text-foreground">ClinicOS</span>
           </div>
 
-          <RegisterForm locale={locale} />
+          <RegisterForm 
+            locale={locale} 
+            initialClinicTypes={clinicTypes || []} 
+            initialPlans={plans || []} 
+          />
         </div>
       </div>
     </div>

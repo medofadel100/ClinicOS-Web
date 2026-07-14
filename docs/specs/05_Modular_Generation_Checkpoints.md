@@ -19,7 +19,66 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   language/direction; a placeholder page confirms Supabase connectivity to
   the shared project; the browser offers a PWA install prompt.
 
-## Checkpoint 1 — Staff auth & multi-clinic identity
+## Checkpoint 1 — Self-signup, plan selection & onboarding
+
+**Goal:** anyone can sign up for ClinicOS without an admin pre-creating
+their account — pick a clinic type, browse and compare plans (bilingual),
+start a 7-day trial or commit to a plan (entering a 2-day
+pending-confirmation window), and get a first-run walkthrough of the
+product. Depends on ClinicOS Admin's
+`docs/specs/10_Patch_Self_Signup_And_Pending_Confirmation.md` being applied
+there first — confirm it is before starting this checkpoint.
+
+**Deliverables:**
+- Public signup page (no auth required to view): email + password +
+  clinic name + clinic type selection (reading `clinic_types` from the
+  shared Supabase project's now-public catalog).
+- Plan browsing/comparison page: reads `plans`, `plan_features`,
+  `plan_limits`, `features` (public read, per the Admin patch), rendered
+  fully in the active locale — **every plan name, feature name, and
+  description shown must come from the `_ar`/`_en` columns matching the
+  user's current language**, never hardcoded English or Arabic strings
+  layered on top of that data.
+- A side-by-side comparison view (features/limits per plan), and a
+  "start free 7-day trial" action alongside a "choose this plan" action
+  per plan.
+- Signup flow: create the Supabase Auth user, then call
+  `create_clinic_self_signup` (Admin's RPC), then create this repo's own
+  `staff_members` + `clinic_staff_memberships` (role = `owner`) rows
+  linking the new user to the new `clinic_id`.
+- Post-signup: if a plan was chosen (not just a trial), clearly tell the
+  user this is a **2-day provisional period** while Ahmed's team confirms
+  payment method with them — don't let this be ambiguous with the 7-day
+  trial messaging.
+- First-run onboarding walkthrough: a short guided tour (tooltips/modal
+  steps, agent's choice of implementation) introducing each Core module
+  (patients, appointments, services, billing) and what it's for — shown
+  once after first login, re-accessible later from settings/help.
+- Login page enhancements (apply here and to any other login screen):
+  a "remember me" checkbox (extends session persistence) and a
+  show/hide toggle on the password field.
+
+**Acceptance criteria:**
+- [ ] A brand-new visitor with no prior account can complete signup end
+      to end and land in a working clinic account with the correct
+      `clinic_type` module active.
+- [ ] Choosing "start free trial" creates a `trial` subscription, matching
+      the existing 7-day trial behavior.
+- [ ] Choosing a specific plan creates a `pending_confirmation`
+      subscription with a 2-day deadline, and the UI clearly communicates
+      that distinction to the user (not the same messaging as a trial).
+- [ ] The plan comparison page renders entirely in Arabic when the active
+      locale is `/ar` and entirely in English under `/en` — no mixed-
+      language leakage from hardcoded strings.
+- [ ] The onboarding walkthrough appears once after first login and does
+      not reappear on subsequent logins unless manually reopened.
+- [ ] "Remember me" unchecked means the session doesn't persist past
+      closing the browser; checked means it does. The password field
+      toggles between masked and visible on click.
+
+---
+
+## Checkpoint 2 — Staff auth & multi-clinic identity
 
 - `staff_members`, `clinic_staff_memberships` tables + RLS (Data_Models.md
   section 1).
@@ -31,7 +90,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   between them and never sees the other clinic's data; RLS independently
   blocks cross-clinic access even via a direct query.
 
-## Checkpoint 2 — Clinic profile, services catalog, doctor profiles
+## Checkpoint 3 — Clinic profile, services catalog, doctor profiles
 
 - `services`, `doctor_profiles`, `doctor_working_hours`,
   `clinic_settings` tables + RLS.
@@ -40,14 +99,14 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
 - **Acceptance:** an owner can define their service catalog and each
   doctor's bio/hours entirely through the UI.
 
-## Checkpoint 3 — Patients (Core patient file)
+## Checkpoint 4 — Patients (Core patient file)
 
 - `patients` table + RLS, including `parent_patient_id` linking.
 - Patient list, patient file (basic info tab), create/edit patient.
 - **Acceptance:** creating a patient with a `parent_patient_id` correctly
   shows under the parent's own record as a linked child.
 
-## Checkpoint 4 — Appointments & scheduling
+## Checkpoint 5 — Appointments & scheduling
 
 - `appointments`, `patient_waitlist` tables + RLS.
 - Calendar/list view per doctor, booking flow (patient + doctor + service
@@ -55,10 +114,10 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
 - **Acceptance:** booking, rescheduling, and cancelling an appointment all
   work through the UI; cancelling with a matching waitlist entry correctly
   flags that waitlist entry as `notified` (actual WhatsApp notification
-  comes later, Checkpoint 12 — this checkpoint only needs the status flip
+  comes later, Checkpoint 13 — this checkpoint only needs the status flip
   and a visible "waitlist match" indicator in the UI).
 
-## Checkpoint 5 — Dental specialty module
+## Checkpoint 6 — Dental specialty module
 
 - `dental_chart_entries` table + RLS.
 - The tooth chart UI (per the reference screenshots Ahmed provided),
@@ -68,7 +127,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
 - **Acceptance:** the module never renders for a non-dental clinic; saving
   a tooth's condition persists and reloads correctly.
 
-## Checkpoint 6 — Billing: treatment plans & payments
+## Checkpoint 7 — Billing: treatment plans & payments
 
 - `treatment_plans`, `treatment_plan_sessions`, `patient_payments`,
   `treatment_plan_approvals` tables + RLS.
@@ -80,7 +139,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   `total_price_egp` minus the sum of its linked `patient_payments`,
   computed live, never stored redundantly.
 
-## Checkpoint 7 — Medical inventory
+## Checkpoint 8 — Medical inventory
 
 - `medical_inventory_items`, `inventory_transactions` tables + RLS.
 - Stock list with low-stock highlighting (below `min_threshold`),
@@ -89,7 +148,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   `quantity_on_hand` and triggers the low-stock indicator when it crosses
   `min_threshold`.
 
-## Checkpoint 8 — Clinic finance: expenses
+## Checkpoint 9 — Clinic finance: expenses
 
 - `clinic_expenses`, `expense_occurrences` tables + RLS.
 - UI to create a recurring or one-time expense; a scheduled job (or
@@ -100,7 +159,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   generates exactly the right number of occurrences and no more once that
   date passes.
 
-## Checkpoint 9 — Payroll & HR
+## Checkpoint 10 — Payroll & HR
 
 - `staff_payroll_config`, `staff_attendance`, `staff_shift_schedule`,
   `staff_adjustments`, `payroll_runs` tables + RLS.
@@ -114,7 +173,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   `net_pay_egp`; finalizing a run locks its values against later data
   changes.
 
-## Checkpoint 10 — Entitlements integration
+## Checkpoint 11 — Entitlements integration
 
 - `lib/entitlements.ts` calling ClinicOS Admin's
   `/api/v1/entitlements/check`.
@@ -125,7 +184,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   locked state when trying to enable AI mode in WhatsApp settings, and
   clicking "upgrade" creates a row visible in ClinicOS Admin's inbox.
 
-## Checkpoint 11 — WhatsApp connection (this repo's side)
+## Checkpoint 12 — WhatsApp connection (this repo's side)
 
 - `whatsapp_bot_config` table + RLS.
 - Settings UI to trigger `POST /sessions/:clinicId/init` on the separate
@@ -137,7 +196,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   in the UI (requires the Baileys service to be deployed and reachable —
   coordinate with that repo's own checkpoints).
 
-## Checkpoint 12 — Rule-based WhatsApp bot
+## Checkpoint 13 — Rule-based WhatsApp bot
 
 - `whatsapp_menu_options` table + RLS, seeded with the three defaults
   (book/cancel/inquiry) per clinic on setup.
@@ -150,9 +209,9 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   static response; an unrecognized input gets a fallback message, not
   silence.
 
-## Checkpoint 13 — AI WhatsApp bot
+## Checkpoint 14 — AI WhatsApp bot
 
-- Requires Checkpoint 10 (entitlements) and 12 (bot infrastructure) done.
+- Requires Checkpoint 11 (entitlements) and 13 (bot infrastructure) done.
 - `lib/bot/ai/prompt-builder.ts` (personality + custom instructions +
   doctor bios + service catalog + live availability) and
   `lib/bot/ai/tools.ts` (function-calling: book, reschedule, cancel, look
@@ -162,7 +221,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   function calling, and respects the clinic's configured personality and
   custom instructions in its tone.
 
-## Checkpoint 14 — Automations: reminders, follow-ups, morning summary, waitlist autofill
+## Checkpoint 15 — Automations: reminders, follow-ups, morning summary, waitlist autofill
 
 - `whatsapp_automation_settings`, `service_followup_rules` tables + RLS.
 - Scheduled jobs (or triggered checks, agent's choice, confirm approach
@@ -175,7 +234,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   when on, fires correctly against test data without needing any
   configuration outside the UI.
 
-## Checkpoint 15 — Patient file uploads via WhatsApp
+## Checkpoint 16 — Patient file uploads via WhatsApp
 
 - `patient_uploaded_files` table + RLS.
 - Inbound media from WhatsApp lands as `review_status = 'pending'`; a
@@ -184,7 +243,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
 - **Acceptance:** a pending upload never appears in the patient's official
   file view until approved, per Rules_and_Constraints.md section E.
 
-## Checkpoint 16 — Patient marketing
+## Checkpoint 17 — Patient marketing
 
 - `patient_marketing_campaigns`, `patient_marketing_recipients`,
   `patient_marketing_opt_outs` tables + RLS.
@@ -194,7 +253,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
   if they match the audience filter; verified with a test case that
   includes both opted-in and opted-out matching patients.
 
-## Checkpoint 17 — Reports
+## Checkpoint 18 — Reports
 
 - Per-clinic financial and operational reporting (revenue, appointments,
   payroll totals, inventory value) — agent proposes a reasonable first set
@@ -203,7 +262,7 @@ approval before the next starts, track progress in `CHECKPOINT_STATUS.md`.
 
 ---
 
-## After checkpoint 17
+## After checkpoint 18
 
 Stop and ask Ahmed for direction. Do not start on additional specialty
 modules (pediatrics, orthopedics, etc.) or the Windows desktop app from

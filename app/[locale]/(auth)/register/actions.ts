@@ -2,11 +2,10 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-export async function initializeClinic(data: {
+export async function linkClinicOwner(data: {
   userId: string;
   fullName: string;
-  clinicName: string;
-  planName: string;
+  clinicId: string;
 }) {
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,49 +25,20 @@ export async function initializeClinic(data: {
 
     if (staffError) throw new Error(`Staff error: ${staffError.message}`)
 
-    // 2. Create Clinic
-    const { data: clinic, error: clinicError } = await supabaseAdmin
-      .from('clinics')
-      .insert({
-        name: data.clinicName,
-      })
-      .select('id')
-      .single()
-
-    if (clinicError) throw new Error(`Clinic error: ${clinicError.message}`)
-
-    // 3. Create Membership
+    // 2. Create Membership
     const { error: membershipError } = await supabaseAdmin
       .from('clinic_staff_memberships')
       .insert({
         staff_member_id: staff.id,
-        clinic_id: clinic.id,
+        clinic_id: data.clinicId,
         role: 'owner',
       })
 
     if (membershipError) throw new Error(`Membership error: ${membershipError.message}`)
 
-    // 4. Create Subscription
-    const isTrial = data.planName === 'trial'
-    
-    // Default 7 days trial if trial
-    const trialEndsAt = isTrial ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : null
-
-    const { error: subError } = await supabaseAdmin
-      .from('clinic_subscriptions')
-      .insert({
-        clinic_id: clinic.id,
-        plan_name: data.planName,
-        status: isTrial ? 'active' : 'pending_payment',
-        trial_ends_at: trialEndsAt
-      })
-
-    if (subError) throw new Error(`Subscription error: ${subError.message}`)
-
-    return { success: true, clinicId: clinic.id }
-
+    return { success: true }
   } catch (err: any) {
-    console.error('Failed to initialize clinic:', err)
+    console.error('Failed to link clinic owner:', err)
     return { success: false, error: err.message }
   }
 }

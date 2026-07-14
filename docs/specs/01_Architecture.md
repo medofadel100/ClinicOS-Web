@@ -31,7 +31,8 @@ One new piece: the **WhatsApp service** (`clinicos-whatsapp-service`) is a
 **separate deployable repo**, not part of this Next.js app, because Baileys
 needs a long-lived persistent process (a WebSocket connection to WhatsApp)
 which Vercel's serverless functions cannot provide. See
-`07_Baileys_Service_Spec.md` for that repo's own spec — it is a distinct
+`ClinicOS WhatsApp Service/docs/specs/01_Service_Spec.md` (a sibling repo, not
+part of this one's `docs/specs/`) for that repo's own spec — it is a distinct
 codebase with its own deployment target (Railway/Oracle/VPS, not Vercel).
 
 ## 3. Core + specialty modules (the extensibility model)
@@ -67,6 +68,20 @@ not part of the Dental-first MVP.
   clinic switcher; otherwise they land directly in their one clinic.
   Switching clinics never mixes data — each clinic's data is fully
   isolated by RLS regardless of which clinics a user can access.
+
+## 4.5. Self-signup depends on ClinicOS Admin
+
+New clinics are created through self-service signup (Checkpoint 1), not
+by an admin pre-creating an account. This app never writes directly to
+the sensitive `clinics`/`clinic_subscriptions` tables to accomplish that
+— it calls a `SECURITY DEFINER` Postgres function
+(`create_clinic_self_signup`) owned by ClinicOS Admin, which those two
+tables' RLS otherwise keeps locked to admins. See ClinicOS Admin's
+`docs/specs/10_Patch_Self_Signup_And_Pending_Confirmation.md` for that
+function's exact contract. Plan/feature/clinic-type data used for the
+public signup and pricing pages is read directly (public `SELECT` RLS
+added by that same patch) — this app doesn't cache or duplicate that
+catalog locally.
 
 ## 5. Entitlement enforcement (talking to Admin)
 
