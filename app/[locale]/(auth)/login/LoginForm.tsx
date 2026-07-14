@@ -85,9 +85,17 @@ export default function LoginForm({ locale }: { locale: string }) {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-muted-foreground pt-4">
-        By continuing, you agree to our Terms of Service and Privacy Policy.
-      </p>
+      <div className="flex flex-col space-y-4 pt-4">
+        <p className="text-center text-sm text-muted-foreground">
+          Don't have an account?{' '}
+          <a href={`/${locale}/register`} className="font-semibold text-primary hover:underline">
+            Create one now
+          </a>
+        </p>
+        <p className="text-center text-sm text-muted-foreground">
+          By continuing, you agree to our Terms of Service and Privacy Policy.
+        </p>
+      </div>
     </div>
   )
 }

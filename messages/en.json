@@ -16,5 +16,24 @@
     "errorLoading": "Failed to load memberships. Please try again.",
     "noClinicsTitle": "No Active Clinics",
     "noClinicsDesc": "You don't have any active clinic memberships. Please contact your clinic administrator."
+  },
+  "Register": {
+    "title": "Create an account",
+    "description": "Enter your details to get started.",
+    "planTitle": "Choose a plan",
+    "planDesc": "Select the best plan for your clinic.",
+    "fullName": "Full Name",
+    "clinicName": "Clinic Name",
+    "email": "Email address",
+    "password": "Password",
+    "continue": "Continue",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "back": "Back",
+    "complete": "Complete Registration",
+    "creating": "Creating account...",
+    "successTitle": "Account Created!",
+    "successDesc": "Your account is active. Our team will contact you today to confirm payment and fully activate your subscription.",
+    "goDashboard": "Go to Dashboard"
   }
 }
