@@ -53,8 +53,10 @@ export default async function ClinicSwitcherPage({ params: { locale } }: { param
 
   if (error || !memberships) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-4 flex-col gap-4">
         <p className="text-destructive">{t('errorLoading')}</p>
+        <pre className="bg-muted p-4 rounded-md text-sm">{JSON.stringify(error, null, 2)}</pre>
+        <pre className="bg-muted p-4 rounded-md text-sm">Staff Member: {JSON.stringify(staffMember, null, 2)}</pre>
       </div>
     )
   }
