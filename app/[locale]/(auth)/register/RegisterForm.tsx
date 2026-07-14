@@ -88,8 +88,8 @@ export default function RegisterForm({
     // Verify OTP
     const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
       email: formData.email,
-      token: formData.otp,
-      type: 'signup'
+      token: formData.otp.trim(),
+      type: 'email'
     })
 
     if (verifyError || !verifyData.session) {
