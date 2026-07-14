@@ -17,6 +17,24 @@ those tables later, not just the initial design.
 
 ## 1. Staff & multi-clinic identity
 
+### `staff_invites`
+Owner/manager-generated invite links for adding staff — the actual path
+staff members join a clinic through, distinct from the public self-signup
+flow (which is for the clinic owner/manager only, see
+`05_Modular_Generation_Checkpoints.md` Checkpoint 1).
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid, PK | |
+| clinic_id | uuid | (standard) |
+| invited_role | `staff_role` enum | the role this invite grants once accepted |
+| invite_token | text, unique | random, URL-safe — the link is `/[locale]/invite/{invite_token}` |
+| created_by_membership_id | uuid, FK → `clinic_staff_memberships.id` | who generated it |
+| status | `invite_status` enum: `pending`, `accepted`, `expired`, `revoked` | |
+| expires_at | timestamptz | e.g. 7 days from creation |
+| accepted_by_staff_member_id | uuid, FK → `staff_members.id`, nullable | set once accepted |
+| created_at | timestamptz | |
+
 ### `staff_members`
 One row per real person, regardless of how many clinics they work at.
 

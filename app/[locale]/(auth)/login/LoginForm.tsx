@@ -36,7 +36,11 @@ export default function LoginForm({ locale }: { locale: string }) {
     })
 
     if (error) {
-      setError(error.message)
+      if (error.message.includes('Email not confirmed')) {
+        setError('Your email is not confirmed. Please check your inbox and confirm your email before logging in.')
+      } else {
+        setError(error.message)
+      }
       setLoading(false)
     } else {
       router.push(`/${locale}/clinic-switcher`)

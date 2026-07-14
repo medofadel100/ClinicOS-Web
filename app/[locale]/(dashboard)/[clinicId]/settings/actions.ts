@@ -170,3 +170,65 @@ export async function createClinicService(clinicId: string, formData: FormData) 
   if (error) throw error
   revalidatePath(`/[locale]/(dashboard)/[clinicId]/settings`, 'page')
 }
+
+export async function generateStaffInvite(clinicId: string, role: string) {
+  const supabase = await verifyOwner(clinicId)
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: staffMember } = await supabase
+    .from('staff_members')
+    .select('id')
+    .eq('auth_user_id', user.id)
+    .single()
+  
+  if (!staffMember) throw new Error('Unauthorized')
+
+  const { data: membership } = await supabase
+    .from('clinic_staff_memberships')
+    .select('id')
+    .eq('staff_member_id', staffMember.id)
+    .eq('clinic_id', clinicId)
+    .eq('is_active', true)
+    .single()
+
+  if (!membership) throw new Error('Unauthorized')
+
+  // Generate random URL-safe token
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(24)))
+    .map(b => b.toString(16).padStart(2, '0')).join('')
+
+  const { error } = await supabase
+    .from('staff_invites')
+    .insert({
+      clinic_id: clinicId,
+      invited_role: role,
+      invite_token: token,
+      created_by_membership_id: membership.id,
+      status: 'pending',
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+    })
+
+  if (error) {
+    console.error('Invite generation error:', error)
+    throw new Error('Failed to generate invite')
+  }
+
+  revalidatePath(`/[locale]/(dashboard)/[clinicId]/settings`, 'page')
+  return token
+}
+
+export async function revokeStaffInvite(clinicId: string, inviteId: string) {
+  const supabase = await verifyOwner(clinicId)
+
+  const { error } = await supabase
+    .from('staff_invites')
+    .update({ status: 'revoked' })
+    .eq('id', inviteId)
+    .eq('clinic_id', clinicId)
+    .eq('status', 'pending')
+
+  if (error) throw error
+  revalidatePath(`/[locale]/(dashboard)/[clinicId]/settings`, 'page')
+}

@@ -9,7 +9,10 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import EditPayrollDialog from './EditPayrollDialog'
+import InviteStaffDialog from './InviteStaffDialog'
+import { revokeStaffInvite } from './actions'
 
 type StaffMembership = {
   id: string
@@ -25,12 +28,22 @@ type StaffMembership = {
   }[]
 }
 
+type StaffInvite = {
+  id: string
+  invited_role: string
+  status: string
+  expires_at: string
+  created_at: string
+}
+
 export default function StaffSettingsTab({
   clinicId,
-  staffMemberships
+  staffMemberships,
+  staffInvites
 }: {
   clinicId: string
   staffMemberships: StaffMembership[]
+  staffInvites: StaffInvite[]
 }) {
   return (
     <div className="space-y-4">
@@ -83,6 +96,60 @@ export default function StaffSettingsTab({
                 </TableRow>
               )
             })}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex items-center justify-between pt-8 pb-4">
+        <div>
+          <h3 className="text-lg font-medium">Pending & Historical Invites</h3>
+          <p className="text-sm text-muted-foreground">Manage invitations sent to join your clinic.</p>
+        </div>
+        <InviteStaffDialog clinicId={clinicId} />
+      </div>
+
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Expires / Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {staffInvites.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                  No invites found.
+                </TableCell>
+              </TableRow>
+            )}
+            {staffInvites.map(invite => (
+              <TableRow key={invite.id}>
+                <TableCell className="capitalize">{invite.invited_role}</TableCell>
+                <TableCell>
+                  <Badge variant={invite.status === 'accepted' ? 'default' : invite.status === 'pending' ? 'secondary' : 'destructive'}>
+                    {invite.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {new Date(invite.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell className="text-right">
+                  {invite.status === 'pending' && (
+                    <Button 
+                      variant="ghost" 
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => revokeStaffInvite(clinicId, invite.id)}
+                    >
+                      Revoke
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>

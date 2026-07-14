@@ -78,17 +78,44 @@ there first — confirm it is before starting this checkpoint.
 
 ---
 
-## Checkpoint 2 — Staff auth & multi-clinic identity
+## Checkpoint 2 — Staff auth, multi-clinic identity & staff invites
 
-- `staff_members`, `clinic_staff_memberships` tables + RLS (Data_Models.md
-  section 1).
+- `staff_members`, `clinic_staff_memberships`, `staff_invites` tables +
+  RLS (Data_Models.md section 1).
 - Login; a user with memberships at more than one clinic sees a clinic
   switcher, otherwise goes straight into their one clinic.
 - Role-based route access per the matrix in Rules_and_Constraints.md
   section B.
-- **Acceptance:** a staff member with two clinic memberships can switch
-  between them and never sees the other clinic's data; RLS independently
-  blocks cross-clinic access even via a direct query.
+- **Invite generation** (owner-only, Settings > Staff): pick a role
+  (doctor/reception/accountant/other), generate a `staff_invites` row and
+  a shareable link `/[locale]/invite/{invite_token}`. List of pending/
+  accepted/expired invites, with a revoke action.
+- **Public invite acceptance page** (`/[locale]/invite/[token]`, no login
+  required to view): shows the clinic's name and the role being offered,
+  a form for full name, email, password, and — if `invited_role = doctor`
+  — specialty title and bio (populating `doctor_profiles`).
+- **Server-side acceptance handling**: a route handler using the Supabase
+  **service-role key** (server-only, per
+  `02_Rules_and_Constraints.md` section A) creates the auth user directly
+  with `email_confirm: true` via the Supabase admin API — invited staff
+  don't go through the email-confirmation flow the owner's self-signup
+  does, because they're already vouched for by a valid invite token. On
+  success: create `staff_members`, `clinic_staff_memberships` (role from
+  the invite), `doctor_profiles` if applicable, and mark the invite
+  `accepted` with `accepted_by_staff_member_id` set. An invalid, expired,
+  revoked, or already-accepted token shows a clear error, not a form.
+- **Acceptance:**
+  - [ ] A staff member with two clinic memberships can switch between
+        them and never sees the other clinic's data; RLS independently
+        blocks cross-clinic access even via a direct query.
+  - [ ] An owner can generate an invite link for each role, and revoking
+        a pending invite immediately invalidates its link.
+  - [ ] Accepting a valid doctor invite creates a working login (no email
+        confirmation step required), correctly scoped to that one clinic
+        with the `doctor` role, and a `doctor_profiles` row with the
+        specialty/bio the invitee entered.
+  - [ ] An expired or already-used invite link shows an error instead of
+        a form, and cannot be accepted twice.
 
 ## Checkpoint 3 — Clinic profile, services catalog, doctor profiles
 

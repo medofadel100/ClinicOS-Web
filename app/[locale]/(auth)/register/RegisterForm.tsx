@@ -27,6 +27,7 @@ export default function RegisterForm({
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [resendCooldown, setResendCooldown] = useState(0)
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -56,7 +57,8 @@ export default function RegisterForm({
       options: {
         data: {
           full_name: formData.fullName,
-        }
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/auth/callback`,
       }
     })
 
@@ -102,13 +104,33 @@ export default function RegisterForm({
 
     // 4. Complete
     setLoading(false)
-    if (!selectedPlanId) {
-      // Trial plan chosen, immediate redirect
-      router.push(`/${locale}/clinic-switcher`)
-      router.refresh()
+    setStep(3)
+  }
+
+  const handleResend = async () => {
+    if (resendCooldown > 0) return
+    setLoading(true)
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: formData.email,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/auth/callback`,
+      }
+    })
+    setLoading(false)
+    if (error) {
+      setError(error.message)
     } else {
-      // Paid plan chosen, show pending confirmation
-      setStep(3)
+      setResendCooldown(60)
+      const interval = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
     }
   }
 
@@ -119,17 +141,32 @@ export default function RegisterForm({
           <Clock className="h-8 w-8 text-blue-500" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold tracking-tight">Account Created Successfully</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Check your email</h2>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            Your clinic has been created and you have selected a paid plan. This is a 2-day provisional period. Our team will contact you today to confirm your payment method.
+            We sent a confirmation email to <strong>{formData.email}</strong>. Please open it and activate your account.
           </p>
+          {formData.planId !== '' && (
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-4">
+              Note: You selected a paid plan. This is a 2-day provisional period. Our team will contact you to confirm your payment method.
+            </p>
+          )}
         </div>
-        <Button onClick={() => {
-          router.push(`/${locale}/clinic-switcher`)
-          router.refresh()
-        }} className="w-full h-11 text-base">
-          Go to Dashboard
-        </Button>
+        {error && (
+          <div className="p-3 text-sm text-destructive-foreground bg-destructive/10 border border-destructive/20 rounded-md">
+            {error}
+          </div>
+        )}
+        <div className="space-y-3">
+          <Button onClick={handleResend} disabled={resendCooldown > 0 || loading} className="w-full h-11 text-base">
+            {resendCooldown > 0 ? `Resend Email in ${resendCooldown}s` : 'Resend Email'}
+          </Button>
+          <Button variant="outline" onClick={() => {
+            router.push(`/${locale}/login`)
+            router.refresh()
+          }} className="w-full h-11 text-base">
+            Go to Login
+          </Button>
+        </div>
       </div>
     )
   }

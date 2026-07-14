@@ -97,6 +97,12 @@ export default async function SettingsPage({
     .eq('clinic_id', clinicId)
     .eq('is_active', true)
 
+  const { data: staffInvites } = await supabase
+    .from('staff_invites')
+    .select('*')
+    .eq('clinic_id', clinicId)
+    .order('created_at', { ascending: false })
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
@@ -116,7 +122,7 @@ export default async function SettingsPage({
         </TabsContent>
         <TabsContent value="staff" className="space-y-4">
           {/* @ts-expect-error Supabase inference mismatch */}
-          <StaffSettingsTab clinicId={clinicId} staffMemberships={staffMemberships || []} />
+          <StaffSettingsTab clinicId={clinicId} staffMemberships={staffMemberships || []} staffInvites={staffInvites || []} />
         </TabsContent>
         <TabsContent value="doctors" className="space-y-4">
           {/* @ts-expect-error Supabase inference mismatch */}
