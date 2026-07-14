@@ -52,9 +52,11 @@ export default function RegisterForm({
     setError(null)
     setFormData(prev => ({ ...prev, planId: selectedPlanId }))
 
+    const normalizedEmail = formData.email.trim().toLowerCase()
+    
     // 1. Sign up user
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: formData.email,
+      email: normalizedEmail,
       password: formData.password,
       options: {
         data: {
@@ -85,11 +87,13 @@ export default function RegisterForm({
     setLoading(true)
     setError(null)
 
+    const normalizedEmail = formData.email.trim().toLowerCase()
+
     // Verify OTP
     const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-      email: formData.email,
+      email: normalizedEmail,
       token: formData.otp.trim(),
-      type: 'email'
+      type: 'signup'
     })
 
     if (verifyError || !verifyData.session) {
@@ -134,9 +138,10 @@ export default function RegisterForm({
   const handleResend = async () => {
     if (resendCooldown > 0) return
     setLoading(true)
+    const normalizedEmail = formData.email.trim().toLowerCase()
     const { error } = await supabase.auth.resend({
       type: 'signup',
-      email: formData.email,
+      email: normalizedEmail,
     })
     setLoading(false)
     if (error) {
