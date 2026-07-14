@@ -169,7 +169,7 @@ export default function RegisterForm({
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold tracking-tight">Enter Verification Code</h2>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            We sent a 6-digit code to <strong>{formData.email}</strong>. It will expire in 15 minutes.
+            We sent an 8-digit code to <strong>{formData.email}</strong>. It will expire in 15 minutes.
           </p>
         </div>
         
@@ -178,12 +178,12 @@ export default function RegisterForm({
             <Label htmlFor="otp">Verification Code</Label>
             <Input
               id="otp"
-              placeholder="000000"
+              placeholder="00000000"
               value={formData.otp}
               onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
               className="h-14 text-center text-2xl tracking-widest bg-muted/50 focus:bg-background transition-colors"
               required
-              maxLength={6}
+              maxLength={8}
             />
           </div>
 
@@ -194,7 +194,7 @@ export default function RegisterForm({
           )}
 
           <div className="space-y-3 pt-2">
-            <Button type="submit" disabled={loading || formData.otp.length < 6} className="w-full h-11 text-base">
+            <Button type="submit" disabled={loading || formData.otp.length < 8} className="w-full h-11 text-base">
               {loading ? 'Verifying...' : 'Verify & Continue'}
             </Button>
             <Button type="button" variant="ghost" onClick={handleResend} disabled={resendCooldown > 0 || loading} className="w-full h-11 text-base">
