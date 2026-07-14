@@ -128,19 +128,6 @@ export default function RegisterForm({
       return
     }
 
-    // Link owner
-    const linkRes = await linkClinicOwner({
-      userId: verifyData.user!.id,
-      fullName: formData.fullName,
-      clinicId: clinicId
-    })
-
-    if (!linkRes || !linkRes.success) {
-      setError('Debug: ' + JSON.stringify(linkRes))
-      setLoading(false)
-      return
-    }
-
     // Success -> redirect
     router.push(`/${locale}/clinic-switcher`)
     router.refresh()
