@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,17 @@ export default function RegisterForm({
   const t = useTranslations('Register')
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    // Unregister any rogue Service Workers that break Next.js Server Actions
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          registration.unregister()
+        })
+      })
+    }
+  }, [])
 
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -125,7 +136,7 @@ export default function RegisterForm({
     })
 
     if (!linkRes || !linkRes.success) {
-      setError(linkRes?.error || 'Failed to link clinic owner (Network or Service Worker Error). Please disable PWA or hard refresh.')
+      setError('Debug: ' + JSON.stringify(linkRes))
       setLoading(false)
       return
     }
