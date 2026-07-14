@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
 
   const pathname = request.nextUrl.pathname
-  const isAuthRoute = pathname.includes('/login')
+  const isAuthRoute = pathname.includes('/login') || pathname.includes('/register')
 
   // 3. Protect routes based on session
   if (!session && !isAuthRoute) {
