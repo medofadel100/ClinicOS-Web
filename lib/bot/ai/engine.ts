@@ -5,7 +5,7 @@ import { buildSystemPrompt } from './prompt-builder'
 import { lookupPatientInfo, getAvailableSlots, bookAppointment, cancelAppointment } from './tools'
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY || 'dummy_key_to_bypass_build_error'
 })
 
 export async function handleAIMessage(clinicId: string, from: string, messageBody: string) {
