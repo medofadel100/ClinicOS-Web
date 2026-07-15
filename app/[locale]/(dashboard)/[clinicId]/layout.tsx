@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
+import { Sidebar } from '@/components/layout/Sidebar'
+import { Menu, UserCircle } from 'lucide-react'
 
 export default async function DashboardLayout({
   children,
@@ -42,38 +44,34 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <aside className="w-64 border-r bg-muted/20 p-4 hidden md:flex flex-col">
-        <div className="font-bold text-xl mb-6">ClinicOS Web</div>
-        <nav className="flex-1 space-y-2">
-          <div className="text-xs uppercase text-muted-foreground font-semibold mb-2">Navigation</div>
-          <a href={`/${locale}/${clinicId}`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Dashboard</a>
-          <a href={`/${locale}/${clinicId}/appointments`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Appointments</a>
-          <a href={`/${locale}/${clinicId}/patients`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Patients</a>
-          <a href={`/${locale}/${clinicId}/inventory`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Inventory</a>
-          <a href={`/${locale}/${clinicId}/hr`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">My HR</a>
-          {membership.role === 'owner' || membership.role === 'admin' ? (
-            <>
-              <a href={`/${locale}/${clinicId}/marketing`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Marketing</a>
-              <a href={`/${locale}/${clinicId}/finance`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Finance</a>
-              <a href={`/${locale}/${clinicId}/reports`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Reports</a>
-            </>
-          ) : null}
-          {membership.role === 'owner' && (
-            <>
-              <a href={`/${locale}/${clinicId}/whatsapp`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">WhatsApp Bot</a>
-              <a href={`/${locale}/${clinicId}/settings`} className="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">Settings</a>
-            </>
-          )}
-        </nav>
-        <div className="mt-auto border-t pt-4">
-          <div className="text-sm font-medium">Role: <span className="capitalize text-primary">{membership.role}</span></div>
-          <a href={`/${locale}/clinic-switcher`} className="text-xs text-muted-foreground hover:underline mt-2 inline-block">Switch Clinic</a>
-        </div>
-      </aside>
-      <main className="flex-1 overflow-auto bg-background p-6">
-        {children}
-      </main>
+    <div className="min-h-screen flex bg-background w-full" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+      <Sidebar locale={locale} clinicId={clinicId} role={membership.role} />
+      
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Top Header */}
+        <header className="h-16 border-b bg-card flex items-center justify-between px-6 shadow-sm shrink-0">
+          <div className="flex items-center gap-4">
+            <button className="md:hidden p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
+              <Menu className="w-5 h-5" />
+            </button>
+            <h1 className="font-semibold text-lg hidden sm:block tracking-tight">Dashboard</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            {/* User Profile */}
+            <div className="flex items-center gap-2 hover:bg-accent p-2 rounded-md cursor-pointer transition-colors border border-transparent hover:border-border">
+              <UserCircle className="w-5 h-5 text-muted-foreground" />
+              <span className="text-sm font-medium hidden sm:block text-foreground">{user.email}</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-auto bg-muted/20 p-4 md:p-8">
+          <div className="mx-auto max-w-7xl h-full">
+            {children}
+          </div>
+        </main>
+      </div>
       <OnboardingTour />
     </div>
   )
