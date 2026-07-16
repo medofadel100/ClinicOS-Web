@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { Menu, UserCircle } from 'lucide-react'
+import { HeaderActions } from '@/components/layout/HeaderActions'
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
+import { Menu } from 'lucide-react'
 
 export default async function DashboardLayout({
   children,
@@ -18,10 +19,9 @@ export default async function DashboardLayout({
     redirect(`/${locale}/login`)
   }
 
-  // Get staff member ID
   const { data: staffMember } = await supabase
     .from('staff_members')
-    .select('id')
+    .select('id, full_name')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -29,7 +29,6 @@ export default async function DashboardLayout({
     redirect(`/${locale}/clinic-switcher`)
   }
 
-  // Verify membership to this specific clinic
   const { data: membership } = await supabase
     .from('clinic_staff_memberships')
     .select('role')
@@ -39,39 +38,121 @@ export default async function DashboardLayout({
     .single()
 
   if (!membership) {
-    // If not a member of this clinic, redirect to switcher
     redirect(`/${locale}/clinic-switcher`)
   }
 
+  const { data: clinic } = await supabase
+    .from('clinics')
+    .select(`
+      name,
+      clinic_type_id,
+      clinic_types ( code, name_ar, name_en )
+    `)
+    .eq('id', clinicId)
+    .single()
+
+  const specialtyCode = clinic?.clinic_types?.code?.toLowerCase() || ''
+  const isDental = specialtyCode.includes('dental')
+  const clinicName = clinic?.name || 'Clinic'
+
+  // Prefer full_name from staff_members, fall back to email
+  const displayName = staffMember.full_name || user.email || ''
+  const emailName = user.email?.split('@')[0] || 'User'
+  const userInitials = (staffMember.full_name
+    ? staffMember.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)
+    : emailName.slice(0, 2)
+  ).toUpperCase()
+
+  const roleLabel = membership.role.charAt(0).toUpperCase() + membership.role.slice(1)
+
   return (
-    <div className="min-h-screen flex bg-background w-full" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-      <Sidebar locale={locale} clinicId={clinicId} role={membership.role} />
-      
+    <div
+      className="flex min-h-screen w-full overflow-hidden"
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+      style={{
+        background: 'linear-gradient(135deg, hsl(222 47% 5%) 0%, hsl(222 47% 4%) 100%)',
+      }}
+    >
+      <Sidebar
+        locale={locale}
+        clinicId={clinicId}
+        role={membership.role}
+        specialty={isDental ? 'dental' : ''}
+      />
+
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        {/* Top Header */}
-        <header className="h-16 border-b bg-card flex items-center justify-between px-6 shadow-sm shrink-0">
+        {/* ── Premium Header ── */}
+        <header
+          className="relative z-30 h-16 flex items-center justify-between px-6 shrink-0"
+          style={{
+            background: 'rgba(10, 15, 30, 0.85)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            boxShadow: '0 1px 0 rgba(0,0,0,0.4)',
+          }}
+        >
+          {/* Left: mobile menu + clinic name */}
           <div className="flex items-center gap-4">
-            <button className="md:hidden p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
+            <button
+              className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all duration-200"
+              aria-label="Open menu"
+            >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="font-semibold text-lg hidden sm:block tracking-tight">Dashboard</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* User Profile */}
-            <div className="flex items-center gap-2 hover:bg-accent p-2 rounded-md cursor-pointer transition-colors border border-transparent hover:border-border">
-              <UserCircle className="w-5 h-5 text-muted-foreground" />
-              <span className="text-sm font-medium hidden sm:block text-foreground">{user.email}</span>
+
+            <div className="hidden md:flex items-center gap-2">
+              <div
+                className="flex items-center justify-center w-7 h-7 rounded-lg text-[10px] font-bold"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,212,170,0.2) 0%, rgba(0,212,170,0.06) 100%)',
+                  border: '1px solid rgba(0,212,170,0.2)',
+                  color: 'hsl(168 100% 52%)',
+                }}
+              >
+                {clinicName.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-sm font-semibold text-slate-200 tracking-tight">
+                {clinicName}
+              </span>
             </div>
           </div>
+
+          {/* Right: interactive header actions (client component) */}
+          <HeaderActions
+            userEmail={user.email || ''}
+            userInitials={userInitials}
+            roleLabel={roleLabel}
+            locale={locale}
+            clinicId={clinicId}
+          />
         </header>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-auto bg-muted/20 p-4 md:p-8">
-          <div className="mx-auto max-w-7xl h-full">
+        {/* ── Main Content ── */}
+        <main
+          className="flex-1 overflow-auto relative"
+          style={{
+            background: 'linear-gradient(135deg, hsl(222 47% 5%) 0%, hsl(222 47% 4%) 100%)',
+          }}
+        >
+          {/* Ambient background decorations */}
+          <div
+            className="pointer-events-none absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[120px] opacity-[0.04]"
+            aria-hidden="true"
+            style={{ background: 'hsl(168 100% 42%)' }}
+          />
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.03]"
+            aria-hidden="true"
+            style={{ background: 'hsl(258 60% 55%)' }}
+          />
+
+          <div className="relative z-10 p-6 md:p-8 max-w-7xl mx-auto">
             {children}
           </div>
         </main>
       </div>
+
       <OnboardingTour />
     </div>
   )

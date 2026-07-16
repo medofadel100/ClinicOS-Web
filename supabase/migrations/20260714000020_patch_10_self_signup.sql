@@ -102,8 +102,65 @@ BEGIN
     owner_phone
   ) RETURNING id INTO v_clinic_id;
 
+  -- Create owner staff identity + membership (fix owner lockout)
+  INSERT INTO public.staff_members (
+    auth_user_id,
+    full_name,
+    phone
+  ) VALUES (
+    auth.uid(),
+    owner_full_name,
+    owner_phone
+  ) RETURNING id INTO v_owner_email;
+
+  -- Create clinic_staff_memberships row for owner
+  INSERT INTO public.clinic_staff_memberships (
+    staff_member_id,
+    clinic_id,
+    role,
+    is_active
+  ) VALUES (
+    v_owner_email,
+    v_clinic_id,
+    'owner',
+    true
+  );
+
+  -- Seed default service catalog from clinic type templates (one-time snapshot)
+  -- If there are no active templates for this clinic_type_id, we leave the clinic empty.
+
+  -- Build categories (distinct category_name)
+  INSERT INTO public.service_categories (clinic_id, name, order_index)
+  SELECT
+    v_clinic_id,
+    t.category_name,
+    MIN(COALESCE(t.order_index, 0))
+  FROM public.clinic_type_service_templates t
+  WHERE t.clinic_type_id = clinic_type_id
+    AND t.is_active = true
+  GROUP BY t.category_name
+  ON CONFLICT (clinic_id, name) DO NOTHING;
+
+  -- Insert services from templates
+  INSERT INTO public.clinic_services (clinic_id, category_id, name, description, price, duration_minutes)
+  SELECT
+    v_clinic_id,
+    sc.id AS category_id,
+    t.name,
+    t.description,
+    COALESCE(t.suggested_price_egp, 0) AS price,
+    COALESCE(t.duration_minutes, 30) AS duration_minutes
+  FROM public.clinic_type_service_templates t
+  JOIN public.service_categories sc
+    ON sc.clinic_id = v_clinic_id
+   AND sc.name = t.category_name
+  WHERE t.clinic_type_id = clinic_type_id
+    AND t.is_active = true;
+
   -- Create subscription
+
   IF chosen_plan_id IS NULL THEN
+
     -- Trial subscription
     INSERT INTO public.clinic_subscriptions (
       clinic_id,

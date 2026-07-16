@@ -1,11 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { PremiumCard } from '@/components/layout/PageComponents'
 import { uploadPatientFile } from '../actions'
+import { Download } from 'lucide-react'
 
 interface PatientFileData {
   id: string
@@ -48,68 +46,78 @@ export default function PatientFiles({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload File</CardTitle>
-          <CardDescription>Upload an X-Ray, prescription, or other document.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-end gap-4 max-w-2xl">
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="category">Category</Label>
-              <select id="category" name="category" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                <option value="xray">X-Ray</option>
-                <option value="prescription">Prescription</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="file">File</Label>
-              <Input id="file" name="file" type="file" required />
-            </div>
-            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-              {loading ? 'Uploading...' : 'Upload'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <PremiumCard>
+        <div className="mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <h2 className="text-base font-semibold text-slate-200">Upload File</h2>
+          <p className="text-sm text-slate-500 mt-0.5">Upload an X-Ray, prescription, or other document.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-end gap-4 max-w-2xl">
+          <div className="space-y-2 flex-1">
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400" htmlFor="category">Category</label>
+            <select id="category" name="category" className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all">
+              <option value="xray">X-Ray</option>
+              <option value="prescription">Prescription</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="space-y-2 flex-1">
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400" htmlFor="file">File</label>
+            <input 
+              id="file" 
+              name="file" 
+              type="file" 
+              required 
+              className="w-full h-10 px-3 py-1.5 rounded-lg text-sm bg-black/20 border border-white/10 text-slate-300 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all file:bg-white/10 file:border-0 file:rounded file:px-2 file:py-1 file:text-slate-300 file:mr-3 hover:file:bg-white/20"
+            />
+          </div>
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="flex items-center gap-2 h-10 px-6 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 w-full sm:w-auto"
+            style={{ background: '#00d4aa', color: '#0a0f1e' }}
+          >
+            {loading ? 'Uploading...' : 'Upload'}
+          </button>
+        </form>
+      </PremiumCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Patient Files</CardTitle>
-          <CardDescription>Documents attached to this patient&apos;s record.</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <PremiumCard>
+        <div className="mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <h2 className="text-base font-semibold text-slate-200">Patient Files</h2>
+          <p className="text-sm text-slate-500 mt-0.5">Documents attached to this patient&apos;s record.</p>
+        </div>
+        <div>
           {initialData.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No files uploaded yet.</p>
+            <p className="text-sm text-slate-500 text-center py-4">No files uploaded yet.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {initialData.map(file => (
-                <div key={file.id} className="flex items-center justify-between p-3 border rounded-md">
+                <div key={file.id} className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div>
-                    <div className="font-medium capitalize">{file.category}</div>
-                    <div className="text-sm text-muted-foreground flex gap-2 mt-1">
-                      <span>Source: {file.uploaded_via}</span>
-                      <span>• Status: {file.review_status}</span>
-                      <span>• {new Date(file.created_at).toLocaleDateString()}</span>
+                    <div className="font-semibold text-slate-200 capitalize">{file.category}</div>
+                    <div className="text-xs text-slate-400 flex flex-wrap gap-x-2 gap-y-1 mt-1.5">
+                      <span>Via {file.uploaded_via}</span>
+                      <span>•</span>
+                      <span className={file.review_status === 'pending' ? 'text-amber-400' : 'text-slate-400'}>{file.review_status}</span>
+                      <span>•</span>
+                      <span>{new Date(file.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <button 
                     onClick={(e) => {
-                      e.preventDefault()
-                      alert(`Path: ${file.file_url}`)
+                      e.preventDefault();
+                      window.open(file.file_url, '_blank');
                     }}
+                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition-colors"
                   >
-                    View File
-                  </Button>
+                    <Download className="w-4 h-4" />
+                  </button>
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </PremiumCard>
     </div>
   )
 }

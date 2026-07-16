@@ -35,5 +35,34 @@
     "successTitle": "تم إنشاء الحساب بنجاح!",
     "successDesc": "حسابك مفعل الآن. سيتواصل معك فريقنا خلال اليوم لتأكيد عملية الدفع وتفعيل اشتراكك بشكل دائم.",
     "goDashboard": "الذهاب إلى لوحة التحكم"
+  },
+  "Dashboard": {
+    "welcome": "Welcome to {name}",
+    "unknownClinic": "Unknown Clinic",
+    "totalRevenue": "Total Revenue",
+    "appointments": "Appointments",
+    "activePatients": "Active Patients",
+    "activeStaff": "Active Staff",
+    "fromLastMonth": "{value} from last month",
+    "sinceLastWeek": "{value} since last week",
+    "sinceLastHour": "{value} since last hour",
+    "title": "Dashboard"
+  },
+  "Sidebar": {
+    "brand": "ClinicOS",
+    "navigation": "Navigation",
+    "dashboard": "Dashboard",
+    "appointments": "Appointments",
+    "patients": "Patients",
+    "inventory": "Inventory",
+    "myHr": "My HR",
+    "marketing": "Marketing",
+    "finance": "Finance",
+    "reports": "Reports",
+    "whatsappBot": "WhatsApp Bot",
+    "settings": "Settings",
+    "dentalChart": "Dental Chart",
+    "accessLevel": "Access Level",
+    "switchClinic": "Switch Clinic"
   }
 }

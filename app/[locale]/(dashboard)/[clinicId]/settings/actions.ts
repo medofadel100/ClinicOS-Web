@@ -31,6 +31,28 @@ async function verifyOwner(clinicId: string) {
   return supabase
 }
 
+export async function updateClinicGeneralInfo(clinicId: string, locale: string, formData: FormData) {
+  const supabase = await verifyOwner(clinicId)
+
+  const name = formData.get('name') as string
+  const owner_full_name = formData.get('owner_full_name') as string
+  const owner_phone = formData.get('owner_phone') as string
+
+  if (!name) throw new Error('Clinic name is required')
+
+  const { error } = await supabase
+    .from('clinics')
+    .update({
+      name,
+      owner_full_name: owner_full_name || null,
+      owner_phone: owner_phone || null
+    })
+    .eq('id', clinicId)
+
+  if (error) throw error
+  revalidatePath(`/[locale]/(dashboard)/[clinicId]/settings`, 'page')
+}
+
 export async function updateClinicSettings(clinicId: string, formData: FormData) {
   const supabase = await verifyOwner(clinicId)
 

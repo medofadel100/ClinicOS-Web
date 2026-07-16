@@ -1,11 +1,13 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { PageHeader, PremiumCard, PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
+import { Calendar, Clock } from 'lucide-react'
 import BookAppointmentDialog from './BookAppointmentDialog'
 import WaitlistManagement from './WaitlistManagement'
 import AppointmentStatusSelect from './AppointmentStatusSelect'
 import RescheduleAppointmentDialog from './RescheduleAppointmentDialog'
+import AppointmentFilters from './AppointmentFilters'
 
 export default async function AppointmentsPage({
   params: { locale, clinicId },
@@ -18,26 +20,16 @@ export default async function AppointmentsPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect(`/${locale}/login`)
 
-  // Default to today
   const targetDate = searchParams.date || new Date().toISOString().split('T')[0]
 
-  // Fetch appointments for this clinic on the target date
-  // Since scheduled_at is timestamptz, we query >= startOfDay and < startOfNextDay
   const startOfDay = new Date(targetDate)
-  startOfDay.setUTCHours(0,0,0,0)
+  startOfDay.setUTCHours(0, 0, 0, 0)
   const endOfDay = new Date(targetDate)
-  endOfDay.setUTCHours(23,59,59,999)
+  endOfDay.setUTCHours(23, 59, 59, 999)
 
   let query = supabase
     .from('appointments')
-    .select(`
-      *,
-      patients ( full_name, phone ),
-      clinic_staff_memberships (
-        staff_members ( full_name )
-      ),
-      clinic_services ( name )
-    `)
+    .select(`*, patients ( full_name, phone ), clinic_staff_memberships ( staff_members ( full_name ) ), clinic_services ( name )`)
     .eq('clinic_id', clinicId)
     .gte('scheduled_at', startOfDay.toISOString())
     .lte('scheduled_at', endOfDay.toISOString())
@@ -49,7 +41,6 @@ export default async function AppointmentsPage({
 
   const { data: appointments } = await query
 
-  // Fetch doctors and services and patients for the booking dialog
   const { data: doctors } = await supabase
     .from('clinic_staff_memberships')
     .select(`id, staff_members(full_name)`)
@@ -67,26 +58,17 @@ export default async function AppointmentsPage({
     .select('id, full_name')
     .eq('clinic_id', clinicId)
 
-  // Fetch waitlist
   const { data: waitlist } = await supabase
     .from('patient_waitlist')
-    .select(`
-      *,
-      patients(full_name),
-      clinic_staff_memberships(staff_members(full_name))
-    `)
+    .select(`*, patients(full_name), clinic_staff_memberships(staff_members(full_name))`)
     .eq('clinic_id', clinicId)
     .order('created_at', { ascending: false })
 
-  // Type casting to satisfy strict ESLint rules
   type Doctor = { id: string; staff_members: { full_name: string } }
   type Service = { id: string; name: string; duration_minutes: number }
   type Patient = { id: string; full_name: string }
   type WaitlistEntry = {
-    id: string
-    status: string
-    desired_from: string
-    desired_to: string
+    id: string; status: string; desired_from: string; desired_to: string;
     patients?: { full_name: string }
     clinic_staff_memberships?: { staff_members?: { full_name: string } }
   }
@@ -96,119 +78,122 @@ export default async function AppointmentsPage({
   const typedPatients = (patients || []) as unknown as Patient[]
   const typedWaitlist = (waitlist || []) as unknown as WaitlistEntry[]
 
-  return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
-          <p className="text-muted-foreground">Manage your clinic&apos;s schedule.</p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {/* Simple date picker nav for MVP */}
-          <form className="flex items-center gap-2" method="GET">
-            <input 
-              type="date" 
-              name="date" 
-              defaultValue={targetDate} 
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
-              onChange={(e) => {
-                // Auto-submit on date change
-                e.target.form?.submit()
-              }}
-            />
-            {typedDoctors.length > 0 && (
-              <select
-                name="doctor"
-                defaultValue={searchParams.doctor || ''}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                onChange={(e) => {
-                  e.target.form?.submit()
-                }}
-              >
-                <option value="">All Doctors</option>
-                {typedDoctors.map(d => (
-                  <option key={d.id} value={d.id}>{d.staff_members.full_name}</option>
-                ))}
-              </select>
-            )}
-          </form>
+  const formattedDate = new Date(targetDate + 'T00:00:00').toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+  })
 
-          <BookAppointmentDialog 
-            clinicId={clinicId} 
-            locale={locale} 
-            doctors={typedDoctors} 
-            services={typedServices} 
-            patients={typedPatients} 
-          />
-        </div>
-      </div>
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <PageHeader
+        title="Appointments"
+        description={`Schedule for ${formattedDate}`}
+        icon={Calendar}
+        iconColor="text-blue-400"
+        iconBg="rgba(59,130,246,0.12)"
+        badge={`${appointments?.length ?? 0} today`}
+        actions={
+          <div className="flex items-center gap-2">
+            <AppointmentFilters
+              targetDate={targetDate}
+              doctors={typedDoctors}
+              selectedDoctor={searchParams.doctor || ''}
+            />
+            <BookAppointmentDialog
+              clinicId={clinicId}
+              locale={locale}
+              doctors={typedDoctors}
+              services={typedServices}
+              patients={typedPatients}
+            />
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Schedule for {new Date(targetDate).toLocaleDateString()}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {appointments?.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No appointments scheduled for this day.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Time</TableHead>
-                      <TableHead>Patient</TableHead>
-                      <TableHead>Doctor</TableHead>
-                      <TableHead>Service</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {appointments?.map(app => {
-                      const time = new Date(app.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                      return (
-                        <TableRow key={app.id}>
-                          <TableCell className="font-medium">{time}</TableCell>
-                          <TableCell>
-                            <a href={`/${locale}/${clinicId}/patients/${app.patient_id}`} className="text-primary hover:underline">
-                              {app.patients?.full_name}
-                            </a>
-                          </TableCell>
-                          <TableCell>{app.clinic_staff_memberships?.staff_members?.full_name}</TableCell>
-                          <TableCell>{app.clinic_services?.name}</TableCell>
-                          <TableCell className="flex gap-2 items-center">
-                            <AppointmentStatusSelect 
-                              appointmentId={app.id} 
-                              clinicId={clinicId} 
-                              locale={locale} 
-                              initialStatus={app.status} 
+        {/* Main appointments table */}
+        <div className="lg:col-span-2 space-y-3">
+          <PremiumTableWrapper>
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  {['Time', 'Patient', 'Doctor', 'Service', 'Status'].map(h => (
+                    <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {!appointments?.length ? (
+                  <tr>
+                    <td colSpan={5}>
+                      <EmptyState
+                        icon={Calendar}
+                        title="No appointments today"
+                        description="Book a new appointment using the button above"
+                      />
+                    </td>
+                  </tr>
+                ) : appointments.map((app, i) => {
+                  const time = new Date(app.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  return (
+                    <tr
+                      key={app.id}
+                      className="hover:bg-white/[0.02] transition-colors"
+                      style={{ borderBottom: i < appointments.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
+                    >
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-slate-600" />
+                          <span className="text-sm font-semibold text-slate-200">{time}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        <Link
+                          href={`/${locale}/${clinicId}/patients/${app.patient_id}`}
+                          className="text-sm font-semibold transition-colors"
+                          style={{ color: 'hsl(168 100% 52%)' }}
+                        >
+                          {app.patients?.full_name || '—'}
+                        </Link>
+                      </td>
+                      <td className="px-5 py-4 text-sm text-slate-400">
+                        {app.clinic_staff_memberships?.staff_members?.full_name || '—'}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-slate-500">
+                        {app.clinic_services?.name || '—'}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <AppointmentStatusSelect
+                            appointmentId={app.id}
+                            clinicId={clinicId}
+                            locale={locale}
+                            initialStatus={app.status}
+                          />
+                          {app.status === 'scheduled' && (
+                            <RescheduleAppointmentDialog
+                              appointmentId={app.id}
+                              clinicId={clinicId}
+                              locale={locale}
+                              initialDate={targetDate}
+                              initialTime={new Date(app.scheduled_at).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
                             />
-                            {app.status === 'scheduled' && (
-                              <RescheduleAppointmentDialog
-                                appointmentId={app.id}
-                                clinicId={clinicId}
-                                locale={locale}
-                                initialDate={targetDate}
-                                initialTime={new Date(app.scheduled_at).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
-                              />
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </PremiumTableWrapper>
         </div>
 
-        <div className="space-y-6">
-          <WaitlistManagement 
-            clinicId={clinicId} 
-            locale={locale} 
-            waitlist={typedWaitlist} 
+        {/* Waitlist */}
+        <div>
+          <WaitlistManagement
+            clinicId={clinicId}
+            locale={locale}
+            waitlist={typedWaitlist}
             patients={typedPatients}
             doctors={typedDoctors}
           />

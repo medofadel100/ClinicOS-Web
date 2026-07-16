@@ -1,181 +1,198 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import LogExpenseDialog from './LogExpenseDialog'
-import { Button } from '@/components/ui/button'
-import { payOccurrence } from './actions'
+import { PageHeader, PremiumCard, PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
+import { DollarSign, ArrowDownRight, ArrowUpRight, TrendingUp } from 'lucide-react'
 
 export default async function FinancePage({
-  params: { locale, clinicId }
+  params: { clinicId, locale }
 }: {
-  params: { locale: string; clinicId: string }
+  params: { clinicId: string, locale: string }
 }) {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect(`/${locale}/login`)
+  let recentPayments: any[] = []
+  let recentExpenses: any[] = []
+  let totalRevenue = 0
+  let totalExpenses = 0
+  let netIncome = 0
+
+  try {
+    const { data: paymentsData } = await supabase
+      .from('patient_payments')
+      .select(`*, patients(full_name), staff_members(full_name)`)
+      .eq('clinic_id', clinicId)
+      .order('paid_at', { ascending: false })
+      .limit(50)
+
+    if (paymentsData) {
+      recentPayments = paymentsData
+      totalRevenue = paymentsData.reduce((sum, p) => sum + Number(p.amount_egp || 0), 0)
+    }
+
+    const { data: expensesData } = await supabase
+      .from('clinic_expenses')
+      .select('*')
+      .eq('clinic_id', clinicId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (expensesData) {
+      recentExpenses = expensesData
+      totalExpenses = expensesData.reduce((sum, e) => sum + Number(e.amount_egp || 0), 0)
+    }
+
+    netIncome = totalRevenue - totalExpenses
+  } catch (error) {
+    console.error('Error fetching finance data:', error)
   }
 
-  // Double check authorization on the server side
-  const { data: staffMember } = await supabase
-    .from('staff_members')
-    .select('id')
-    .eq('auth_user_id', user.id)
-    .single()
-    
-  const { data: membership } = await supabase
-    .from('clinic_staff_memberships')
-    .select('role')
-    .eq('staff_member_id', staffMember?.id)
-    .eq('clinic_id', clinicId)
-    .eq('is_active', true)
-    .single()
-
-  if (!membership || (membership.role !== 'owner' && membership.role !== 'admin')) {
-    redirect(`/${locale}/${clinicId}`)
-  }
-
-  // Fetch Revenue
-  const { data: payments } = await supabase
-    .from('patient_payments')
-    .select('amount_egp')
-    .eq('clinic_id', clinicId)
-
-  const totalRevenue = payments?.reduce((sum, p) => sum + Number(p.amount_egp), 0) || 0
-
-  // Fetch Expenses
-  const { data: expenses } = await supabase
-    .from('clinic_expenses')
-    .select(`
-      *,
-      expense_occurrences (*)
-    `)
-    .eq('clinic_id', clinicId)
-    .order('created_at', { ascending: false })
-
-  const clinicExpenses = expenses || []
-  
-  type ExpenseOccurrence = {
-    id: string
-    period_date: string
-    amount_egp: number
-    status: 'pending' | 'paid'
-  }
-  
-  const allOccurrences = clinicExpenses.flatMap(e => 
-    (e.expense_occurrences as unknown as ExpenseOccurrence[]).map(o => ({ ...o, expenseTitle: e.title, category: e.category }))
-  )
-  
-  const totalExpenses = allOccurrences
-    .filter(o => o.status === 'paid')
-    .reduce((sum, o) => sum + Number(o.amount_egp), 0)
-
-  const netProfit = totalRevenue - totalExpenses
+  const metricCards = [
+    {
+      title: 'Total Revenue',
+      value: `${totalRevenue.toFixed(2)} EGP`,
+      icon: ArrowUpRight,
+      iconColor: 'text-green-400',
+      iconBg: 'rgba(34,197,94,0.12)',
+      borderColor: 'rgba(34,197,94,0.15)',
+      glowColor: 'rgba(34,197,94,0.3)',
+      sub: 'From patient payments',
+    },
+    {
+      title: 'Total Expenses',
+      value: `${totalExpenses.toFixed(2)} EGP`,
+      icon: ArrowDownRight,
+      iconColor: 'text-red-400',
+      iconBg: 'rgba(239,68,68,0.12)',
+      borderColor: 'rgba(239,68,68,0.15)',
+      glowColor: 'rgba(239,68,68,0.3)',
+      sub: 'Operating costs',
+    },
+    {
+      title: 'Net Income',
+      value: `${netIncome.toFixed(2)} EGP`,
+      icon: TrendingUp,
+      iconColor: netIncome >= 0 ? 'text-teal-400' : 'text-red-400',
+      iconBg: netIncome >= 0 ? 'rgba(0,212,170,0.12)' : 'rgba(239,68,68,0.12)',
+      borderColor: netIncome >= 0 ? 'rgba(0,212,170,0.15)' : 'rgba(239,68,68,0.15)',
+      glowColor: netIncome >= 0 ? 'rgba(0,212,170,0.3)' : 'rgba(239,68,68,0.3)',
+      sub: 'Revenue minus expenses',
+    },
+  ]
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Clinic Finance</h1>
-          <p className="text-muted-foreground">High-level overview of revenue and expenses.</p>
+    <div className="space-y-8 animate-fade-in">
+      <PageHeader
+        title="Finance"
+        description="Track revenue, expenses, and net income for your clinic."
+        icon={DollarSign}
+        iconColor="text-green-400"
+        iconBg="rgba(34,197,94,0.12)"
+      />
+
+      {/* Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {metricCards.map((card, i) => (
+          <div
+            key={card.title}
+            className="relative group rounded-2xl p-5 hover-lift animate-slide-in-up"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+              border: `1px solid ${card.borderColor}`,
+              animationDelay: `${i * 80}ms`,
+              animationFillMode: 'both',
+            }}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <p className="text-[13px] font-medium text-slate-400">{card.title}</p>
+              <div
+                className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 group-hover:scale-110"
+                style={{ background: card.iconBg, boxShadow: `0 0 12px ${card.glowColor.replace('0.3', '0.15')}` }}
+              >
+                <card.icon className={`w-4.5 h-4.5 ${card.iconColor}`} style={{ width: '18px', height: '18px' }} />
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Outfit', sans-serif" }}>
+              {card.value}
+            </div>
+            <p className="text-xs text-slate-600">{card.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Income Table */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-slate-200">Recent Payments</h2>
+          <span
+            className="text-xs font-medium px-2.5 py-1 rounded-full"
+            style={{ background: 'rgba(34,197,94,0.1)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.2)' }}
+          >
+            Income
+          </span>
         </div>
-        <LogExpenseDialog clinicId={clinicId} locale={locale} />
-      </div>
-
-      {/* Aggregate Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {totalRevenue.toLocaleString()} EGP
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Paid Expenses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">
-              {totalExpenses.toLocaleString()} EGP
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-              {netProfit.toLocaleString()} EGP
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Expense Occurrences</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {allOccurrences.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No expenses logged yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Expense</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Period Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allOccurrences.sort((a, b) => new Date(b.period_date).getTime() - new Date(a.period_date).getTime()).map(occ => (
-                  <TableRow key={occ.id}>
-                    <TableCell className="font-medium">{occ.expenseTitle}</TableCell>
-                    <TableCell className="capitalize">{occ.category}</TableCell>
-                    <TableCell>{new Date(occ.period_date).toLocaleDateString()}</TableCell>
-                    <TableCell className="font-semibold">{occ.amount_egp} EGP</TableCell>
-                    <TableCell>
-                      {occ.status === 'paid' ? (
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">Paid</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-yellow-600 border-yellow-600">Pending</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {occ.status === 'pending' && (
-                        <form action={async () => {
-                          'use server'
-                          await payOccurrence(clinicId, locale, occ.id)
-                        }}>
-                          <Button size="sm" variant="outline">Mark as Paid</Button>
-                        </form>
-                      )}
-                    </TableCell>
-                  </TableRow>
+        <PremiumTableWrapper>
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                {['Date', 'Patient', 'Amount', 'Method', 'Recorded By'].map(h => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{h}</th>
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+              </tr>
+            </thead>
+            <tbody>
+              {!recentPayments.length ? (
+                <tr><td colSpan={5}><EmptyState icon={DollarSign} title="No payments recorded yet" description="Payments will appear here once recorded" /></td></tr>
+              ) : recentPayments.map((p, i) => (
+                <tr key={p.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < recentPayments.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <td className="px-5 py-4 text-sm text-slate-400">{new Date(p.paid_at).toLocaleDateString()}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{p.patients?.full_name || '—'}</td>
+                  <td className="px-5 py-4 text-sm font-bold text-green-400">{Number(p.amount_egp).toFixed(2)} EGP</td>
+                  <td className="px-5 py-4 text-sm text-slate-400 capitalize">{p.payment_method?.replace('_', ' ') || '—'}</td>
+                  <td className="px-5 py-4 text-sm text-slate-500">{p.staff_members?.full_name || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </PremiumTableWrapper>
+      </div>
+
+      {/* Expenses Table */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-slate-200">Operating Expenses</h2>
+          <span
+            className="text-xs font-medium px-2.5 py-1 rounded-full"
+            style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}
+          >
+            Expenses
+          </span>
+        </div>
+        <PremiumTableWrapper>
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                {['Date', 'Title', 'Category', 'Amount', 'Recurrence', 'Status'].map(h => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {!recentExpenses.length ? (
+                <tr><td colSpan={6}><EmptyState icon={ArrowDownRight} title="No expenses recorded yet" description="Track your clinic's operating costs here" /></td></tr>
+              ) : recentExpenses.map((e, i) => (
+                <tr key={e.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < recentExpenses.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <td className="px-5 py-4 text-sm text-slate-400">{new Date(e.start_date || e.created_at).toLocaleDateString()}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{e.title}</td>
+                  <td className="px-5 py-4 text-sm text-slate-400 capitalize">{e.category || '—'}</td>
+                  <td className="px-5 py-4 text-sm font-bold text-red-400">{Number(e.amount_egp).toFixed(2)} EGP</td>
+                  <td className="px-5 py-4 text-sm text-slate-500 capitalize">{e.recurrence?.replace('_', ' ') || '—'}</td>
+                  <td className="px-5 py-4"><StatusBadge status={e.is_active ? 'active' : 'ended'} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </PremiumTableWrapper>
+      </div>
     </div>
   )
 }

@@ -53,9 +53,10 @@ export default function BookAppointmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* @ts-expect-error shadcn primitive issue */}
-      <DialogTrigger asChild>
-        <Button>Book Appointment</Button>
+      <DialogTrigger
+        className="h-10 px-4 py-2 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 bg-teal-500 text-white hover:bg-teal-600 shadow"
+      >
+        Book Appointment
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

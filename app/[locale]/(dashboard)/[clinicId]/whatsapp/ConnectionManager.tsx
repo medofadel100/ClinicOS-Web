@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { PremiumCard } from '@/components/layout/PageComponents'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, QrCode, Smartphone, Wifi, WifiOff } from 'lucide-react'
 import { initSession, getSessionStatus, disconnectSession } from '@/lib/whatsapp-client'
@@ -91,74 +90,92 @@ export default function ConnectionManager({
   }
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+    <div className="mb-6">
+      <PremiumCard>
+        <div className="flex items-center justify-between mb-6 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Smartphone className="w-5 h-5" />
+            <h2 className="text-base font-semibold text-slate-200 flex items-center gap-2">
+              <Smartphone className="w-5 h-5 text-emerald-400" />
               WhatsApp Connection
-            </CardTitle>
-            <CardDescription>Link your clinic's WhatsApp number</CardDescription>
+            </h2>
+            <p className="text-sm text-slate-500 mt-0.5">Link your clinic's WhatsApp number</p>
           </div>
           {isConnected ? (
-            <Badge className="bg-green-100 text-green-700 border-green-200 gap-1 hover:bg-green-100">
+            <span
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+              style={{ background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' }}
+            >
               <Wifi className="w-3 h-3" /> Connected
-            </Badge>
+            </span>
           ) : (
-            <Badge variant="secondary" className="gap-1">
+            <span
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+              style={{ background: 'rgba(255,255,255,0.06)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)' }}
+            >
               <WifiOff className="w-3 h-3" /> Disconnected
-            </Badge>
+            </span>
           )}
         </div>
-      </CardHeader>
-      <CardContent>
+
         {isConnected ? (
-          <div className="flex items-center justify-between p-4 border rounded-lg bg-slate-50">
+          <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div>
-              <p className="font-medium">Active Session</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="font-medium text-slate-200">Active Session</p>
+              <p className="text-sm text-slate-400">
                 Connected Number: {phone || 'Unknown'}
               </p>
             </div>
-            <Button variant="destructive" onClick={handleDisconnect} disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <button
+              onClick={handleDisconnect}
+              disabled={loading}
+              className="flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Disconnect
-            </Button>
+            </button>
           </div>
         ) : qrCode ? (
-          <div className="flex flex-col items-center justify-center p-6 border rounded-lg bg-slate-50 space-y-4 text-center">
-            <h3 className="font-semibold text-lg">Scan QR Code</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
+          <div className="flex flex-col items-center justify-center p-6 rounded-xl space-y-4 text-center" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <h3 className="font-semibold text-lg text-slate-200">Scan QR Code</h3>
+            <p className="text-sm text-slate-400 max-w-sm">
               Open WhatsApp on your phone, go to Linked Devices, and scan this QR code to connect your clinic's number.
             </p>
             <div className="bg-white p-4 rounded-xl border shadow-sm">
               <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64" />
             </div>
-            <div className="flex items-center gap-2 text-sm text-blue-600">
+            <div className="flex items-center gap-2 text-sm text-emerald-400">
               <Loader2 className="w-4 h-4 animate-spin" />
               Waiting for scan...
             </div>
-            <Button variant="ghost" onClick={() => { setQrCode(null); setPolling(false) }}>
+            <button
+              onClick={() => { setQrCode(null); setPolling(false) }}
+              className="h-9 px-4 rounded-lg text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            >
               Cancel
-            </Button>
+            </button>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg bg-slate-50 text-center">
-            <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-xl text-center" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399' }}>
               <QrCode className="w-6 h-6" />
             </div>
-            <h3 className="font-medium mb-1">No Active Connection</h3>
-            <p className="text-sm text-muted-foreground mb-4 max-w-md">
+            <h3 className="font-medium text-slate-200 mb-1">No Active Connection</h3>
+            <p className="text-sm text-slate-400 mb-6 max-w-md">
               Connect your WhatsApp Business number to start sending automated reminders, responding to inquiries, and letting patients book appointments directly via chat.
             </p>
-            <Button onClick={handleConnect} disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <button
+              onClick={handleConnect}
+              disabled={loading}
+              className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+              style={{ background: '#00d4aa', color: '#0a0f1e' }}
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Connect WhatsApp
-            </Button>
+            </button>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </PremiumCard>
+    </div>
   )
 }

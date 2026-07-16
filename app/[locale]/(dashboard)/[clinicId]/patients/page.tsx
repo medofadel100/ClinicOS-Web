@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AddPatientDialog from './AddPatientDialog'
+import { PageHeader, PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
+import { Users, Search } from 'lucide-react'
 
 export default async function PatientsPage({
   params: { locale, clinicId },
@@ -18,7 +19,6 @@ export default async function PatientsPage({
 
   const query = searchParams.q || ''
 
-  // Fetch patients
   let dbQuery = supabase
     .from('patients')
     .select('*')
@@ -31,75 +31,124 @@ export default async function PatientsPage({
 
   const { data: patients } = await dbQuery
 
-  // Fetch active campaigns
   const { data: activeCampaignsData } = await supabase
     .from('marketing_campaigns')
     .select('id, name')
     .eq('clinic_id', clinicId)
     .eq('is_active', true)
-    
+
   const activeCampaigns = activeCampaignsData || []
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
-          <p className="text-muted-foreground">Manage your clinic&apos;s patient records.</p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <form className="flex items-center gap-2" action={`/${locale}/${clinicId}/patients`} method="GET">
-            <Input 
-              name="q" 
-              type="search" 
-              placeholder="Search name or phone..." 
-              defaultValue={query}
-              className="w-64"
-            />
-            <Button type="submit" variant="secondary">Search</Button>
-          </form>
-
+    <div className="space-y-6 animate-fade-in">
+      <PageHeader
+        title="Patients"
+        description="Manage your clinic's patient records and history."
+        icon={Users}
+        iconColor="text-violet-400"
+        iconBg="rgba(124,58,237,0.12)"
+        badge={`${patients?.length ?? 0} records`}
+        actions={
           <AddPatientDialog clinicId={clinicId} locale={locale} activeCampaigns={activeCampaigns} />
-        </div>
-      </div>
+        }
+      />
 
-      <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Date of Birth</TableHead>
-              <TableHead>Registered</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {patients?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  No patients found.
-                </TableCell>
-              </TableRow>
+      {/* Search */}
+      <form
+        className="flex items-center gap-3"
+        action={`/${locale}/${clinicId}/patients`}
+        method="GET"
+      >
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+          <input
+            name="q"
+            type="search"
+            placeholder="Search by name or phone..."
+            defaultValue={query}
+            className="w-full h-10 pl-10 pr-4 text-sm text-slate-200 placeholder:text-slate-600 rounded-xl outline-none transition-all duration-200"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+          />
+        </div>
+        <button
+          type="submit"
+          className="h-10 px-4 rounded-xl text-sm font-medium text-slate-200 transition-all duration-200 hover:bg-white/[0.06]"
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          Search
+        </button>
+      </form>
+
+      {/* Table */}
+      <PremiumTableWrapper>
+        <table className="w-full">
+          <thead>
+            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              {['Name', 'Phone', 'Date of Birth', 'Registered', 'Actions'].map((h, i) => (
+                <th
+                  key={h}
+                  className={`px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500 ${i === 4 ? 'text-right' : ''}`}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {!patients?.length ? (
+              <tr>
+                <td colSpan={5}>
+                  <EmptyState
+                    icon={Users}
+                    title="No patients found"
+                    description={query ? `No results for "${query}"` : 'Add your first patient to get started'}
+                  />
+                </td>
+              </tr>
             ) : (
-              patients?.map((patient) => (
-                <TableRow key={patient.id}>
-                  <TableCell className="font-medium">{patient.full_name}</TableCell>
-                  <TableCell>{patient.phone || '-'}</TableCell>
-                  <TableCell>{patient.date_of_birth || '-'}</TableCell>
-                  <TableCell>{new Date(patient.registered_at).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">
-                    <a href={`/${locale}/${clinicId}/patients/${patient.id}`} className="text-primary hover:underline text-sm font-medium">
-                      View File
-                    </a>
-                  </TableCell>
-                </TableRow>
+              patients.map((patient, i) => (
+                <tr
+                  key={patient.id}
+                  className="group transition-colors duration-150 hover:bg-white/[0.03]"
+                  style={{ borderBottom: i < patients.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
+                >
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">
+                    {patient.full_name}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-slate-400">
+                    {patient.phone || <span className="text-slate-700">—</span>}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-slate-400">
+                    {patient.date_of_birth || <span className="text-slate-700">—</span>}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-slate-500">
+                    {new Date(patient.registered_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <Link
+                      href={`/${locale}/${clinicId}/patients/${patient.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                      style={{
+                        background: 'rgba(0,212,170,0.08)',
+                        border: '1px solid rgba(0,212,170,0.15)',
+                        color: 'hsl(168 100% 52%)',
+                      }}
+                    >
+                      View File →
+                    </Link>
+                  </td>
+                </tr>
               ))
             )}
-          </TableBody>
-        </Table>
-      </div>
+          </tbody>
+        </table>
+      </PremiumTableWrapper>
     </div>
   )
 }

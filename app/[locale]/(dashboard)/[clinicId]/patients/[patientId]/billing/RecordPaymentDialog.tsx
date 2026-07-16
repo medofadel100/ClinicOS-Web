@@ -55,7 +55,6 @@ export default function RecordPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* @ts-expect-error DialogTrigger types might not fully support asChild in this version */}
       <DialogTrigger asChild>
         <Button variant={treatmentPlanId ? "default" : "secondary"}>
           Record Payment

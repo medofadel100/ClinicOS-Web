@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { checkEntitlements } from '@/lib/entitlements'
+import { PageHeader } from '@/components/layout/PageComponents'
+import { MessageCircle } from 'lucide-react'
 import ConnectionManager from './ConnectionManager'
 import BotModeSettings from './BotModeSettings'
 import RuleBasedSettings from './RuleBasedSettings'
@@ -18,21 +20,18 @@ export default async function WhatsAppSettingsPage({
   const entitlements = await checkEntitlements(clinicId)
   const hasAIBot = entitlements.features.includes('whatsapp_ai')
 
-  // Fetch whatsapp config
   const { data: config } = await supabase
     .from('whatsapp_bot_config')
     .select('*')
     .eq('clinic_id', clinicId)
     .single()
 
-  // Fetch menu options
   const { data: options } = await supabase
     .from('whatsapp_menu_options')
     .select('*')
     .eq('clinic_id', clinicId)
     .order('option_number', { ascending: true })
 
-  // Fetch automations settings
   const { data: automations } = await supabase
     .from('whatsapp_automation_settings')
     .select('*')
@@ -40,14 +39,17 @@ export default async function WhatsAppSettingsPage({
     .single()
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">WhatsApp Bot Settings</h1>
-        <p className="text-muted-foreground">Manage your clinic's WhatsApp automated assistant.</p>
-      </div>
+    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+      <PageHeader
+        title="WhatsApp Bot"
+        description="Manage your clinic's WhatsApp automated assistant and messaging rules."
+        icon={MessageCircle}
+        iconColor="text-emerald-400"
+        iconBg="rgba(52,211,153,0.12)"
+      />
 
-      <ConnectionManager 
-        clinicId={clinicId} 
+      <ConnectionManager
+        clinicId={clinicId}
         locale={locale}
         initialIsConnected={config?.is_connected || false}
         initialPhone={config?.connected_phone_number || null}
@@ -61,14 +63,14 @@ export default async function WhatsAppSettingsPage({
       />
 
       {config?.mode === 'rule_based' && (
-        <RuleBasedSettings 
+        <RuleBasedSettings
           clinicId={clinicId}
           locale={locale}
           options={options || []}
         />
       )}
 
-      <AutomationsSettings 
+      <AutomationsSettings
         clinicId={clinicId}
         locale={locale}
         initialSettings={automations}

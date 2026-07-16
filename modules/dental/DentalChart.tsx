@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PremiumCard } from '@/components/layout/PageComponents'
 import { updateToothCondition } from './actions'
 
 type ToothCondition = 'normal' | 'cavity' | 'extracted' | 'root_canal' | 'crown' | 'implant'
@@ -40,7 +39,6 @@ export default function DentalChart({
   }
 
   const handleConditionChange = async (toothNumber: number, newCondition: ToothCondition) => {
-    // Optimistic UI update
     setEntries(prev => ({ ...prev, [toothNumber]: newCondition }))
     setLoading(true)
 
@@ -49,7 +47,6 @@ export default function DentalChart({
     } catch (err) {
       console.error(err)
       alert('Failed to update tooth condition')
-      // Rollback would be implemented here ideally by re-fetching or tracking previous state
     } finally {
       setLoading(false)
     }
@@ -57,12 +54,12 @@ export default function DentalChart({
 
   const getConditionColor = (condition?: ToothCondition) => {
     switch(condition) {
-      case 'cavity': return 'bg-red-500 text-white'
-      case 'extracted': return 'bg-gray-800 text-white line-through'
-      case 'root_canal': return 'bg-purple-500 text-white'
-      case 'crown': return 'bg-yellow-500 text-white'
-      case 'implant': return 'bg-blue-500 text-white'
-      default: return 'bg-white text-slate-900 border-slate-200'
+      case 'cavity': return 'bg-red-500/20 text-red-400 border-red-500/50'
+      case 'extracted': return 'bg-slate-800/50 text-slate-500 border-slate-700 line-through'
+      case 'root_canal': return 'bg-purple-500/20 text-purple-400 border-purple-500/50'
+      case 'crown': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50'
+      case 'implant': return 'bg-blue-500/20 text-blue-400 border-blue-500/50'
+      default: return 'bg-white/5 text-slate-300 border-white/10'
     }
   }
 
@@ -72,19 +69,19 @@ export default function DentalChart({
 
     return (
       <div key={toothNumber} className="flex flex-col items-center gap-2">
-        <div className={`w-10 h-12 flex items-center justify-center font-bold rounded-t-lg border-2 ${colorClass}`}>
+        <div className={`w-10 h-12 flex items-center justify-center font-bold rounded-t-xl border-2 transition-colors ${colorClass}`}>
           {toothNumber}
         </div>
         <select 
           value={condition} 
           onChange={(e) => handleConditionChange(toothNumber, e.target.value as ToothCondition)}
           disabled={loading}
-          className="text-xs max-w-full w-20 border rounded p-1 bg-background text-foreground"
+          className="text-[10px] sm:text-xs max-w-full w-[60px] sm:w-20 border rounded p-1 bg-black/40 text-slate-300 border-white/10 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 appearance-none text-center cursor-pointer"
         >
           <option value="normal">Normal</option>
           <option value="cavity">Cavity</option>
-          <option value="extracted">Extracted</option>
-          <option value="root_canal">Root Canal</option>
+          <option value="extracted">Extract</option>
+          <option value="root_canal">Root C.</option>
           <option value="crown">Crown</option>
           <option value="implant">Implant</option>
         </select>
@@ -93,49 +90,50 @@ export default function DentalChart({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Dental Chart</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-8 items-center bg-slate-50 p-6 rounded-lg overflow-x-auto">
-          
-          {/* Upper Jaw */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="text-sm font-semibold text-slate-500 uppercase">Upper Jaw</div>
-            <div className="flex gap-4 border-b-4 border-slate-300 pb-4">
-              <div className="flex gap-1 border-r-4 border-slate-300 pr-4">
-                {quadrants.topRight.map(renderTooth)}
-              </div>
-              <div className="flex gap-1 pl-4">
-                {quadrants.topLeft.map(renderTooth)}
-              </div>
+    <PremiumCard>
+      <div className="mb-6 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <h2 className="text-base font-semibold text-slate-200">Dental Chart</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Track patient's dental health and treatments.</p>
+      </div>
+      
+      <div className="flex flex-col gap-10 items-center bg-black/20 p-4 sm:p-8 rounded-xl border border-white/5 overflow-x-auto min-w-full">
+        
+        {/* Upper Jaw */}
+        <div className="flex flex-col items-center gap-4 min-w-max">
+          <div className="text-xs font-bold tracking-wider text-slate-400 uppercase">Upper Jaw</div>
+          <div className="flex gap-2 sm:gap-4 border-b-4 border-slate-700 pb-6">
+            <div className="flex gap-1 sm:gap-2 border-r-4 border-slate-700 pr-2 sm:pr-4">
+              {quadrants.topRight.map(renderTooth)}
+            </div>
+            <div className="flex gap-1 sm:gap-2 pl-2 sm:pl-4">
+              {quadrants.topLeft.map(renderTooth)}
             </div>
           </div>
+        </div>
 
-          {/* Lower Jaw */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex gap-4 pt-4">
-              <div className="flex gap-1 border-r-4 border-slate-300 pr-4">
-                {quadrants.bottomRight.map(renderTooth)}
-              </div>
-              <div className="flex gap-1 pl-4">
-                {quadrants.bottomLeft.map(renderTooth)}
-              </div>
+        {/* Lower Jaw */}
+        <div className="flex flex-col items-center gap-4 min-w-max">
+          <div className="flex gap-2 sm:gap-4 pt-6">
+            <div className="flex gap-1 sm:gap-2 border-r-4 border-slate-700 pr-2 sm:pr-4">
+              {quadrants.bottomRight.map(renderTooth)}
             </div>
-            <div className="text-sm font-semibold text-slate-500 uppercase mt-2">Lower Jaw</div>
+            <div className="flex gap-1 sm:gap-2 pl-2 sm:pl-4">
+              {quadrants.bottomLeft.map(renderTooth)}
+            </div>
           </div>
+          <div className="text-xs font-bold tracking-wider text-slate-400 uppercase mt-2">Lower Jaw</div>
+        </div>
 
-        </div>
-        <div className="flex flex-wrap gap-4 mt-6 text-sm">
-          <div className="flex items-center gap-2"><div className="w-4 h-4 bg-white border border-slate-200"></div> Normal</div>
-          <div className="flex items-center gap-2"><div className="w-4 h-4 bg-red-500"></div> Cavity</div>
-          <div className="flex items-center gap-2"><div className="w-4 h-4 bg-gray-800"></div> Extracted</div>
-          <div className="flex items-center gap-2"><div className="w-4 h-4 bg-purple-500"></div> Root Canal</div>
-          <div className="flex items-center gap-2"><div className="w-4 h-4 bg-yellow-500"></div> Crown</div>
-          <div className="flex items-center gap-2"><div className="w-4 h-4 bg-blue-500"></div> Implant</div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+      
+      <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-8 pt-6 border-t border-white/5 text-sm">
+        <div className="flex items-center gap-2 text-slate-300"><div className="w-4 h-4 bg-white/5 border border-white/10 rounded"></div> Normal</div>
+        <div className="flex items-center gap-2 text-red-400"><div className="w-4 h-4 bg-red-500/20 border border-red-500/50 rounded"></div> Cavity</div>
+        <div className="flex items-center gap-2 text-slate-500"><div className="w-4 h-4 bg-slate-800/50 border border-slate-700 rounded"></div> Extracted</div>
+        <div className="flex items-center gap-2 text-purple-400"><div className="w-4 h-4 bg-purple-500/20 border border-purple-500/50 rounded"></div> Root Canal</div>
+        <div className="flex items-center gap-2 text-yellow-400"><div className="w-4 h-4 bg-yellow-500/20 border border-yellow-500/50 rounded"></div> Crown</div>
+        <div className="flex items-center gap-2 text-blue-400"><div className="w-4 h-4 bg-blue-500/20 border border-blue-500/50 rounded"></div> Implant</div>
+      </div>
+    </PremiumCard>
   )
 }

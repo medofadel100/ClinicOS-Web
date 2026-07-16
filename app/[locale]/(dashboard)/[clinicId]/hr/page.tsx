@@ -1,250 +1,179 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import RequestLeaveDialog from './RequestLeaveDialog'
-import { reviewLeaveRequest } from './actions'
+import { PageHeader, PremiumCard, PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
+import { Users, UserCheck, Clock, DollarSign } from 'lucide-react'
 
-export default async function HRPage({
+export default async function HRDashboard({
   params: { locale, clinicId }
 }: {
   params: { locale: string; clinicId: string }
 }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) redirect(`/${locale}/login`)
 
-  const { data: staffMember } = await supabase
-    .from('staff_members')
-    .select('id, full_name')
-    .eq('auth_user_id', user.id)
-    .single()
-    
-  if (!staffMember) redirect(`/${locale}/clinic-switcher`)
+  let staffDirectory: any[] = []
+  let attendanceRecords: any[] = []
+  let payrollRuns: any[] = []
 
-  const { data: membership } = await supabase
-    .from('clinic_staff_memberships')
-    .select('id, role')
-    .eq('staff_member_id', staffMember.id)
-    .eq('clinic_id', clinicId)
-    .eq('is_active', true)
-    .single()
-
-  if (!membership) redirect(`/${locale}/clinic-switcher`)
-
-  const isOwnerOrAdmin = membership.role === 'owner' || membership.role === 'admin'
-
-  // Fetch My Entitlements
-  const { data: entitlements } = await supabase
-    .from('staff_entitlements')
-    .select('*')
-    .eq('membership_id', membership.id)
-
-  const myEntitlements = entitlements || []
-
-  // Fetch My Requests
-  const { data: myRequestsData } = await supabase
-    .from('staff_leave_requests')
-    .select('*')
-    .eq('membership_id', membership.id)
-    .order('created_at', { ascending: false })
-
-  const myRequests = myRequestsData || []
-
-  // If Admin, Fetch All Pending Requests
-  let pendingApprovals: {
-    id: string
-    clinic_id: string
-    leave_type: string
-    start_date: string
-    end_date: string
-    reason: string | null
-    clinic_staff_memberships: {
-      staff_members: {
-        full_name: string
-      } | null
-    } | null
-  }[] = []
-  if (isOwnerOrAdmin) {
-    const { data: pendingData } = await supabase
-      .from('staff_leave_requests')
-      .select(`
-        *,
-        clinic_staff_memberships (
-          staff_members (
-            full_name
-          )
-        )
-      `)
+  try {
+    const { data: directoryData } = await supabase
+      .from('clinic_staff_memberships')
+      .select(`id, role, is_active, staff_members ( id, full_name, auth_user_id )`)
       .eq('clinic_id', clinicId)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-    
-    pendingApprovals = pendingData || []
+
+    if (directoryData) staffDirectory = directoryData
+
+    const { data: attendanceData } = await supabase
+      .from('staff_attendance')
+      .select(`*, clinic_staff_memberships ( staff_members ( full_name ) )`)
+      .eq('clinic_id', clinicId)
+      .order('work_date', { ascending: false })
+      .limit(30)
+
+    if (attendanceData) attendanceRecords = attendanceData
+
+    const membershipIds = directoryData?.map(d => d.id) || []
+    if (membershipIds.length > 0) {
+      const { data: payrollData } = await supabase
+        .from('payroll_runs')
+        .select(`*, clinic_staff_memberships ( staff_members ( full_name ) )`)
+        .eq('clinic_id', clinicId)
+        .order('period_month', { ascending: false })
+        .limit(20)
+
+      if (payrollData) payrollRuns = payrollData
+    }
+  } catch (error) {
+    console.error('Error fetching HR data:', error)
   }
 
+  const activeStaff = staffDirectory.filter(s => s.is_active).length
+  const totalStaff = staffDirectory.length
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Human Resources</h1>
-          <p className="text-muted-foreground">Manage your time off and view approvals.</p>
-        </div>
-        <RequestLeaveDialog clinicId={clinicId} locale={locale} />
+    <div className="space-y-8 animate-fade-in">
+      <PageHeader
+        title="HR Dashboard"
+        description="Manage staff directory, attendance, and payroll."
+        icon={Users}
+        iconColor="text-violet-400"
+        iconBg="rgba(124,58,237,0.12)"
+        badge={`${activeStaff} active`}
+      />
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: 'Total Staff', value: totalStaff, icon: Users, color: 'text-violet-400', bg: 'rgba(124,58,237,0.12)', border: 'rgba(124,58,237,0.15)' },
+          { label: 'Active Members', value: activeStaff, icon: UserCheck, color: 'text-teal-400', bg: 'rgba(0,212,170,0.12)', border: 'rgba(0,212,170,0.15)' },
+          { label: 'Payroll Runs', value: payrollRuns.length, icon: DollarSign, color: 'text-green-400', bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.15)' },
+        ].map((card, i) => (
+          <div
+            key={card.label}
+            className="rounded-2xl p-5 animate-slide-in-up"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+              border: `1px solid ${card.border}`,
+              animationDelay: `${i * 80}ms`,
+              animationFillMode: 'both',
+            }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[13px] font-medium text-slate-400">{card.label}</p>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: card.bg }}>
+                <card.icon className={`w-4.5 h-4.5 ${card.color}`} style={{ width: '18px', height: '18px' }} />
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-white">{card.value}</div>
+          </div>
+        ))}
       </div>
 
-      <Tabs defaultValue="my-leave" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="my-leave">My Leave</TabsTrigger>
-          {isOwnerOrAdmin && (
-            <TabsTrigger value="approvals">
-              Approvals
-              {pendingApprovals.length > 0 && (
-                <span className="ml-2 rounded-full bg-destructive w-5 h-5 text-[10px] inline-flex items-center justify-center text-white">
-                  {pendingApprovals.length}
-                </span>
-              )}
-            </TabsTrigger>
-          )}
-        </TabsList>
+      {/* Staff Directory */}
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold text-slate-200">Staff Directory</h2>
+        <PremiumTableWrapper>
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                {['Name', 'Role', 'Status'].map(h => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {!staffDirectory.length ? (
+                <tr><td colSpan={3}><EmptyState icon={Users} title="No staff members found" /></td></tr>
+              ) : staffDirectory.map((staff, i) => (
+                <tr key={staff.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < staffDirectory.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{staff.staff_members?.full_name || 'Unknown'}</td>
+                  <td className="px-5 py-4 text-sm text-slate-400 capitalize">{staff.role}</td>
+                  <td className="px-5 py-4"><StatusBadge status={staff.is_active ? 'active' : 'inactive'} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </PremiumTableWrapper>
+      </div>
 
-        <TabsContent value="my-leave" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Annual Leave Used</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {myEntitlements.find(e => e.leave_type === 'annual')?.days_used || 0} Days
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Sick Leave Used</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {myEntitlements.find(e => e.leave_type === 'sick')?.days_used || 0} Days
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Unpaid Leave Used</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {myEntitlements.find(e => e.leave_type === 'unpaid')?.days_used || 0} Days
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+      {/* Attendance */}
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold text-slate-200">Recent Attendance</h2>
+        <PremiumTableWrapper>
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                {['Date', 'Staff Member', 'Check In', 'Check Out', 'Status'].map(h => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {!attendanceRecords.length ? (
+                <tr><td colSpan={5}><EmptyState icon={Clock} title="No attendance records" description="Records will appear as staff check in" /></td></tr>
+              ) : attendanceRecords.map((record, i) => (
+                <tr key={record.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < attendanceRecords.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <td className="px-5 py-4 text-sm text-slate-400">{record.work_date}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{record.clinic_staff_memberships?.staff_members?.full_name || '—'}</td>
+                  <td className="px-5 py-4 text-sm text-slate-400">{record.check_in_at ? new Date(record.check_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                  <td className="px-5 py-4 text-sm text-slate-400">{record.check_out_at ? new Date(record.check_out_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                  <td className="px-5 py-4"><StatusBadge status={record.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </PremiumTableWrapper>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>My Leave Requests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {myRequests.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">You haven&apos;t requested any time off yet.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Dates</TableHead>
-                      <TableHead>Reason</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {myRequests.map(req => (
-                      <TableRow key={req.id}>
-                        <TableCell className="capitalize font-medium">{req.leave_type}</TableCell>
-                        <TableCell>
-                          {new Date(req.start_date).toLocaleDateString()} - {new Date(req.end_date).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="max-w-[200px] truncate">{req.reason || '-'}</TableCell>
-                        <TableCell>
-                          {req.status === 'approved' && <Badge variant="secondary" className="bg-green-100 text-green-800">Approved</Badge>}
-                          {req.status === 'rejected' && <Badge variant="destructive">Rejected</Badge>}
-                          {req.status === 'pending' && <Badge variant="outline" className="text-yellow-600 border-yellow-600">Pending</Badge>}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {isOwnerOrAdmin && (
-          <TabsContent value="approvals" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pending Approvals</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {pendingApprovals.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No pending leave requests.</p>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Staff Member</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Dates</TableHead>
-                        <TableHead>Reason</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pendingApprovals.map(req => (
-                        <TableRow key={req.id}>
-                          <TableCell className="font-medium">
-                            {req.clinic_staff_memberships?.staff_members?.full_name}
-                          </TableCell>
-                          <TableCell className="capitalize">{req.leave_type}</TableCell>
-                          <TableCell>
-                            {new Date(req.start_date).toLocaleDateString()} - {new Date(req.end_date).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="max-w-[200px] truncate">{req.reason || '-'}</TableCell>
-                          <TableCell className="text-right">
-                            <form className="flex justify-end gap-2">
-                              <Button formAction={async () => {
-                                'use server'
-                                await reviewLeaveRequest(clinicId, locale, req.id, 'rejected')
-                              }} size="sm" variant="destructive">Reject</Button>
-                              <Button formAction={async () => {
-                                'use server'
-                                await reviewLeaveRequest(clinicId, locale, req.id, 'approved')
-                              }} size="sm" variant="default" className="bg-green-600 hover:bg-green-700">Approve</Button>
-                            </form>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-      </Tabs>
+      {/* Payroll */}
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold text-slate-200">Payroll Runs</h2>
+        <PremiumTableWrapper>
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                {['Period', 'Staff Member', 'Base Salary', 'Net Pay', 'Status'].map(h => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {!payrollRuns.length ? (
+                <tr><td colSpan={5}><EmptyState icon={DollarSign} title="No payroll runs found" /></td></tr>
+              ) : payrollRuns.map((run, i) => (
+                <tr key={run.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < payrollRuns.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <td className="px-5 py-4 text-sm text-slate-400">{run.period_month}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{run.clinic_staff_memberships?.staff_members?.full_name || '—'}</td>
+                  <td className="px-5 py-4 text-sm text-slate-400">{Number(run.base_salary_egp || 0).toFixed(2)} EGP</td>
+                  <td className="px-5 py-4 text-sm font-bold text-teal-400">{Number(run.net_pay_egp || 0).toFixed(2)} EGP</td>
+                  <td className="px-5 py-4"><StatusBadge status={run.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </PremiumTableWrapper>
+      </div>
     </div>
   )
 }

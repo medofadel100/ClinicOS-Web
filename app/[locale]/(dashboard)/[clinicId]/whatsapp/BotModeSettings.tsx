@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { PremiumCard } from '@/components/layout/PageComponents'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { updateWhatsAppConfig } from './actions'
@@ -31,63 +31,63 @@ export default function BotModeSettings({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Rule-Based Auto-Replies</CardTitle>
-          <CardDescription>Configure standard responses to common patient inquiries.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <PremiumCard>
+        <div className="mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <h2 className="text-base font-semibold text-slate-200">Rule-Based Auto-Replies</h2>
+          <p className="text-sm text-slate-500 mt-0.5">Configure standard responses to common patient inquiries.</p>
+        </div>
+        <div className="space-y-4">
           <div className="flex items-center space-x-2">
             <Switch 
               id="rule-based" 
               checked={isRuleBased} 
               onCheckedChange={(checked) => handleModeChange(checked ? 'rule_based' : 'none')}
             />
-            <Label htmlFor="rule-based">Enable Rule-Based Bot</Label>
+            <Label htmlFor="rule-based" className="text-slate-200">Enable Rule-Based Bot</Label>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-500">
             Basic rule-based bot is included in all plans. More configuration options will be available here.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </PremiumCard>
 
       {hasAIBot ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Assistant Mode</CardTitle>
-            <CardDescription>Advanced conversational AI that understands medical context and books appointments naturally.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <PremiumCard>
+          <div className="mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <h2 className="text-base font-semibold text-slate-200">AI Assistant Mode</h2>
+            <p className="text-sm text-slate-500 mt-0.5">Advanced conversational AI that understands medical context and books appointments naturally.</p>
+          </div>
+          <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Switch 
                 id="ai-mode" 
                 checked={isAI}
                 onCheckedChange={(checked) => handleModeChange(checked ? 'ai' : 'none')}
               />
-              <Label htmlFor="ai-mode">Enable AI Assistant</Label>
+              <Label htmlFor="ai-mode" className="text-slate-200">Enable AI Assistant</Label>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-slate-500">
               Configure your AI's personality, doctor bios, and booking rules here.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </PremiumCard>
       ) : (
         <LockedFeature clinicId={clinicId} featureCode="whatsapp_ai" featureName="AI WhatsApp Assistant">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Assistant Mode</CardTitle>
-              <CardDescription>Advanced conversational AI that understands medical context and books appointments naturally.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <PremiumCard>
+            <div className="mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <h2 className="text-base font-semibold text-slate-200">AI Assistant Mode</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Advanced conversational AI that understands medical context and books appointments naturally.</p>
+            </div>
+            <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Switch id="ai-mode-locked" disabled />
-                <Label htmlFor="ai-mode-locked">Enable AI Assistant</Label>
+                <Label htmlFor="ai-mode-locked" className="text-slate-200">Enable AI Assistant</Label>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-slate-500">
                 Configure your AI's personality, doctor bios, and booking rules here.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </PremiumCard>
         </LockedFeature>
       )}
     </div>

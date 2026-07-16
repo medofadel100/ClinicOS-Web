@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PremiumCard } from '@/components/layout/PageComponents'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -34,42 +34,46 @@ export default function WaitlistManagement({
   doctors: Doctor[]
 }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle>Waitlist</CardTitle>
+    <PremiumCard>
+      <div className="flex flex-row items-center justify-between mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div>
+          <h2 className="text-base font-semibold text-slate-200">Waitlist</h2>
+          <p className="text-sm text-slate-500 mt-0.5">Manage patients waiting for cancellations.</p>
+        </div>
         <AddWaitlistDialog 
           clinicId={clinicId} 
           locale={locale} 
           patients={patients} 
           doctors={doctors} 
         />
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div>
         {waitlist.length === 0 ? (
-          <p className="text-sm text-muted-foreground mt-4">The waitlist is empty.</p>
+          <p className="text-sm text-slate-500 mt-4 text-center">The waitlist is empty.</p>
         ) : (
           <div className="space-y-4 mt-4">
             {waitlist.map(entry => (
               <div 
                 key={entry.id} 
-                className={`p-3 border rounded-md text-sm ${entry.status === 'notified' ? 'bg-primary/10 border-primary/20' : ''}`}
+                className={`p-4 rounded-xl ${entry.status === 'notified' ? 'bg-teal-500/10 border-teal-500/20 text-teal-400' : 'bg-white/[0.02] border-white/[0.05] text-slate-300'}`}
+                style={{ borderStyle: 'solid', borderWidth: '1px' }}
               >
                 <div className="font-semibold flex justify-between">
-                  <span>{entry.patients?.full_name}</span>
-                  <span className={`capitalize ${entry.status === 'notified' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                  <span className="text-slate-200">{entry.patients?.full_name}</span>
+                  <span className={`capitalize text-xs px-2 py-1 rounded-full ${entry.status === 'notified' ? 'bg-teal-500/20' : 'bg-slate-500/20'}`}>
                     {entry.status}
                   </span>
                 </div>
-                <div className="text-muted-foreground mt-1">
+                <div className="text-slate-400 mt-2 text-sm">
                   Target: {entry.desired_from} to {entry.desired_to}
                 </div>
                 {entry.clinic_staff_memberships && (
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-slate-500 mt-1">
                     Doctor: {entry.clinic_staff_memberships.staff_members?.full_name}
                   </div>
                 )}
                 {entry.status === 'notified' && (
-                  <div className="text-xs text-primary mt-2">
+                  <div className="text-xs text-teal-400 mt-2">
                     A slot may have opened up matching this request!
                   </div>
                 )}
@@ -77,8 +81,8 @@ export default function WaitlistManagement({
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </PremiumCard>
   )
 }
 
@@ -104,18 +108,20 @@ function AddWaitlistDialog({ clinicId, locale, patients, doctors }: { clinicId: 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* @ts-expect-error shadcn primitive issue */}
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">Add Entry</Button>
+      <DialogTrigger
+        className="flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium transition-colors"
+        style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
+        Add Entry
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="bg-[#0a0f1e] border-white/10 text-white">
         <DialogHeader>
           <DialogTitle>Add to Waitlist</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="patient_id">Patient</Label>
-            <select id="patient_id" name="patient_id" required className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400" htmlFor="patient_id">Patient</label>
+            <select id="patient_id" name="patient_id" required className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all">
               <option value="">Select Patient...</option>
               {patients.map((p) => (
                 <option key={p.id} value={p.id}>{p.full_name}</option>
@@ -124,8 +130,8 @@ function AddWaitlistDialog({ clinicId, locale, patients, doctors }: { clinicId: 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="membership_id">Preferred Doctor (Optional)</Label>
-            <select id="membership_id" name="membership_id" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400" htmlFor="membership_id">Preferred Doctor (Optional)</label>
+            <select id="membership_id" name="membership_id" className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all">
               <option value="">Any Doctor</option>
               {doctors.map((d) => (
                 <option key={d.id} value={d.id}>{d.staff_members.full_name}</option>
@@ -135,18 +141,25 @@ function AddWaitlistDialog({ clinicId, locale, patients, doctors }: { clinicId: 
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="desired_from">From Date</Label>
-              <Input id="desired_from" name="desired_from" type="date" required />
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400" htmlFor="desired_from">From Date</label>
+              <input className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all" id="desired_from" name="desired_from" type="date" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="desired_to">To Date</Label>
-              <Input id="desired_to" name="desired_to" type="date" required />
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400" htmlFor="desired_to">To Date</label>
+              <input className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all" id="desired_to" name="desired_to" type="date" required />
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Adding...' : 'Add to Waitlist'}
-          </Button>
+          <div className="flex justify-end pt-4 border-t border-white/10">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="flex items-center gap-2 h-10 px-6 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+              style={{ background: '#00d4aa', color: '#0a0f1e' }}
+            >
+              {loading ? 'Adding...' : 'Add to Waitlist'}
+            </button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
