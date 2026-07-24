@@ -1,16 +1,42 @@
 {
-  "name": "ClinicOS Web",
+  "name": "ClinicOS — إدارة العيادات",
   "short_name": "ClinicOS",
-  "description": "Clinic Management Software",
+  "description": "نظام إدارة العيادات المتكامل — إدارة المرضى، المواعيد، الروشتات، الفواتير، المخزون، والموارد البشرية",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "orientation": "any",
+  "background_color": "#0a0f1e",
+  "theme_color": "#00d4aa",
+  "lang": "ar",
+  "dir": "auto",
+  "categories": ["medical", "business", "productivity"],
   "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "المواعيد",
+      "short_name": "مواعيد",
+      "url": "/ar",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

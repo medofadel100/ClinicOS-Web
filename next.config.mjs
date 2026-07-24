@@ -3,7 +3,9 @@ import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
   dest: 'public',
-  disable: true, // Disabled to prevent intercepting Next.js Server Actions
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
 });
 
 const withNextIntl = createNextIntlPlugin('./lib/i18n/request.ts');

@@ -8,7 +8,9 @@ const intlMiddleware = createMiddleware({
 })
 
 function isPublicPath(pathname: string): boolean {
-  // Root locale pages: /en, /ar, /en/, /ar/
+  // Root path
+  if (pathname === '/') return true
+  // Locale root pages: /en, /ar, /en/, /ar/
   if (/^\/(en|ar)\/?$/.test(pathname)) return true
   // Download page
   if (pathname.includes('/download')) return true
@@ -31,8 +33,14 @@ function getLocale(pathname: string): string {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Setup Supabase SSR client
-  let session: any = null
+  // PUBLIC PAGES: allow without session
+  // For root /, intlMiddleware will auto-redirect to /ar or /en based on Accept-Language
+  if (isPublicPath(pathname)) {
+    const response = intlMiddleware(request)
+    return response
+  }
+
+  // Setup Supabase SSR client for auth check
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -48,17 +56,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session: sess } } = await supabase.auth.getSession()
-  session = sess
-
-  // PUBLIC PAGES: allow without session, skip intlMiddleware
-  if (isPublicPath(pathname)) {
-    // Still run intl for locale detection, but allow through regardless of session
-    const response = intlMiddleware(request)
-    // Carry Supabase cookies
-    const { data: { session: recheck } } = await supabase.auth.getSession()
-    return response
-  }
+  const { data: { session } } = await supabase.auth.getSession()
 
   // AUTH PAGES: if already logged in, redirect to clinic-switcher
   if (isAuthPath(pathname) && session) {
@@ -76,7 +74,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Everything else: run intl middleware
+  // Auth pages without session, or protected pages with session: run intl middleware
   return intlMiddleware(request)
 }
 
