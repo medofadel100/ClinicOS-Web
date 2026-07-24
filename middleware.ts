@@ -7,11 +7,32 @@ const intlMiddleware = createMiddleware({
   defaultLocale: 'en'
 })
 
-export async function middleware(request: NextRequest) {
-  // 1. Run next-intl to get the base response with locale headers
-  const response = intlMiddleware(request)
+function isPublicPath(pathname: string): boolean {
+  // Root locale pages: /en, /ar, /en/, /ar/
+  if (/^\/(en|ar)\/?$/.test(pathname)) return true
+  // Download page
+  if (pathname.includes('/download')) return true
+  return false
+}
 
-  // 2. Setup Supabase SSR client to refresh session if needed
+function isAuthPath(pathname: string): boolean {
+  if (pathname.includes('/login')) return true
+  if (pathname.includes('/register')) return true
+  if (pathname.includes('/forgot-password')) return true
+  if (pathname.includes('/reset-password')) return true
+  return false
+}
+
+function getLocale(pathname: string): string {
+  const segments = pathname.split('/')
+  return ['en', 'ar'].includes(segments[1]) ? segments[1] : 'en'
+}
+
+export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  // Setup Supabase SSR client
+  let session: any = null
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -22,48 +43,45 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
         },
       },
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session: sess } } = await supabase.auth.getSession()
+  session = sess
 
-  const pathname = request.nextUrl.pathname
-  const isAuthRoute = pathname.includes('/login') || pathname.includes('/register')
-  const isPublicPage = pathname.match(/^\/(en|ar)\/?$/) || pathname.includes('/download')
-
-  // 3. Protect routes based on session
-  if (!session && !isAuthRoute && !isPublicPage) {
-    const segments = pathname.split('/')
-    const locale = ['en', 'ar'].includes(segments[1]) ? segments[1] : 'en'
-    const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = `/${locale}/login`
-    const redirectResponse = NextResponse.redirect(loginUrl)
-    // carry over cookies from next-intl/supabase
-    response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c))
-    return redirectResponse
+  // PUBLIC PAGES: allow without session, skip intlMiddleware
+  if (isPublicPath(pathname)) {
+    // Still run intl for locale detection, but allow through regardless of session
+    const response = intlMiddleware(request)
+    // Carry Supabase cookies
+    const { data: { session: recheck } } = await supabase.auth.getSession()
+    return response
   }
 
-  if (session && isAuthRoute) {
-    const segments = pathname.split('/')
-    const locale = ['en', 'ar'].includes(segments[1]) ? segments[1] : 'en'
+  // AUTH PAGES: if already logged in, redirect to clinic-switcher
+  if (isAuthPath(pathname) && session) {
+    const locale = getLocale(pathname)
     const switcherUrl = request.nextUrl.clone()
     switcherUrl.pathname = `/${locale}/clinic-switcher`
-    const redirectResponse = NextResponse.redirect(switcherUrl)
-    response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c))
-    return redirectResponse
+    return NextResponse.redirect(switcherUrl)
   }
 
-  return response
+  // PROTECTED PAGES: require session
+  if (!session && !isAuthPath(pathname)) {
+    const locale = getLocale(pathname)
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = `/${locale}/login`
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // Everything else: run intl middleware
+  return intlMiddleware(request)
 }
 
 export const config = {
   matcher: [
-    // Skip all internal paths (_next), api routes, and static public files
     '/((?!api|_next/static|_next/image|favicon.ico|logo.png|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|sw.js|workbox-.*|icons|manifest.json).*)'
   ]
 }
