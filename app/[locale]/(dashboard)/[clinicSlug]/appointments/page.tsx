@@ -9,6 +9,7 @@ import AppointmentStatusSelect from './AppointmentStatusSelect'
 import RescheduleAppointmentDialog from './RescheduleAppointmentDialog'
 import AppointmentFilters from './AppointmentFilters'
 import CalendarView from './CalendarView'
+import AppointmentsTable from './AppointmentsTable'
 import { requireClinicId } from "@/lib/utils/clinic";
 
 export default async function AppointmentsPage({
@@ -124,106 +125,14 @@ export default async function AppointmentsPage({
           />
           
           <PremiumTableWrapper>
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  {(isAr ? ['الوقت', 'المريض', 'العمر', 'الطبيب', 'الخدمة', 'السعر', 'الحالة'] : ['Time', 'Patient', 'Age', 'Doctor', 'Service', 'Price', 'Status']).map(h => (
-                    <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {!appointments?.length ? (
-                  <tr>
-                    <td colSpan={7}>
-                      <EmptyState
-                        icon={Calendar}
-                        title={isAr ? 'لا توجد مواعيد اليوم' : 'No appointments today'}
-                        description={isAr ? 'احجز موعداً جديداً باستخدام الزر أعلاه' : 'Book a new appointment using the button above'}
-                      />
-                    </td>
-                  </tr>
-                ) : appointments.map((app, i) => {
-                  const time = new Date(app.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  const patientDob = app.patients?.date_of_birth
-                  let age = '—'
-                  if (patientDob) {
-                    const dob = new Date(patientDob)
-                    const today = new Date()
-                    let y = today.getFullYear() - dob.getFullYear()
-                    const m = today.getMonth() - dob.getMonth()
-                    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) y--
-                    age = y.toString()
-                  }
-                  return (
-                    <tr
-                      key={app.id}
-                      className="hover:bg-white/[0.02] transition-colors"
-                      style={{ borderBottom: i < appointments.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
-                    >
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-3.5 h-3.5 text-slate-600" />
-                          <span className="text-sm font-semibold text-slate-200">{time}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <div>
-                          <Link
-                            href={`/${locale}/${clinicSlug}/patients/${app.patient_id}`}
-                            className="text-sm font-semibold transition-colors"
-                            style={{ color: 'hsl(168 100% 52%)' }}
-                          >
-                            {app.patients?.full_name || '—'}
-                          </Link>
-                          {app.patients?.phone && (
-                            <p className="text-[11px] text-slate-500 mt-0.5">{app.patients.phone}</p>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-sm text-slate-400">
-                        <div className="flex items-center gap-1.5">
-                          <span>{age}</span>
-                          {app.patients?.gender && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${app.patients.gender === 'male' ? 'bg-blue-500/15 text-blue-400' : 'bg-pink-500/15 text-pink-400'}`}>
-                              {app.patients.gender === 'male' ? (isAr ? 'ذكر' : 'M') : (isAr ? 'أنثى' : 'F')}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-sm text-slate-400">
-                        {app.clinic_staff_memberships?.staff_members?.full_name || '—'}
-                      </td>
-                      <td className="px-5 py-4 text-sm text-slate-500">
-                        {app.clinic_services?.name || '—'}
-                      </td>
-                      <td className="px-5 py-4 text-sm font-medium text-teal-400">
-                        {app.clinic_services?.price ? `${app.clinic_services.price.toLocaleString()} EGP` : '—'}
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <AppointmentStatusSelect
-                            appointmentId={app.id}
-                            clinicId={clinicId}
-                            locale={locale}
-                            initialStatus={app.status}
-                          />
-                          {app.status === 'scheduled' && (
-                            <RescheduleAppointmentDialog
-                              appointmentId={app.id}
-                              clinicId={clinicId}
-                              locale={locale}
-                              initialDate={targetDate}
-                              initialTime={new Date(app.scheduled_at).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
-                            />
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <AppointmentsTable
+              appointments={(appointments || []) as any[]}
+              clinicId={clinicId}
+              clinicSlug={clinicSlug}
+              locale={locale}
+              isAr={isAr}
+              targetDate={targetDate}
+            />
           </PremiumTableWrapper>
         </div>
 
