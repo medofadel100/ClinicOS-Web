@@ -19,12 +19,13 @@ const inter = Inter({
 
 export const metadata = {
   title: 'ClinicOS',
-  description: 'Streamline your clinic operations, manage appointments, and elevate patient care with ClinicOS.',
+  description: 'نظام إدارة العيادات المتكامل — إدارة المرضى، المواعيد، الروشتات، الفواتير، المخزون، والموارد البشرية.',
   manifest: '/manifest.json',
-  keywords: ['clinic management', 'healthcare', 'appointments', 'medical software'],
+  keywords: ['clinic management', 'healthcare', 'appointments', 'medical software', 'إدارة عيادات'],
   authors: [{ name: 'ClinicOS' }],
   icons: {
     icon: '/logo.png',
+    apple: '/icons/icon-192.png',
   },
 }
 
@@ -50,6 +51,7 @@ export default async function LocaleLayout({
     >
       <head>
         <meta name="color-scheme" content="dark" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="ClinicOS" />

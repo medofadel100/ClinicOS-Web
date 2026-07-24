@@ -287,45 +287,66 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {(plans || []).map((plan: any) => {
-              const limits = plan.plan_limits || []
-              const maxDoctors = limits.find((l: any) => l.limit_type === 'max_doctors')?.max_value
-              const maxPatients = limits.find((l: any) => l.limit_type === 'max_patients')?.max_value
-              const featureNames = (plan.plan_features || []).map((pf: any) => isAr ? pf.features?.name_ar : pf.features?.name_en).filter(Boolean)
-              const isPopular = plan.code === 'professional'
-
-              return (
-                <div key={plan.id} className={`relative p-6 rounded-2xl transition-all ${isPopular ? 'ring-2 ring-cyan-500/40' : ''}`} style={{ background: isPopular ? 'rgba(34,211,238,0.04)' : 'rgba(255,255,255,0.03)', border: `1px solid ${isPopular ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.06)'}` }}>
-                  {isPopular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold bg-cyan-500 text-[#0a0f1e]">
-                      {isAr ? 'الأكثر شعبية' : 'MOST POPULAR'}
-                    </div>
-                  )}
-                  <h3 className="text-xl font-bold text-white mb-1">{isAr ? plan.name_ar : plan.name_en}</h3>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-3xl font-bold text-teal-400">{plan.price_egp?.toLocaleString()}</span>
-                    <span className="text-sm text-slate-500">EGP/{plan.billing_cycle === 'monthly' ? (isAr ? 'شهرياً' : 'mo') : (isAr ? 'سنوياً' : 'yr')}</span>
+            {/* Fallback plans always shown */}
+            {[
+              {
+                code: 'starter', popular: false,
+                name: isAr ? 'الأساسية' : 'Starter',
+                price: 'مجاني', priceSuffix: isAr ? ' للأبد' : 'forever',
+                doctors: isAr ? 'طبيب واحد' : '1 doctor',
+                patients: isAr ? '٥٠ مريض' : '50 patients',
+                features: isAr
+                  ? ['إدارة المرضى', 'جدولة المواعيد', 'الروشتات الإلكترونية', 'تقرير بسيط', 'دعم فني']
+                  : ['Patient management', 'Appointment scheduling', 'E-prescriptions', 'Basic reports', 'Support'],
+              },
+              {
+                code: 'professional', popular: true,
+                name: isAr ? 'الاحترافية' : 'Professional',
+                price: '999', priceSuffix: isAr ? 'EGP/شهرياً' : 'EGP/mo',
+                doctors: isAr ? 'حتى ٥ أطباء' : 'Up to 5 doctors',
+                patients: isAr ? '٥٠٠ مريض' : '500 patients',
+                features: isAr
+                  ? ['كل ميزات الأساسية', '٢٤ وحدة تخصص', 'المخزون والصيدلية', 'الموارد البشرية', 'التقارير المتقدمة', 'التسويق بالواتساب']
+                  : ['Everything in Starter', '24 specialty modules', 'Inventory & Pharmacy', 'HR & Payroll', 'Advanced reports', 'WhatsApp marketing'],
+              },
+              {
+                code: 'enterprise', popular: false,
+                name: isAr ? 'المؤسسات' : 'Enterprise',
+                price: '2,499', priceSuffix: isAr ? 'EGP/شهرياً' : 'EGP/mo',
+                doctors: isAr ? 'أطباء غير محدود' : 'Unlimited doctors',
+                patients: isAr ? '٥,٠٠٠+ مريض' : '5,000+ patients',
+                features: isAr
+                  ? ['كل ميزات الاحترافية', 'فروع متعددة', 'API مفتوح', 'تخصيص كامل', 'مدير حساب مخصص', 'SLA']
+                  : ['Everything in Professional', 'Multi-branch', 'Open API', 'Full customization', 'Dedicated account manager', 'SLA'],
+              },
+            ].map((plan) => (
+              <div key={plan.code} className={`relative p-6 rounded-2xl transition-all ${plan.popular ? 'ring-2 ring-cyan-500/40' : ''}`} style={{ background: plan.popular ? 'rgba(34,211,238,0.04)' : 'rgba(255,255,255,0.03)', border: `1px solid ${plan.popular ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.06)'}` }}>
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold bg-cyan-500 text-[#0a0f1e]">
+                    {isAr ? 'الأكثر شعبية' : 'MOST POPULAR'}
                   </div>
-                  {maxDoctors && <p className="text-xs text-slate-500 mb-2">{isAr ? `حتى ${maxDoctors} طبيب` : `Up to ${maxDoctors} doctors`}</p>}
-                  {maxPatients && <p className="text-xs text-slate-500 mb-4">{isAr ? `حتى ${maxPatients.toLocaleString()} مريض` : `Up to ${maxPatients.toLocaleString()} patients`}</p>}
-                  <div className="space-y-2 mb-6">
-                    {featureNames.slice(0, 6).map((fname: string, i: number) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-slate-300">
-                        <Check className="w-4 h-4 text-teal-400 shrink-0" />
-                        {fname}
-                      </div>
-                    ))}
-                  </div>
-                  <Link href={`/${locale}/register`} className="block w-full h-11 rounded-xl text-sm font-bold text-center transition-all" style={{ background: isPopular ? 'linear-gradient(135deg, hsl(168 100% 42%), hsl(195 100% 50%))' : 'rgba(255,255,255,0.06)', color: isPopular ? '#0a0f1e' : '#e2e8f0', border: isPopular ? 'none' : '1px solid rgba(255,255,255,0.1)' }}>
-                    {isAr ? 'ابدأ الآن' : 'Get Started'}
-                  </Link>
+                )}
+                <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-3xl font-bold text-teal-400">{plan.price}</span>
+                  <span className="text-sm text-slate-500">{plan.priceSuffix}</span>
                 </div>
-              )
-            })}
+                <p className="text-xs text-slate-500 mb-1">{plan.doctors}</p>
+                <p className="text-xs text-slate-500 mb-4">{plan.patients}</p>
+                <div className="space-y-2 mb-6">
+                  {plan.features.map((fname, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-slate-300">
+                      <Check className="w-4 h-4 text-teal-400 shrink-0" />
+                      {fname}
+                    </div>
+                  ))}
+                </div>
+                <Link href={`/${locale}/register`} className="block w-full h-11 rounded-xl text-sm font-bold text-center transition-all" style={{ background: plan.popular ? 'linear-gradient(135deg, hsl(168 100% 42%), hsl(195 100% 50%))' : 'rgba(255,255,255,0.06)', color: plan.popular ? '#0a0f1e' : '#e2e8f0', border: plan.popular ? 'none' : '1px solid rgba(255,255,255,0.1)' }}>
+                  {isAr ? 'ابدأ الآن' : 'Get Started'}
+                </Link>
+              </div>
+            ))}
           </div>
-          {(!plans || plans.length === 0) && (
-            <div className="text-center py-12 text-slate-500">{isAr ? 'الخطط قادمة قريباً' : 'Plans coming soon'}</div>
-          )}
         </div>
       </section>
 

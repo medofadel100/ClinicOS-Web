@@ -21,6 +21,7 @@ import {
   Pill,
   Stethoscope,
   CreditCard,
+  Focus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -85,13 +86,20 @@ export function Sidebar({ locale, clinicId, role, specialty, mobile, onMobileClo
     },
   ]
 
-  if (role === 'doctor') {
+  if (role === 'doctor' || role === 'owner') {
     routes.push({
       label: isAr ? 'يومي' : 'My Day',
       icon: Stethoscope,
       href: `/${locale}/${clinicId}/my-day`,
       color: 'text-cyan-400',
       glowColor: 'rgba(34,211,238,0.3)',
+    })
+    routes.push({
+      label: isAr ? 'وضع التركيز' : 'Focus Mode',
+      icon: Focus,
+      href: `/${locale}/${clinicId}/my-day/focus`,
+      color: 'text-emerald-400',
+      glowColor: 'rgba(16,185,129,0.3)',
     })
   }
 
