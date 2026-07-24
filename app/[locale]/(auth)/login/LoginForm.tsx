@@ -172,13 +172,13 @@ export default function LoginForm({ locale }: { locale: string }) {
                 Remember me
               </Label>
             </div>
-            <button
-              type="button"
+            <Link
+              href={`/${locale}/forgot-password`}
               className="text-sm font-medium transition-colors duration-200"
               style={{ color: 'hsl(168 100% 52%)' }}
             >
-              Forgot password?
-            </button>
+              {t('forgotPassword')}
+            </Link>
           </div>
 
           {/* Error */}

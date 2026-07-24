@@ -1,75 +1,76 @@
-import RegisterForm from './RegisterForm'
-import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
+import { Building2, KeyRound, ArrowRight } from 'lucide-react'
 
-export default async function RegisterPage({ params: { locale } }: { params: { locale: string } }) {
-  const supabase = createClient()
-  
-  // Fetch active clinic types
-  const { data: clinicTypes } = await supabase
-    .from('clinic_types')
-    .select('id, name_en, name_ar')
-    .eq('is_active', true)
-    
-  // Fetch active plans and their features
-  const { data: plans } = await supabase
-    .from('plans')
-    .select(`
-      id, name_en, name_ar, description_en, description_ar, price_egp,
-      plan_features (
-        feature_id,
-        features (
-          id, name_en, name_ar
-        )
-      )
-    `)
-    .eq('is_active', true)
+export default async function RegisterGateway({ params: { locale } }: { params: { locale: string } }) {
+  const t = await getTranslations('auth')
 
   return (
-    <div className="flex min-h-screen h-screen">
-      {/* Left side - Branding/Hero (hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-primary p-12 text-primary-foreground relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl"></div>
-        <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-blue-400/20 blur-3xl"></div>
-        
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur-md">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="w-6 h-6"><path d="M256 128v256M128 256h256" stroke="currentColor" strokeWidth="64" strokeLinecap="round"/></svg>
-          </div>
-          <span className="text-2xl font-bold tracking-tight">ClinicOS</span>
-        </div>
-
-        <div className="relative z-10 mt-auto">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6 leading-tight">
-            Start your clinic's<br/>digital transformation.
-          </h1>
-          <p className="text-lg text-primary-foreground/80 max-w-md">
-            Join thousands of clinics using ClinicOS to provide better care and grow their business.
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0f1e] p-6">
+      
+      {/* Background ambient effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-teal-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px]" />
       </div>
 
-      {/* Right side - Register Form */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-background p-8 sm:p-12 relative overflow-y-auto">
-        {/* Subtle background glow for right side */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -z-10 translate-x-1/3 -translate-y-1/3"></div>
-        
-        <div className="w-full max-w-[480px] my-auto py-8">
-          {/* Mobile logo */}
-          <div className="flex lg:hidden items-center gap-3 mb-10 justify-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="w-6 h-6"><path d="M256 128v256M128 256h256" stroke="currentColor" strokeWidth="64" strokeLinecap="round"/></svg>
-            </div>
-            <span className="text-2xl font-bold tracking-tight text-foreground">ClinicOS</span>
-          </div>
-
-          <RegisterForm 
-            locale={locale} 
-            initialClinicTypes={clinicTypes || []} 
-            initialPlans={plans || []} 
-          />
+      <div className="w-full max-w-4xl relative z-10 animate-fade-in">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-emerald-300 to-indigo-400 mb-4">
+            Welcome to ClinicOS
+          </h1>
+          <p className="text-slate-400 text-lg max-w-xl mx-auto">
+            Choose how you would like to set up your clinic workspace.
+          </p>
         </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          
+          {/* Card 1: Free Trial */}
+          <Link href={`/${locale}/register/trial`} className="group">
+            <div className="h-full bg-white/5 border border-white/10 rounded-2xl p-8 transition-all duration-300 hover:bg-white/10 hover:border-teal-500/50 hover:shadow-[0_0_40px_rgba(20,184,166,0.1)] hover:-translate-y-1 relative overflow-hidden flex flex-col">
+              <div className="w-14 h-14 rounded-xl bg-teal-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <Building2 className="w-7 h-7 text-teal-400" />
+              </div>
+              <h2 className="text-2xl font-semibold text-white mb-3">Start Free Trial</h2>
+              <p className="text-slate-400 leading-relaxed mb-8 flex-1">
+                Create a completely new clinic workspace from scratch. Perfect for trying out all features free for 14 days.
+              </p>
+              <div className="flex items-center text-teal-400 font-medium group-hover:text-teal-300">
+                Continue to Trial
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Card 2: Serial Code */}
+          <Link href={`/${locale}/register/serial`} className="group">
+            <div className="h-full bg-white/5 border border-white/10 rounded-2xl p-8 transition-all duration-300 hover:bg-white/10 hover:border-indigo-500/50 hover:shadow-[0_0_40px_rgba(99,102,241,0.1)] hover:-translate-y-1 relative overflow-hidden flex flex-col">
+              <div className="w-14 h-14 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <KeyRound className="w-7 h-7 text-indigo-400" />
+              </div>
+              <h2 className="text-2xl font-semibold text-white mb-3">Activate Serial Code</h2>
+              <p className="text-slate-400 leading-relaxed mb-8 flex-1">
+                Have you purchased a ClinicOS license or received hardware? Enter your serial code here to claim your pre-configured clinic.
+              </p>
+              <div className="flex items-center text-indigo-400 font-medium group-hover:text-indigo-300">
+                Enter Serial Code
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </Link>
+
+        </div>
+
+        <div className="mt-12 text-center">
+          <p className="text-slate-400">
+            {t('already_have_account')}{' '}
+            <Link href={`/${locale}/login`} className="text-teal-400 hover:text-teal-300 hover:underline transition-colors font-medium">
+              {t('sign_in')}
+            </Link>
+          </p>
+        </div>
+
       </div>
     </div>
   )

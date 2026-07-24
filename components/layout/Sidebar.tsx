@@ -16,11 +16,11 @@ import {
   MessageCircle,
   Settings,
   Building2,
-  ActivitySquare,
   ChevronRight,
-  Stethoscope,
-  LogOut,
   Sparkles,
+  Pill,
+  Stethoscope,
+  CreditCard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -29,12 +29,15 @@ interface SidebarProps {
   clinicId: string
   role: string
   specialty?: string
+  mobile?: boolean
+  onMobileClose?: () => void
 }
 
-export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
+export function Sidebar({ locale, clinicId, role, specialty, mobile, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
   const t = useTranslations('Sidebar')
   const [collapsed, setCollapsed] = useState(false)
+  const isAr = locale === 'ar'
 
   const routes = [
     {
@@ -67,6 +70,13 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
       glowColor: 'rgba(245,158,11,0.3)',
     },
     {
+      label: t('pharmacy'),
+      icon: Pill,
+      href: `/${locale}/${clinicId}/pharmacy`,
+      color: 'text-emerald-400',
+      glowColor: 'rgba(52,211,153,0.3)',
+    },
+    {
       label: t('myHr'),
       icon: UserCircle,
       href: `/${locale}/${clinicId}/hr`,
@@ -75,13 +85,25 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
     },
   ]
 
-  if (specialty === 'dental') {
+  if (role === 'doctor') {
     routes.push({
-      label: t('dentalChart'),
-      icon: ActivitySquare,
-      href: `/${locale}/${clinicId}/dental-chart`,
+      label: isAr ? 'يومي' : 'My Day',
+      icon: Stethoscope,
+      href: `/${locale}/${clinicId}/my-day`,
       color: 'text-cyan-400',
       glowColor: 'rgba(34,211,238,0.3)',
+    })
+  }
+
+  // Dental chart is now inside the patient profile clinical tab
+
+  if (role === 'reception' || role === 'accountant' || role === 'owner' || role === 'admin') {
+    routes.push({
+      label: isAr ? 'الدفعات' : 'Payments',
+      icon: CreditCard,
+      href: `/${locale}/${clinicId}/payments`,
+      color: 'text-amber-400',
+      glowColor: 'rgba(245,158,11,0.3)',
     })
   }
 
@@ -136,9 +158,9 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'relative hidden md:flex flex-col shrink-0 h-screen transition-all duration-300 ease-out',
+        'relative flex flex-col shrink-0 h-screen transition-all duration-300 ease-out',
         'border-r border-white/[0.06]',
-        collapsed ? 'w-[72px]' : 'w-[260px]'
+        mobile ? 'w-[260px]' : collapsed ? 'w-[72px]' : 'w-[260px]'
       )}
       style={{
         background: 'linear-gradient(180deg, hsl(222 47% 7%) 0%, hsl(222 47% 5%) 100%)',
@@ -161,20 +183,18 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
 
       {/* ── Brand Logo ── */}
       <div className={cn(
-        'relative z-10 flex items-center h-16 shrink-0 px-4 border-b border-white/[0.06]',
-        collapsed ? 'justify-center' : 'justify-between'
+        'relative z-10 flex items-center h-20 shrink-0 px-4 border-b border-white/[0.06]',
+        !mobile && collapsed ? 'justify-center' : 'justify-between'
       )}>
-        <Link href={`/${locale}/${clinicId}`} className="flex items-center gap-3 min-w-0">
-          <div
-            className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 transition-all duration-300"
-            style={{
-              background: 'linear-gradient(135deg, hsl(168 100% 42%) 0%, hsl(195 100% 50%) 100%)',
-              boxShadow: '0 0 16px rgba(0,212,170,0.4)',
-            }}
-          >
-            <Stethoscope className="w-5 h-5 text-[#0a0f1e]" strokeWidth={2.5} />
+        <Link href={`/${locale}/${clinicId}`} onClick={onMobileClose} className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-center w-14 h-14 shrink-0">
+            <img 
+              src="/logo.png" 
+              alt="ClinicOS Logo" 
+              className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(0,212,170,0.5)]" 
+            />
           </div>
-          {!collapsed && (
+          {(!mobile || true) && (
             <span
               className="text-lg font-bold tracking-tight animate-fade-in whitespace-nowrap"
               style={{
@@ -189,7 +209,7 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
           )}
         </Link>
 
-        {!collapsed && (
+        {!mobile && !collapsed && (
           <button
             onClick={() => setCollapsed(true)}
             className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.06] transition-all duration-200"
@@ -200,8 +220,8 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
         )}
       </div>
 
-      {/* Expand button when collapsed */}
-      {collapsed && (
+      {/* Expand button when collapsed (desktop only) */}
+      {!mobile && collapsed && (
         <button
           onClick={() => setCollapsed(false)}
           className="absolute -right-3 top-[72px] z-50 flex items-center justify-center w-6 h-6 rounded-full border border-white/[0.1] text-slate-400 hover:text-teal-400 transition-colors"
@@ -214,10 +234,10 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
 
       {/* ── Navigation ── */}
       <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden py-4 px-3">
-        {!collapsed && (
+        {(!mobile && !collapsed) && (
           <div className="mb-3 px-2">
             <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-              Navigation
+              {t('navigation')}
             </span>
           </div>
         )}
@@ -232,12 +252,13 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
               <Link
                 key={route.href}
                 href={route.href}
+                onClick={onMobileClose}
                 title={collapsed ? route.label : undefined}
                 className={cn(
                   'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium',
                   'transition-all duration-200 ease-out',
                   'animate-slide-in-left',
-                  collapsed ? 'justify-center' : '',
+                  !mobile && collapsed ? 'justify-center' : '',
                   isActive
                     ? 'text-white'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
@@ -280,14 +301,14 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
                 </span>
 
                 {/* Label */}
-                {!collapsed && (
+                {(!mobile || true) && (
                   <span className="truncate font-[500] text-[13.5px] leading-none">
                     {route.label}
                   </span>
                 )}
 
-                {/* Tooltip when collapsed */}
-                {collapsed && (
+                {/* Tooltip when collapsed (desktop only) */}
+                {!mobile && collapsed && (
                   <div
                     className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-xs font-medium text-white whitespace-nowrap pointer-events-none z-50
                     opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all duration-200"
@@ -314,13 +335,14 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
         {/* Clinic switcher */}
         <Link
           href={`/${locale}/clinic-switcher`}
+          onClick={onMobileClose}
           title={collapsed ? 'Switch Clinic' : undefined}
           className={cn(
             'group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2',
             'text-slate-400 hover:text-teal-400',
             'border border-white/[0.06] hover:border-teal-500/30',
             'transition-all duration-200 hover:bg-teal-500/[0.06]',
-            collapsed ? 'justify-center' : ''
+            !mobile && collapsed ? 'justify-center' : ''
           )}
         >
           <Building2 className="w-4 h-4 shrink-0 transition-colors" />
@@ -329,7 +351,7 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
               {t('switchClinic')}
             </span>
           )}
-          {collapsed && (
+          {!mobile && collapsed && (
             <div
               className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-xs font-medium text-white whitespace-nowrap pointer-events-none z-50
               opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all duration-200"
@@ -348,7 +370,7 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
         <div className={cn(
           'flex items-center gap-3 px-3 py-2 rounded-xl',
           'bg-white/[0.03] border border-white/[0.05]',
-          collapsed ? 'justify-center' : ''
+          !mobile && collapsed ? 'justify-center' : ''
         )}>
           {/* Avatar */}
           <div
@@ -365,7 +387,7 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
             />
           </div>
 
-          {!collapsed && (
+          {(!mobile || true) && !collapsed && (
             <div className="min-w-0 flex-1">
               <div className="text-[13px] font-semibold text-slate-200 capitalize truncate">
                 {roleLabel}
@@ -376,7 +398,7 @@ export function Sidebar({ locale, clinicId, role, specialty }: SidebarProps) {
             </div>
           )}
 
-          {!collapsed && (
+          {(!mobile || true) && !collapsed && (
             <Sparkles className="w-3.5 h-3.5 text-teal-500/60 shrink-0" />
           )}
         </div>

@@ -44,8 +44,8 @@ export async function GET(req: Request) {
       }
 
       for (const recipient of recipients) {
-        const phone = recipient.patients?.phone
-        
+        const patient: any = Array.isArray(recipient.patients) ? recipient.patients[0] : recipient.patients;
+        const phone = patient?.phone;
         if (!phone) {
           await supabase
             .from('whatsapp_campaign_recipients')

@@ -19,7 +19,7 @@ export async function lookupPatientInfo(clinicId: string, patientId: string) {
       appointment_id: a.id,
       date_time: a.scheduled_at,
       status: a.status,
-      service: a.clinic_services?.name_en,
+      service: (a.clinic_services as any)?.name_en,
       doctor: (a.clinic_staff_memberships as any)?.staff_members?.full_name
     }))
   }

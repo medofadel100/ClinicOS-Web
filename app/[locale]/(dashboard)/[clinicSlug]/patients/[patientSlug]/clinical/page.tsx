@@ -1,0 +1,127 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { PremiumCard } from '@/components/layout/PageComponents'
+import { requireClinicId } from "@/lib/utils/clinic"
+import { checkEntitlements } from '@/lib/entitlements'
+import ClinicalWorkspaceTabs from '../components/ClinicalWorkspaceTabs'
+
+export default async function PatientClinicalPage({
+  params: { locale, clinicSlug, patientSlug }
+}: {
+  params: { locale: string; clinicSlug: string; patientSlug: string }
+}) {
+  const clinicId = await requireClinicId(clinicSlug);
+  const supabase = createClient()
+  const isAr = locale === 'ar'
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect(`/${locale}/login`)
+
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(patientSlug)
+  
+  let patientQuery = supabase
+    .from('patients')
+    .select('*')
+    .eq('clinic_id', clinicId)
+
+  if (isUUID) {
+    patientQuery = patientQuery.eq('id', patientSlug)
+  } else {
+    patientQuery = patientQuery.eq('display_id', patientSlug)
+  }
+
+  const { data: patient } = await patientQuery.single()
+
+  if (!patient) redirect(`/${locale}/${clinicSlug}/patients`)
+
+  const { data: clinicData } = await supabase
+    .from('clinics')
+    .select('clinic_types(code, name_en)')
+    .eq('id', clinicId)
+    .single()
+  
+  const clinicTypeCode = Array.isArray(clinicData?.clinic_types) 
+    ? clinicData?.clinic_types[0]?.code 
+    : (clinicData?.clinic_types as any)?.code
+
+  const clinicTypeNameEn = Array.isArray(clinicData?.clinic_types) 
+    ? clinicData?.clinic_types[0]?.name_en 
+    : (clinicData?.clinic_types as any)?.name_en
+
+  const entitlements = await checkEntitlements(clinicId)
+
+  // Fetch initial entries for the specific clinical module
+  let clinicalData: any = []
+  
+  if (clinicTypeCode === 'dental') {
+    const { data } = await supabase.from('dental_chart_entries')
+      .select('*')
+      .eq('patient_id', patient.id)
+      .eq('clinic_id', clinicId)
+    clinicalData = data || []
+  } else if (clinicTypeCode === 'orthopedics') {
+    const { data } = await supabase.from('orthopedic_examinations')
+      .select('*')
+      .eq('patient_id', patient.id)
+      .eq('clinic_id', clinicId)
+    clinicalData = data || []
+  } else if (clinicTypeCode === 'ophthalmology') {
+    const { data } = await supabase.from('eye_examinations')
+      .select('*')
+      .eq('patient_id', patient.id)
+      .eq('clinic_id', clinicId)
+    clinicalData = data || []
+  } else if (clinicTypeCode === 'obstetrics_gynecology') {
+    const { data } = await supabase.from('obgyn_examinations')
+      .select('*')
+      .eq('patient_id', patient.id)
+      .eq('clinic_id', clinicId)
+    clinicalData = data || []
+
+  } else if (clinicTypeCode === 'general_medicine') {
+    const { data } = await supabase.from('general_medical_examinations')
+      .select('*')
+      .eq('patient_id', patient.id)
+      .eq('clinic_id', clinicId)
+      .order('created_at', { ascending: false })
+    clinicalData = data || []
+  } else {
+    const { data } = await supabase.from('patient_clinical_notes')
+      .select('*')
+      .eq('patient_id', patient.id)
+      .eq('clinic_id', clinicId)
+      .order('created_at', { ascending: false })
+    clinicalData = data || []
+  }
+
+  // Fetch free-text notes
+  const { data: freeNotes } = await supabase.from('patient_clinical_notes')
+    .select('id, content, created_at')
+    .eq('patient_id', patient.id)
+    .eq('clinic_id', clinicId)
+    .eq('note_type', 'free_text')
+    .order('created_at', { ascending: false })
+
+  const formattedFreeNotes = (freeNotes || []).map((n: any) => ({
+    id: n.id,
+    title: n.content?.title || 'Free Note',
+    content: n.content?.body || '',
+    created_at: n.created_at
+  }))
+
+  return (
+    <PremiumCard className="min-h-[50vh] md:min-h-[700px] flex flex-col">
+      <ClinicalWorkspaceTabs
+        clinicTypeCode={clinicTypeCode}
+        clinicTypeName={clinicTypeNameEn || (isAr ? 'عام' : 'General')}
+        isAr={isAr}
+        patientId={patient.id}
+        clinicId={clinicId}
+        locale={locale}
+        entitlements={entitlements}
+        clinicalData={clinicalData}
+        freeNotesData={formattedFreeNotes}
+      />
+    </PremiumCard>
+  )
+}

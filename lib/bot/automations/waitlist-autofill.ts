@@ -38,7 +38,8 @@ export async function processWaitlistCancellation(
 
   if (waiting && waiting.length > 0) {
     const waitlistEntry = waiting[0]
-    const patientPhone = waitlistEntry.patients?.phone
+    const patient: any = Array.isArray(waitlistEntry.patients) ? waitlistEntry.patients[0] : waitlistEntry.patients;
+    const patientPhone = patient?.phone;
     
     if (patientPhone) {
       const timeStr = new Date(cancelledAppointment.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -47,7 +48,7 @@ export async function processWaitlistCancellation(
       await sendMessage(
         clinicId,
         patientPhone,
-        `Hello ${waitlistEntry.patients?.full_name}! An earlier appointment just opened up on ${dateStr} at ${timeStr}. Reply "YES" to claim this slot, or "NO" to pass.`
+        `Hello ${patient?.full_name}! An earlier appointment just opened up on ${dateStr} at ${timeStr}. Reply "YES" to claim this slot, or "NO" to pass.`
       )
 
       // Update waitlist status to notified to prevent double-offering

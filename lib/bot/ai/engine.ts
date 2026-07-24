@@ -119,8 +119,8 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
     // Handle tool calls
     if (message.tool_calls) {
       for (const toolCall of message.tool_calls) {
-        const name = toolCall.function.name
-        const args = JSON.parse(toolCall.function.arguments)
+        const name = (toolCall as any).function.name
+        const args = JSON.parse((toolCall as any).function.arguments)
         
         let toolResult: any = {}
 

@@ -71,7 +71,7 @@ export async function handleIncomingMessage(clinicId: string, from: string, mess
         // Start booking flow
         await updateState(clinicId, from, { step: 'book_select_service' })
         // Fetch services
-        const { data: services } = await supabase.from('services').select('*').eq('clinic_id', clinicId).eq('is_active', true)
+        const { data: services } = await supabase.from('clinic_services').select('*').eq('clinic_id', clinicId).eq('is_active', true)
         if (!services || services.length === 0) {
           await sendMessage(clinicId, from, "No services available right now. Please call us.")
           await updateState(clinicId, from, { step: 'menu' })
@@ -79,7 +79,7 @@ export async function handleIncomingMessage(clinicId: string, from: string, mess
         }
         let svcText = "Please reply with the number of the service you'd like to book:\n\n"
         services.forEach((s, idx) => {
-          svcText += `${idx + 1}. ${s.name_en}\n`
+          svcText += `${idx + 1}. ${(s as any).name_en}\n`
         })
         await sendMessage(clinicId, from, svcText)
         break
@@ -100,14 +100,14 @@ export async function handleIncomingMessage(clinicId: string, from: string, mess
         await updateState(clinicId, from, { step: 'cancel_select_appointment' })
         let cancelText = "Reply with the number of the appointment you'd like to cancel:\n\n"
         apps.forEach((a, idx) => {
-          cancelText += `${idx + 1}. ${a.clinic_services?.name_en} at ${new Date(a.scheduled_at).toLocaleString()}\n`
+          cancelText += `${idx + 1}. ${(a.clinic_services as any)?.name_en} at ${new Date(a.scheduled_at).toLocaleString()}\n`
         })
         await sendMessage(clinicId, from, cancelText)
         break
     }
   } else if (state.step === 'book_select_service') {
     // ... booking flow logic (simplified for Checkpoint 12)
-    const { data: services } = await supabase.from('services').select('id').eq('clinic_id', clinicId).eq('is_active', true)
+    const { data: services } = await supabase.from('clinic_services').select('id').eq('clinic_id', clinicId).eq('is_active', true)
     const idx = parseInt(text) - 1
     if (isNaN(idx) || !services || !services[idx]) {
       await sendMessage(clinicId, from, "Invalid selection. Please reply with a valid number.")

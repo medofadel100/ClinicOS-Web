@@ -9,7 +9,7 @@ export async function GET(request: Request, { params }: { params: { locale: stri
   const next = searchParams.get('next') ?? `/${locale}/clinic-switcher`
 
   if (code) {
-    const supabase = createClient(cookies())
+    const supabase = createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {

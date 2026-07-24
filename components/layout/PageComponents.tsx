@@ -106,7 +106,7 @@ export function PremiumCard({ children, className = '', glowColor, style }: Prem
 export function PremiumTableWrapper({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="rounded-2xl overflow-hidden"
+      className="rounded-2xl overflow-x-auto"
       style={{
         border: '1px solid rgba(255,255,255,0.07)',
         background: 'linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',

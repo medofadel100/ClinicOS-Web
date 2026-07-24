@@ -10,6 +10,7 @@ interface ClinicMembership {
   clinics: {
     id: string;
     name: string;
+    slug: string;
   } | null;
 }
 
@@ -43,7 +44,8 @@ export default async function ClinicSwitcherPage({ params: { locale } }: { param
       role,
       clinics (
         id,
-        name
+        name,
+        slug
       )
     `)
     .eq('is_active', true)
@@ -62,8 +64,8 @@ export default async function ClinicSwitcherPage({ params: { locale } }: { param
   }
 
   // Redirect if exactly 1 clinic
-  if (memberships.length === 1) {
-    redirect(`/${locale}/${memberships[0].clinic_id}`)
+  if (memberships.length === 1 && memberships[0].clinics) {
+    redirect(`/${locale}/${memberships[0].clinics.slug}`)
   }
 
   // Display error if 0 clinics
@@ -91,7 +93,7 @@ export default async function ClinicSwitcherPage({ params: { locale } }: { param
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {memberships.map((m) => (
-            <Link key={m.clinic_id} href={`/${locale}/${m.clinic_id}`}>
+            <Link key={m.clinic_id} href={`/${locale}/${m.clinics?.slug || m.clinic_id}`}>
               <Card className="h-full hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
                 <CardHeader>
                   <CardTitle>{m.clinics?.name || 'Unknown Clinic'}</CardTitle>

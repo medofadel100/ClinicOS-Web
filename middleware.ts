@@ -34,9 +34,10 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
   const isAuthRoute = pathname.includes('/login') || pathname.includes('/register')
+  const isPublicPage = pathname.match(/^\/(en|ar)\/?$/) || pathname.includes('/download')
 
   // 3. Protect routes based on session
-  if (!session && !isAuthRoute) {
+  if (!session && !isAuthRoute && !isPublicPage) {
     const segments = pathname.split('/')
     const locale = ['en', 'ar'].includes(segments[1]) ? segments[1] : 'en'
     const loginUrl = request.nextUrl.clone()
@@ -63,6 +64,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Skip all internal paths (_next), api routes, and static public files
-    '/((?!api|_next/static|_next/image|favicon.ico|sw.js|workbox-.*|icons|manifest.json).*)'
+    '/((?!api|_next/static|_next/image|favicon.ico|logo.png|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|sw.js|workbox-.*|icons|manifest.json).*)'
   ]
 }

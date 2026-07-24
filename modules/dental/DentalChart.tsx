@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { updateToothCondition } from './actions'
+import { Clock } from 'lucide-react'
 
 type ToothCondition = 'normal' | 'cavity' | 'extracted' | 'root_canal' | 'crown' | 'implant'
 
 type DentalChartEntry = {
   tooth_number: number
   condition: ToothCondition
+  updated_at?: string
 }
 
 export default function DentalChart({
@@ -22,14 +24,16 @@ export default function DentalChart({
   patientId: string
   initialEntries: DentalChartEntry[]
 }) {
-  const [entries, setEntries] = useState<Record<number, ToothCondition>>(() => {
-    const map: Record<number, ToothCondition> = {}
+  const [entries, setEntries] = useState<Record<number, DentalChartEntry>>(() => {
+    const map: Record<number, DentalChartEntry> = {}
     initialEntries.forEach(e => {
-      map[e.tooth_number] = e.condition
+      map[e.tooth_number] = e
     })
     return map
   })
+  const [hoveredTooth, setHoveredTooth] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const isAr = locale === 'ar'
 
   const quadrants = {
     topRight: [18, 17, 16, 15, 14, 13, 12, 11],
@@ -39,7 +43,10 @@ export default function DentalChart({
   }
 
   const handleConditionChange = async (toothNumber: number, newCondition: ToothCondition) => {
-    setEntries(prev => ({ ...prev, [toothNumber]: newCondition }))
+    setEntries(prev => ({
+      ...prev,
+      [toothNumber]: { ...prev[toothNumber], tooth_number: toothNumber, condition: newCondition, updated_at: new Date().toISOString() }
+    }))
     setLoading(true)
 
     try {
@@ -63,12 +70,24 @@ export default function DentalChart({
     }
   }
 
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    return d.toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
+
   const renderTooth = (toothNumber: number) => {
-    const condition = entries[toothNumber] || 'normal'
+    const entry = entries[toothNumber]
+    const condition = entry?.condition || 'normal'
     const colorClass = getConditionColor(condition)
 
     return (
-      <div key={toothNumber} className="flex flex-col items-center gap-2">
+      <div
+        key={toothNumber}
+        className="flex flex-col items-center gap-2 relative"
+        onMouseEnter={() => setHoveredTooth(toothNumber)}
+        onMouseLeave={() => setHoveredTooth(null)}
+      >
         <div className={`w-10 h-12 flex items-center justify-center font-bold rounded-t-xl border-2 transition-colors ${colorClass}`}>
           {toothNumber}
         </div>
@@ -78,13 +97,23 @@ export default function DentalChart({
           disabled={loading}
           className="text-[10px] sm:text-xs max-w-full w-[60px] sm:w-20 border rounded p-1 bg-black/40 text-slate-300 border-white/10 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 appearance-none text-center cursor-pointer"
         >
-          <option value="normal">Normal</option>
-          <option value="cavity">Cavity</option>
-          <option value="extracted">Extract</option>
-          <option value="root_canal">Root C.</option>
-          <option value="crown">Crown</option>
-          <option value="implant">Implant</option>
+          <option value="normal">{isAr ? 'عادي' : 'Normal'}</option>
+          <option value="cavity">{isAr ? 'تسوس' : 'Cavity'}</option>
+          <option value="extracted">{isAr ? 'خلع' : 'Extract'}</option>
+          <option value="root_canal">{isAr ? 'عصب' : 'Root C.'}</option>
+          <option value="crown">{isAr ? 'تاج' : 'Crown'}</option>
+          <option value="implant">{isAr ? 'زراعة' : 'Implant'}</option>
         </select>
+
+        {/* Date tooltip */}
+        {hoveredTooth === toothNumber && entry?.updated_at && condition !== 'normal' && (
+          <div className="absolute -top-8 z-50 px-2 py-1 rounded-lg text-[10px] font-medium whitespace-nowrap" style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span className="flex items-center gap-1 text-slate-300">
+              <Clock className="w-3 h-3" />
+              {formatDate(entry.updated_at)}
+            </span>
+          </div>
+        )}
       </div>
     )
   }

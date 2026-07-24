@@ -38,10 +38,11 @@ export async function GET(req: Request) {
           .lt('scheduled_at', windowEnd.toISOString())
         
         for (const app of apps || []) {
-          if (app.patients?.phone) {
+          const patient: any = Array.isArray(app.patients) ? app.patients[0] : app.patients;
+          if (patient?.phone) {
             await sendMessage(
               config.clinic_id, 
-              app.patients.phone, 
+              patient.phone, 
               `Friendly reminder: You have an appointment at ${new Date(app.scheduled_at).toLocaleTimeString()}. See you soon!`
             )
           }
@@ -99,10 +100,11 @@ export async function GET(req: Request) {
           .gte('scheduled_at', anHourAgo)
 
         for (const app of apps || []) {
-          if (app.patients?.phone) {
+          const patient: any = Array.isArray(app.patients) ? app.patients[0] : app.patients;
+          if (patient?.phone) {
             await sendMessage(
               config.clinic_id, 
-              app.patients.phone, 
+              patient.phone, 
               `We missed you at your appointment today! Please reply to this message to reschedule.`
             )
           }

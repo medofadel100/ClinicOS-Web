@@ -18,11 +18,14 @@ const inter = Inter({
 })
 
 export const metadata = {
-  title: 'ClinicOS — Next-Generation Clinic Management',
+  title: 'ClinicOS',
   description: 'Streamline your clinic operations, manage appointments, and elevate patient care with ClinicOS.',
   manifest: '/manifest.json',
   keywords: ['clinic management', 'healthcare', 'appointments', 'medical software'],
   authors: [{ name: 'ClinicOS' }],
+  icons: {
+    icon: '/logo.png',
+  },
 }
 
 export const viewport = {
