@@ -105,35 +105,77 @@ export async function uploadPatientFile(patientId: string, clinicId: string, loc
     throw new Error('No file provided')
   }
 
-  // Generate a safe file path: clinicId/patientId/timestamp-filename
-  const filePath = `${clinicId}/${patientId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+  const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID
 
-  const { error: uploadError } = await supabase.storage
-    .from('patient-files')
-    .upload(filePath, file)
+  if (rootFolderId) {
+    // Google Drive upload
+    const { uploadPatientFile: driveUpload } = await import('@/lib/google-drive')
 
-  if (uploadError) {
-    console.error('Upload Error:', uploadError)
-    throw new Error('Failed to upload file to storage')
-  }
+    const arrayBuffer = await file.arrayBuffer()
+    const fileBuffer = Buffer.from(arrayBuffer)
 
-  // Get the public URL or just store the path (depending on bucket privacy)
-  // For patient data, buckets should be private, so we store the path and use createSignedUrl later.
-  // For simplicity here, we'll just store the path in file_url.
-  const { error: dbError } = await supabase
-    .from('patient_uploaded_files')
-    .insert({
-      clinic_id: clinicId,
-      patient_id: patientId,
-      file_url: filePath,
+    const result = await driveUpload({
+      rootFolderId,
+      clinicId,
+      patientId,
       category,
-      uploaded_via: 'staff',
-      review_status: 'approved',
-      reviewed_by: staffMember.id,
-      reviewed_at: new Date().toISOString()
+      fileBuffer,
+      originalFileName: file.name,
+      mimeType: file.type,
     })
 
-  if (dbError) throw dbError
+    const { error: dbError } = await supabase
+      .from('patient_uploaded_files')
+      .insert({
+        clinic_id: clinicId,
+        patient_id: patientId,
+        file_url: result.webViewLink,
+        file_name: result.fileName,
+        file_size: result.fileSize,
+        mime_type: result.mimeType,
+        category,
+        storage_provider: 'gdrive',
+        google_drive_file_id: result.fileId,
+        google_drive_web_view_link: result.webViewLink,
+        gdrive_folder_type: result.folderType,
+        uploaded_via: 'staff',
+        review_status: 'approved',
+        reviewed_by: staffMember.id,
+        reviewed_at: new Date().toISOString(),
+      })
+
+    if (dbError) throw dbError
+  } else {
+    // Supabase Storage upload (fallback)
+    const filePath = `${clinicId}/${patientId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('patient-files')
+      .upload(filePath, file)
+
+    if (uploadError) {
+      throw new Error('Failed to upload file to storage')
+    }
+
+    const { error: dbError } = await supabase
+      .from('patient_uploaded_files')
+      .insert({
+        clinic_id: clinicId,
+        patient_id: patientId,
+        file_url: filePath,
+        file_name: file.name,
+        file_size: file.size,
+        mime_type: file.type,
+        category,
+        storage_provider: 'supabase',
+        uploaded_via: 'staff',
+        review_status: 'approved',
+        reviewed_by: staffMember.id,
+        reviewed_at: new Date().toISOString(),
+      })
+
+    if (dbError) throw dbError
+  }
 
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/patients/[patientSlug]', 'page')
 }

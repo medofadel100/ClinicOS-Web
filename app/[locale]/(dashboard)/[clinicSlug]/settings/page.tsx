@@ -16,6 +16,11 @@ const LogoUpload = dynamic(() => import('./LogoUpload'), {
   loading: () => <div className="w-20 h-20 animate-pulse bg-white/5 rounded-xl" />
 })
 
+const StorageQuotaCard = dynamic(() => import('./StorageQuotaCard'), {
+  ssr: false,
+  loading: () => <div className="h-32 animate-pulse bg-white/5 rounded-xl" />
+})
+
 export default async function SettingsPage({
       params: { clinicSlug, locale }
     }: {
@@ -166,6 +171,7 @@ export default async function SettingsPage({
           { id: 'services', label: t.services, dot: 'bg-blue-400' },
           { id: 'billing', label: t.billing, dot: 'bg-green-400' },
           { id: 'paper', label: isAr ? 'شكل الورقة' : 'Paper', dot: 'bg-indigo-400' },
+          { id: 'storage', label: isAr ? 'المساحة' : 'Storage', dot: 'bg-cyan-400' },
         ].map((item) => (
           <a
             key={item.id}
@@ -197,6 +203,7 @@ export default async function SettingsPage({
             { id: 'services', label: t.services, dot: 'bg-blue-400' },
             { id: 'billing', label: t.billing, dot: 'bg-green-400' },
             { id: 'paper', label: isAr ? 'شكل الورقة' : 'Paper Format', dot: 'bg-indigo-400' },
+            { id: 'storage', label: isAr ? 'المساحة' : 'Storage', dot: 'bg-cyan-400' },
           ].map((item) => (
             <a
               key={item.id}
@@ -378,6 +385,11 @@ export default async function SettingsPage({
             <PremiumCard>
               <PaperFormatSettings clinicId={clinicId} locale={locale} />
             </PremiumCard>
+          </div>
+
+          {/* Storage Quota Section */}
+          <div id="storage">
+            <StorageQuotaCard clinicId={clinicId} locale={locale} />
           </div>
         </div>
       </div>
