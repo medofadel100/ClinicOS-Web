@@ -6,6 +6,7 @@ import { Clock } from 'lucide-react'
 
 type Appointment = {
   id: string
+  membership_id: string
   scheduled_at: string
   duration_minutes: number
   status: string
@@ -29,12 +30,12 @@ export default function CalendarView({
   const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i)
   const isAr = locale === 'ar'
 
-  // Group appointments by doctor
+  // Group appointments by doctor using membership_id (unique per doctor per clinic)
   const doctorsMap = new Map<string, { id: string, name: string, appointments: Appointment[] }>()
   
   appointments.forEach(app => {
     const docName = app.clinic_staff_memberships?.staff_members?.full_name || (isAr ? 'طبيب غير معروف' : 'Unknown Doctor')
-    const docId = app.clinic_staff_memberships?.staff_members?.full_name || 'unknown'
+    const docId = app.membership_id || 'unknown'
     if (!doctorsMap.has(docId)) {
       doctorsMap.set(docId, { id: docId, name: docName, appointments: [] })
     }

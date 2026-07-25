@@ -5,6 +5,7 @@ import { ClipboardList, Plus, X, CheckCircle } from 'lucide-react'
 
 type Appointment = {
   id: string
+  patient_id: string
   scheduled_at: string
   status: string
   patients?: { full_name: string }
@@ -28,25 +29,23 @@ export default function WorkRecorder({
   doctorProfileId: string | null
   appointments: Appointment[]
 }) {
-  const [selectedPatient, setSelectedPatient] = useState('')
+  const [selectedPatientId, setSelectedPatientId] = useState('')
   const [noteText, setNoteText] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   const activeAppointments = appointments.filter(a => ['scheduled', 'confirmed'].includes(a.status))
+  const selectedAppointment = activeAppointments.find(a => a.patient_id === selectedPatientId)
 
   const handleSaveNote = async () => {
-    if (!selectedPatient || !noteText.trim()) return
+    if (!selectedPatientId || !noteText.trim()) return
     setSaving(true)
     try {
-      const patient = appointments.find(a => a.patient_id === selectedPatient || a.patients?.full_name === selectedPatient)
-      if (!patient) return
-
       const res = await fetch('/api/clinical/free-note', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          patient_id: patient.patient_id || patient.id,
+          patient_id: selectedPatientId,
           clinic_id: clinicId,
           title: isAr ? 'ملاحظة من الطبيب' : 'Doctor Note',
           content: noteText.trim()
@@ -73,24 +72,22 @@ export default function WorkRecorder({
         {isAr ? 'تسجيل العمل' : 'Work Recorder'}
       </h3>
 
-      {/* Patient selector */}
       <div className="space-y-2 mb-3">
         <label className="text-[11px] text-slate-500 font-medium">{isAr ? 'المريض' : 'Patient'}</label>
         <select
-          value={selectedPatient}
-          onChange={e => setSelectedPatient(e.target.value)}
+          value={selectedPatientId}
+          onChange={e => setSelectedPatientId(e.target.value)}
           className="flex h-9 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-slate-200"
         >
           <option value="">{isAr ? 'اختر مريض...' : 'Select patient...'}</option>
           {activeAppointments.map(app => (
-            <option key={app.id} value={app.patients?.full_name || ''}>
+            <option key={app.patient_id} value={app.patient_id}>
               {app.patients?.full_name || '—'}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Note text */}
       <div className="space-y-2 mb-3">
         <label className="text-[11px] text-slate-500 font-medium">{isAr ? 'الملاحظة' : 'Note'}</label>
         <textarea
@@ -102,26 +99,18 @@ export default function WorkRecorder({
         />
       </div>
 
-      {/* Billing summary */}
-      {selectedPatient && (
+      {selectedAppointment && (
         <div className="rounded-lg p-3 mb-3" style={{ background: 'rgba(34,211,238,0.06)', border: '1px solid rgba(34,211,238,0.12)' }}>
-          {(() => {
-            const app = activeAppointments.find(a => a.patients?.full_name === selectedPatient)
-            if (!app) return null
-            return (
-              <div className="space-y-1">
-                <p className="text-xs text-slate-400">{isAr ? 'الخدمة' : 'Service'}: <span className="text-slate-200 font-medium">{app.clinic_services?.name || '—'}</span></p>
-                <p className="text-xs text-slate-400">{isAr ? 'التكلفة' : 'Cost'}: <span className="text-teal-400 font-bold">{app.clinic_services?.price ? `${app.clinic_services.price} EGP` : '—'}</span></p>
-              </div>
-            )
-          })()}
+          <div className="space-y-1">
+            <p className="text-xs text-slate-400">{isAr ? 'الخدمة' : 'Service'}: <span className="text-slate-200 font-medium">{selectedAppointment.clinic_services?.name || '—'}</span></p>
+            <p className="text-xs text-slate-400">{isAr ? 'التكلفة' : 'Cost'}: <span className="text-teal-400 font-bold">{selectedAppointment.clinic_services?.price ? `${selectedAppointment.clinic_services.price} EGP` : '—'}</span></p>
+          </div>
         </div>
       )}
 
-      {/* Save button */}
       <button
         onClick={handleSaveNote}
-        disabled={saving || !selectedPatient || !noteText.trim()}
+        disabled={saving || !selectedPatientId || !noteText.trim()}
         className="w-full h-9 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
         style={{
           background: saved ? 'rgba(34,197,94,0.2)' : 'rgba(34,211,238,0.15)',

@@ -18,7 +18,7 @@ async function verifyAccess(clinicId: string) {
 
   const { data: membership } = await supabase
     .from('clinic_staff_memberships')
-    .select('role')
+    .select('id, role')
     .eq('staff_member_id', staffMember.id)
     .eq('clinic_id', clinicId)
     .eq('is_active', true)
@@ -39,6 +39,47 @@ export async function getAvailableSlots(clinicId: string, doctorId: string, date
   const endOfDay = new Date(date)
   endOfDay.setUTCHours(23, 59, 59, 999)
 
+  // Get doctor's working hours for this day
+  const targetDate = new Date(date)
+  const dayOfWeek = targetDate.getDay()
+
+  // Get the staff_member_id from the membership to look up doctor_profile
+  const { data: memData } = await supabase
+    .from('clinic_staff_memberships')
+    .select('staff_member_id')
+    .eq('id', doctorId)
+    .eq('clinic_id', clinicId)
+    .single()
+
+  let START_HOUR = 8
+  let END_HOUR = 20
+
+  if (memData) {
+    const { data: docProfile } = await supabase
+      .from('doctor_profiles')
+      .select('id')
+      .eq('staff_member_id', memData.staff_member_id)
+      .eq('clinic_id', clinicId)
+      .single()
+
+    if (docProfile) {
+      const { data: workingHours } = await supabase
+        .from('doctor_working_hours')
+        .select('start_time, end_time')
+        .eq('doctor_profile_id', docProfile.id)
+        .eq('day_of_week', dayOfWeek)
+        .eq('is_active', true)
+        .single()
+
+      if (workingHours) {
+        const [sh, sm] = workingHours.start_time.split(':').map(Number)
+        const [eh, em] = workingHours.end_time.split(':').map(Number)
+        START_HOUR = sh + (sm ? sm / 60 : 0)
+        END_HOUR = eh + (em ? em / 60 : 0)
+      }
+    }
+  }
+
   const { data: existingApps } = await supabase
     .from('appointments')
     .select('scheduled_at, duration_minutes')
@@ -48,21 +89,18 @@ export async function getAvailableSlots(clinicId: string, doctorId: string, date
     .gte('scheduled_at', startOfDay.toISOString())
     .lte('scheduled_at', endOfDay.toISOString())
 
-  const START_HOUR = 8
-  const END_HOUR = 20
   const slots: string[] = []
 
   let current = new Date(date)
-  current.setHours(START_HOUR, 0, 0, 0)
+  current.setHours(Math.floor(START_HOUR), 0, 0, 0)
   
   const endTime = new Date(date)
-  endTime.setHours(END_HOUR, 0, 0, 0)
+  endTime.setHours(Math.floor(END_HOUR), (END_HOUR % 1) * 60, 0, 0)
 
   while (current < endTime) {
     const slotStart = new Date(current)
     const slotEnd = new Date(current.getTime() + durationMinutes * 60000)
     
-    // Check if it overlaps with any existing app
     const hasConflict = existingApps?.some(app => {
       const appStart = new Date(app.scheduled_at)
       const appEnd = new Date(appStart.getTime() + app.duration_minutes * 60000)
@@ -73,7 +111,6 @@ export async function getAvailableSlots(clinicId: string, doctorId: string, date
       slots.push(slotStart.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }))
     }
 
-    // Move to next 30-min block for evaluation (you can step by duration, but 30min is standard)
     current.setMinutes(current.getMinutes() + 30)
   }
 
@@ -152,15 +189,33 @@ export async function bookWalkIn(clinicId: string, locale: string, patientId: st
 
   if (!service) throw new Error('Service not found')
 
-  // Find the next available slot for this doctor (owner) right now
+  // Find the next available slot, starting from today, up to 7 days ahead
   const now = new Date()
-  const slots = await getAvailableSlots(clinicId, membership.id, now.toISOString().split('T')[0], service.duration_minutes)
+  let scheduledAt: string | null = null
 
-  let scheduledAt: string
-  if (slots.length > 0) {
-    scheduledAt = new Date(`${now.toISOString().split('T')[0]}T${slots[0]}`).toISOString()
-  } else {
-    // If no slots today, book for now (will show as in-progress)
+  for (let dayOffset = 0; dayOffset <= 7; dayOffset++) {
+    const targetDate = new Date(now)
+    targetDate.setDate(targetDate.getDate() + dayOffset)
+    const dateStr = targetDate.toISOString().split('T')[0]
+
+    const slots = await getAvailableSlots(clinicId, membership.id, dateStr, service.duration_minutes)
+
+    // Filter to future slots only on the first day
+    const futureSlots = dayOffset === 0
+      ? slots.filter(slot => {
+          const slotTime = new Date(`${dateStr}T${slot}`)
+          return slotTime > now
+        })
+      : slots
+
+    if (futureSlots.length > 0) {
+      scheduledAt = new Date(`${dateStr}T${futureSlots[0]}`).toISOString()
+      break
+    }
+  }
+
+  // If absolutely no slot found in 7 days, book for now
+  if (!scheduledAt) {
     scheduledAt = now.toISOString()
   }
 

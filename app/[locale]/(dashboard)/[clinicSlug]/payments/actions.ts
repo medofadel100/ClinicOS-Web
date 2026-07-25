@@ -21,6 +21,19 @@ export async function confirmPayment(
     .single()
   if (!staffMember) throw new Error('Unauthorized')
 
+  // Only owner, reception, and accountant can confirm payments
+  const { data: membership } = await supabase
+    .from('clinic_staff_memberships')
+    .select('role')
+    .eq('staff_member_id', staffMember.id)
+    .eq('clinic_id', clinicId)
+    .eq('is_active', true)
+    .single()
+
+  if (!membership || !['owner', 'reception', 'accountant'].includes(membership.role)) {
+    throw new Error('Only owner, reception, or accountant can confirm payments')
+  }
+
   // 1. Record the payment
   const { error: paymentError } = await supabase
     .from('patient_payments')

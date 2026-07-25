@@ -82,10 +82,10 @@ export async function POST(request: Request) {
       await supabase
         .from('doctor_profiles')
         .insert({
-          membership_id: membership.id,
-          specialty_title: specialtyTitle || null,
-          bio_ar: bioAr || null,
-          bio_en: bioEn || null
+          staff_member_id: staffMember.id,
+          clinic_id: invite.clinic_id,
+          specialty: specialtyTitle || null,
+          bio: bioAr || null
         })
     }
 

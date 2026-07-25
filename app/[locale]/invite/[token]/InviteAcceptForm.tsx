@@ -22,8 +22,7 @@ export default function InviteAcceptForm({
     email: '',
     password: '',
     specialtyTitle: '',
-    bioAr: '',
-    bioEn: ''
+    bioAr: ''
   })
 
   const isDoctor = invite.invited_role === 'doctor'
@@ -50,10 +49,6 @@ export default function InviteAcceptForm({
       }
 
       // Automatically login
-      const loginRes = await fetch('/auth/login', { // Or whatever the actual login route logic is if handled by Supabase Client directly
-        // Instead of fetch, let's just use supabase client here to sign in
-      })
-      // Actually, let's just use supabase client to sign in here
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -131,19 +126,10 @@ export default function InviteAcceptForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bioEn">Bio (English)</Label>
-              <Textarea
-                id="bioEn"
-                placeholder="Brief professional biography in English..."
-                value={formData.bioEn}
-                onChange={(e) => setFormData({ ...formData, bioEn: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bioAr">Bio (Arabic)</Label>
+              <Label htmlFor="bioAr">Bio</Label>
               <Textarea
                 id="bioAr"
-                placeholder="نبذة مهنية قصيرة..."
+                placeholder="Brief professional biography..."
                 value={formData.bioAr}
                 onChange={(e) => setFormData({ ...formData, bioAr: e.target.value })}
               />
