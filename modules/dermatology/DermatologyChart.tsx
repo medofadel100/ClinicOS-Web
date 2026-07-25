@@ -1,18 +1,19 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { AlertCircle, Zap, Syringe, Sparkles, Stethoscope, MapPin } from 'lucide-react'
+import { AlertCircle, Zap, Syringe, Sparkles, Stethoscope, MapPin, BarChart3 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { upsertDermatologyNote, upsertAestheticsData } from './actions'
 import LaserSessions from './LaserSessions'
 import Injectables from './Injectables'
 import SkincareProcedures from './SkincareProcedures'
 import DermTreatments from './DermTreatments'
+import DermatologyCharts from './DermatologyCharts'
 import type { Pin, LaserSession, InjectableRecord, SkincareRecord, TreatmentRecord, DermatologyAestheticsData } from './types'
 
 interface PinEntry { note_type: string; content?: { pins?: Pin[] } }
 
-type TabId = 'body_map' | 'laser' | 'injectables' | 'skincare' | 'treatments'
+type TabId = 'body_map' | 'laser' | 'injectables' | 'skincare' | 'treatments' | 'charts'
 
 const TABS: { id: TabId; label: string; labelAr: string; icon: React.ReactNode; color: string }[] = [
   { id: 'body_map', label: 'Body Map', labelAr: 'خريطة الجسم', icon: <MapPin className="w-4 h-4" />, color: 'indigo' },
@@ -20,6 +21,7 @@ const TABS: { id: TabId; label: string; labelAr: string; icon: React.ReactNode; 
   { id: 'injectables', label: 'Injectables', labelAr: 'الحقن', icon: <Syringe className="w-4 h-4" />, color: 'purple' },
   { id: 'skincare', label: 'Skincare', labelAr: 'البشرة', icon: <Sparkles className="w-4 h-4" />, color: 'amber' },
   { id: 'treatments', label: 'Treatments', labelAr: 'العلاجات', icon: <Stethoscope className="w-4 h-4" />, color: 'red' },
+  { id: 'charts', label: 'Charts', labelAr: 'الرسوم', icon: <BarChart3 className="w-4 h-4" />, color: 'cyan' },
 ]
 
 export default function DermatologyChart({
@@ -292,6 +294,11 @@ export default function DermatologyChart({
       {/* ─── Treatments Tab ────────────────────────────────── */}
       {activeTab === 'treatments' && (
         <DermTreatments records={aestheticsData.treatments} onUpdate={updateTreatments} isAr={isAr} loading={loading} />
+      )}
+
+      {/* ─── Charts Tab ────────────────────────────────────── */}
+      {activeTab === 'charts' && (
+        <DermatologyCharts data={aestheticsData} isAr={isAr} />
       )}
 
       {/* ─── Pin Dialog ────────────────────────────────────── */}
