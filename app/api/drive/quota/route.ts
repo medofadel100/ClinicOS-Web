@@ -63,7 +63,6 @@ export async function GET(request: NextRequest) {
     }
 
     const totalFiles = (files || []).length
-    const gdriveFiles = (files || []).filter(f => f.storage_provider === 'gdrive').length
 
     return NextResponse.json({
       quotaMB,
@@ -78,67 +77,9 @@ export async function GET(request: NextRequest) {
         prescription: Math.round(byCategory.prescription / (1024 * 1024) * 100) / 100,
       },
       totalFiles,
-      gdriveFiles,
     })
   } catch (error) {
     console.error('[Quota Error]', error)
     return NextResponse.json({ error: 'Failed to get quota' }, { status: 500 })
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    const { clinicId, quotaMB } = body
-
-    if (!clinicId || !quotaMB) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
-    }
-
-    // Only owners can change quota
-    const { data: staffMember } = await supabase
-      .from('staff_members')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (!staffMember) {
-      return NextResponse.json({ error: 'Not found' }, { status: 403 })
-    }
-
-    const { data: membership } = await supabase
-      .from('clinic_staff_memberships')
-      .select('role')
-      .eq('staff_member_id', staffMember.id)
-      .eq('clinic_id', clinicId)
-      .eq('is_active', true)
-      .single()
-
-    if (!membership || membership.role !== 'owner') {
-      return NextResponse.json({ error: 'Only owners can change storage quota' }, { status: 403 })
-    }
-
-    // Upsert quota setting
-    const { error } = await supabase
-      .from('clinic_settings')
-      .upsert(
-        { clinic_id: clinicId, setting_key: 'storage_quota_mb', setting_value: String(quotaMB) },
-        { onConflict: 'clinic_id,setting_key' }
-      )
-
-    if (error) {
-      return NextResponse.json({ error: 'Failed to update quota' }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true, quotaMB })
-  } catch (error) {
-    console.error('[Quota Update Error]', error)
-    return NextResponse.json({ error: 'Failed to update quota' }, { status: 500 })
   }
 }

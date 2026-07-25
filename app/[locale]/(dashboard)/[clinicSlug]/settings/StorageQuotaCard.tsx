@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { HardDrive, TrendingUp, AlertTriangle } from 'lucide-react'
+import { HardDrive, AlertTriangle, Send, CheckCircle } from 'lucide-react'
+import { requestUpgrade } from '@/lib/actions/entitlements'
 
 interface StorageQuota {
   quotaMB: number
@@ -17,8 +18,8 @@ interface StorageQuota {
 export default function StorageQuotaCard({ clinicId, locale }: { clinicId: string; locale: string }) {
   const [quota, setQuota] = useState<StorageQuota | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [newQuotaGB, setNewQuotaGB] = useState('')
+  const [requesting, setRequesting] = useState(false)
+  const [hasPendingRequest, setHasPendingRequest] = useState(false)
   const isAr = locale === 'ar'
 
   useEffect(() => {
@@ -26,36 +27,21 @@ export default function StorageQuotaCard({ clinicId, locale }: { clinicId: strin
       .then(r => r.json())
       .then(data => {
         setQuota(data)
-        setNewQuotaGB(String(Math.round(data.quotaGB)))
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [clinicId])
 
-  const handleSave = async () => {
-    const mb = parseInt(newQuotaGB, 10) * 1024
-    if (!mb || mb < 100) {
-      toast.error(isAr ? 'الحد الأدنى 100 MB' : 'Minimum is 100 MB')
-      return
-    }
-    setSaving(true)
+  const handleRequest = async () => {
+    setRequesting(true)
     try {
-      const res = await fetch('/api/drive/quota', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clinicId, quotaMB: mb }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        toast.success(isAr ? 'تم تحديث الحد' : 'Quota updated')
-        setQuota(prev => prev ? { ...prev, quotaMB: mb, quotaGB: Math.round(mb / 1024 * 100) / 100 } : null)
-      } else {
-        toast.error(data.error || 'Failed')
-      }
+      await requestUpgrade(clinicId, 'storage_increase')
+      setHasPendingRequest(true)
+      toast.success(isAr ? 'تم إرسال الطلب — سيتم التواصل معك من الإدارة' : 'Request sent — admin will contact you')
     } catch {
-      toast.error(isAr ? 'فشل التحديث' : 'Update failed')
+      toast.error(isAr ? 'فشل إرسال الطلب' : 'Failed to send request')
     } finally {
-      setSaving(false)
+      setRequesting(false)
     }
   }
 
@@ -79,9 +65,13 @@ export default function StorageQuotaCard({ clinicId, locale }: { clinicId: strin
         <div className="flex items-center justify-center w-9 h-9 rounded-lg" style={{ background: 'rgba(0,212,170,0.1)' }}>
           <HardDrive className="w-5 h-5 text-primary" />
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="text-sm font-semibold text-slate-200">{isAr ? 'مساحة التخزين' : 'Storage Quota'}</h3>
-          <p className="text-xs text-slate-500">{isAr ? 'حد التخزين لهذه العيادة' : 'Storage limit for this clinic'}</p>
+          <p className="text-xs text-slate-500">{isAr ? 'حد التخزين المعين لعيادتك' : 'Your clinic storage limit'}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-lg font-bold text-slate-200">{quota.quotaGB >= 1 ? `${quota.quotaGB} GB` : `${quota.quotaMB} MB`}</p>
+          <p className="text-[10px] text-slate-500 uppercase">{isAr ? 'الحد الأقصى' : 'Max Limit'}</p>
         </div>
       </div>
 
@@ -89,15 +79,13 @@ export default function StorageQuotaCard({ clinicId, locale }: { clinicId: strin
       <div className="mb-4">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs text-slate-400">
-            {quota.usedGB >= 1 ? `${quota.usedGB} GB` : `${quota.usedMB} MB`}
-            {' / '}
-            {quota.quotaGB >= 1 ? `${quota.quotaGB} GB` : `${quota.quotaMB} MB`}
+            {isAr ? 'المستخدم' : 'Used'}: {quota.usedGB >= 1 ? `${quota.usedGB} GB` : `${quota.usedMB} MB`}
           </span>
           <span className={`text-xs font-medium ${isCritical ? 'text-red-400' : isWarning ? 'text-amber-400' : 'text-slate-400'}`}>
             {quota.percentUsed}%
           </span>
         </div>
-        <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
+        <div className="w-full h-2.5 rounded-full bg-white/5 overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
@@ -108,19 +96,62 @@ export default function StorageQuotaCard({ clinicId, locale }: { clinicId: strin
         </div>
       </div>
 
-      {/* Warning */}
-      {isWarning && (
-        <div className={`flex items-center gap-2 p-2.5 rounded-lg mb-4 text-xs ${isCritical ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-400'}`}>
-          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-          {isCritical
-            ? (isAr ? 'المساحة على وشك الامتلاء! تواصل مع الإدارة لزيادة الحد.' : 'Storage almost full! Contact admin to increase quota.')
-            : (isAr ? 'المساحة وصلت لـ 80% — فكّر في زيادة الحد.' : 'Storage at 80% — consider increasing quota.')
-          }
+      {/* Warning + Request Button */}
+      {(isWarning || isCritical) && (
+        <div className={`flex flex-col gap-3 p-3 rounded-lg mb-4 ${isCritical ? 'bg-red-500/10' : 'bg-amber-500/10'}`}>
+          <div className="flex items-start gap-2 text-xs">
+            <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${isCritical ? 'text-red-400' : 'text-amber-400'}`} />
+            <div>
+              <p className={`font-medium ${isCritical ? 'text-red-400' : 'text-amber-400'}`}>
+                {isCritical
+                  ? (isAr ? 'المساحة على وشك الامتلاء!' : 'Storage almost full!')
+                  : (isAr ? 'المساحة وصلت لـ 80%' : 'Storage at 80%')
+                }
+              </p>
+              <p className="text-slate-500 mt-0.5">
+                {isAr
+                  ? 'تواصل مع إدارة المنصة لزيادة مساحة التخزين.'
+                  : 'Contact platform admin to increase your storage.'
+                }
+              </p>
+            </div>
+          </div>
+
+          {/* Request More Storage Button */}
+          {!hasPendingRequest ? (
+            <button
+              onClick={handleRequest}
+              disabled={requesting}
+              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+              style={{
+                background: isCritical ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+                color: isCritical ? '#fca5a5' : '#fcd34d',
+                border: `1px solid ${isCritical ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}`,
+              }}
+            >
+              {requesting ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  {isAr ? 'جاري الإرسال...' : 'Sending...'}
+                </span>
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  {isAr ? 'طلب زيادة مساحة' : 'Request More Storage'}
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-xs font-medium bg-white/5 text-slate-400">
+              <CheckCircle className="w-3.5 h-3.5 text-primary" />
+              {isAr ? 'تم إرسال الطلب — في انتظار مراجعة الإدارة' : 'Request sent — awaiting admin review'}
+            </div>
+          )}
         </div>
       )}
 
       {/* Category Breakdown */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-3 gap-3 mb-2">
         {[
           { key: 'xray', label: isAr ? 'أشعة' : 'X-Rays', mb: quota.byCategory.xray },
           { key: 'lab', label: isAr ? 'تحاليل' : 'Labs', mb: quota.byCategory.lab },
@@ -133,26 +164,15 @@ export default function StorageQuotaCard({ clinicId, locale }: { clinicId: strin
         ))}
       </div>
 
-      {/* Quota Settings */}
-      <div className="flex items-end gap-3">
-        <div className="flex-1">
-          <label className="text-xs text-slate-500 block mb-1">{isAr ? 'الحد الجديد (GB)' : 'New Quota (GB)'}</label>
-          <input
-            type="number"
-            value={newQuotaGB}
-            onChange={e => setNewQuotaGB(e.target.value)}
-            min={1}
-            className="w-full h-9 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white focus:outline-none focus:border-primary/50"
-          />
-        </div>
-        <button
-          onClick={handleSave}
-          disabled={saving || newQuotaGB === String(Math.round(quota.quotaGB))}
-          className="flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-semibold bg-primary/15 text-primary border border-primary/20 hover:bg-primary/25 transition-all disabled:opacity-50"
-        >
-          {saving ? '...' : (isAr ? 'حفظ' : 'Save')}
-        </button>
-      </div>
+      {/* Contact Info */}
+      {isWarning && !hasPendingRequest && (
+        <p className="text-[11px] text-slate-600 text-center mt-2">
+          {isAr
+            ? 'أو تواصل معنا مباشرة على WhatsApp أو البريد الإلكتروني'
+            : 'Or contact us directly via WhatsApp or email'
+          }
+        </p>
+      )}
     </div>
   )
 }
