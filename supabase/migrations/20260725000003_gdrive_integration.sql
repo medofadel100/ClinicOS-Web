@@ -12,18 +12,7 @@ ALTER TABLE patient_uploaded_files
   ADD COLUMN IF NOT EXISTS gdrive_folder_type text CHECK (gdrive_folder_type IN ('xray', 'lab', 'prescription'));
 
 -- 2. Expand file_category enum to include 'lab'
--- Since we can't ALTER TYPE easily, we'll use text with CHECK
-ALTER TABLE patient_uploaded_files
-  DROP CONSTRAINT IF EXISTS patient_uploaded_files_category_check;
-
-ALTER TABLE patient_uploaded_files
-  ADD CONSTRAINT patient_uploaded_files_category_check
-  CHECK (category IN ('xray', 'lab', 'prescription', 'other'));
-
--- 3. Add index for Google Drive file lookups
-CREATE INDEX IF NOT EXISTS idx_patient_files_gdrive_id
-  ON patient_uploaded_files(google_drive_file_id)
-  WHERE google_drive_file_id IS NOT NULL;
+ALTER TYPE file_category ADD VALUE IF NOT EXISTS 'lab';
 
 -- 4. Add index for storage provider filtering
 CREATE INDEX IF NOT EXISTS idx_patient_files_storage_provider
