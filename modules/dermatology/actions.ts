@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import type { Pin, DermatologyAestheticsData } from './types'
 
 async function verifyAccess(clinicId: string) {
   const supabase = createClient()
@@ -24,29 +25,39 @@ async function verifyAccess(clinicId: string) {
     .eq('is_active', true)
     .single()
 
-  if (!membership) {
-    throw new Error('Forbidden')
-  }
+  if (!membership) throw new Error('Forbidden')
 
   return { supabase, staffMember, membership }
 }
 
-export async function upsertDermatologyNote(clinicId: string, locale: string, patientId: string, pins: any[]) {
-  const { supabase, staffMember } = await verifyAccess(clinicId)
+const DEFAULT_DATA: DermatologyAestheticsData = {
+  laser_sessions: [],
+  injectables: [],
+  skincare: [],
+  treatments: []
+}
 
-  const { data: existingNote } = await supabase
+async function upsertNote(
+  supabase: ReturnType<typeof createClient>,
+  staffMember: { id: string },
+  clinicId: string,
+  patientId: string,
+  noteType: string,
+  content: Record<string, unknown>
+) {
+  const { data: existing } = await supabase
     .from('patient_clinical_notes')
     .select('id')
     .eq('patient_id', patientId)
     .eq('clinic_id', clinicId)
-    .eq('note_type', 'dermatology_map')
+    .eq('note_type', noteType)
     .single()
 
-  if (existingNote) {
+  if (existing) {
     const { error } = await supabase
       .from('patient_clinical_notes')
-      .update({ content: { pins }, updated_at: new Date().toISOString() })
-      .eq('id', existingNote.id)
+      .update({ content, updated_at: new Date().toISOString() })
+      .eq('id', existing.id)
     if (error) throw error
   } else {
     const { error } = await supabase
@@ -55,11 +66,22 @@ export async function upsertDermatologyNote(clinicId: string, locale: string, pa
         clinic_id: clinicId,
         patient_id: patientId,
         author_id: staffMember.id,
-        note_type: 'dermatology_map',
-        content: { pins }
+        note_type: noteType,
+        content
       })
     if (error) throw error
   }
+}
+
+// ─── Body Map Pins ────────────────────────────────────────────
+export async function upsertDermatologyNote(
+  clinicId: string,
+  _locale: string,
+  patientId: string,
+  pins: Pin[]
+) {
+  const { supabase, staffMember } = await verifyAccess(clinicId)
+  await upsertNote(supabase, staffMember, clinicId, patientId, 'dermatology_map', { pins })
 
   const { data: updatedNotes } = await supabase
     .from('patient_clinical_notes')
@@ -70,4 +92,33 @@ export async function upsertDermatologyNote(clinicId: string, locale: string, pa
 
   revalidatePath(`/[locale]/(dashboard)/[clinicSlug]/patients/[patientSlug]/clinical`, 'page')
   return updatedNotes || []
+}
+
+// ─── Aesthetics Data (laser, injectables, skincare, treatments) ─
+export async function upsertAestheticsData(
+  clinicId: string,
+  patientId: string,
+  data: DermatologyAestheticsData
+) {
+  const { supabase, staffMember } = await verifyAccess(clinicId)
+  await upsertNote(supabase, staffMember, clinicId, patientId, 'dermatology_aesthetics', data as unknown as Record<string, unknown>)
+
+  revalidatePath(`/[locale]/(dashboard)/[clinicSlug]/patients/[patientSlug]/clinical`, 'page')
+  return data
+}
+
+export async function getAestheticsData(
+  clinicId: string,
+  patientId: string
+): Promise<DermatologyAestheticsData> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('patient_clinical_notes')
+    .select('content')
+    .eq('patient_id', patientId)
+    .eq('clinic_id', clinicId)
+    .eq('note_type', 'dermatology_aesthetics')
+    .single()
+
+  return (data?.content as DermatologyAestheticsData) || DEFAULT_DATA
 }
