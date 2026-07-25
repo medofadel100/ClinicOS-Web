@@ -21,7 +21,7 @@ export default function BotModeSettings({
   const handleModeChange = async (newMode: 'none' | 'rule_based' | 'ai') => {
     try {
       await updateWhatsAppConfig(clinicId, locale, { mode: newMode })
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في تحديث وضع البوت' : 'Failed to update bot mode.')
     }
   }

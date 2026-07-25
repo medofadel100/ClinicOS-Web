@@ -92,7 +92,7 @@ export default function BodyChart({
   const [treatmentPlan, setTreatmentPlan] = useState('')
   const [notes, setNotes] = useState('')
 
-  const selectedEntries = selectedRegion
+  const _selectedEntries = selectedRegion
     ? entries.filter(e => e.body_region === selectedRegion)
     : []
 

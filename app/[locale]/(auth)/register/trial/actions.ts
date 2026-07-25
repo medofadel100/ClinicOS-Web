@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 export async function linkClinicOwner(data: {
   userId: string;
@@ -35,6 +36,8 @@ export async function linkClinicOwner(data: {
       })
 
     if (membershipError) throw new Error(`Membership error: ${membershipError.message}`)
+
+    revalidatePath('/')
 
     return { success: true }
   } catch (err: any) {

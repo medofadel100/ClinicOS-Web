@@ -37,7 +37,7 @@ export default function PsychiatryChart({
   locale: string;
   initialEntries: any[];
 }) {
-  const t = useTranslations('Clinical')
+  const _t = useTranslations('Clinical')
   
   const getRecords = (entries: any[]) => {
     const notes = entries.find(n => n.note_type === 'psychiatry_tracker')

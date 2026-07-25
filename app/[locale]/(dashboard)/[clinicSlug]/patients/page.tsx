@@ -1,9 +1,8 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Input } from '@/components/ui/input'
 import AddPatientDialog from './AddPatientDialog'
-import { PageHeader, PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
+import { PageHeader, PremiumTableWrapper, EmptyState } from '@/components/layout/PageComponents'
 import { Users, Search } from 'lucide-react'
 import { requireClinicId } from "@/lib/utils/clinic";
 
@@ -59,7 +58,7 @@ export default async function PatientsPage({
     .eq('clinic_id', clinicId)
     .eq('is_active', true)
 
-  const activeCampaigns = activeCampaignsData || []
+  const _activeCampaigns = activeCampaignsData || []
 
   return (
     <div className="space-y-6 animate-fade-in">

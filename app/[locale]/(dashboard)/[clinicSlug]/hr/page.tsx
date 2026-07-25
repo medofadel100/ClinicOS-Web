@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { PageHeader, PremiumCard, PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
+import { PageHeader, PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
 import { Users, UserCheck, Clock, DollarSign } from 'lucide-react'
 import { requireClinicId } from "@/lib/utils/clinic"
 import AttendanceTracker from './AttendanceTracker'

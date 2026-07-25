@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
-  Stethoscope, Calendar, Users, CreditCard, BarChart3, Shield, Zap, Globe,
-  Download, ChevronRight, Check, Star, Smartphone, Monitor, Apple,
-  FileText, Clock, Pill, Heart, Activity, ClipboardList, BadgeCheck,
-  Wifi, Database, Lock, Settings, Layout, Bell, MessageCircle, TrendingUp,
-  Bed, UserCheck, DollarSign, PieChart, CalendarCheck, Layers
+  Stethoscope, Calendar, Users, CreditCard, BarChart3, Shield, Globe,
+  Download, ChevronRight, Check, Smartphone, Monitor, Apple,
+  Pill, Heart, Activity, ClipboardList,
+  Database, MessageCircle,
+  Bed, Layers, Settings
 } from 'lucide-react'
 
 export default async function LandingPage({ params: { locale } }: { params: { locale: string } }) {
@@ -14,7 +14,7 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
   const altLabel = isAr ? 'EN' : 'عربي'
 
   const supabase = createClient()
-  const { data: plans } = await supabase
+  const { data: _plans } = await supabase
     .from('plans')
     .select(`
       id, name_en, name_ar, price_egp, billing_cycle, code,

@@ -43,7 +43,6 @@ export default async function ClinicDashboardPage({
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999).toISOString()
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
   const [currentMonthPayments, lastMonthPayments] = await Promise.all([
     supabase.from('patient_payments').select('amount_egp').eq('clinic_id', clinicId).gte('paid_at', currentMonthStart),

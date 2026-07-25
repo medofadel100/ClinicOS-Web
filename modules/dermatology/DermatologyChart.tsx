@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, X, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useTranslations } from 'next-intl'
 import { upsertDermatologyNote } from './actions'
@@ -28,7 +28,7 @@ export default function DermatologyChart({
   locale: string;
   initialEntries: any[];
 }) {
-  const t = useTranslations('Clinical')
+  const _t = useTranslations('Clinical')
   
   // Convert db records to Pin interface
   const getPins = (entries: any[]) => {

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React from 'react'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { Clock } from 'lucide-react'
 
@@ -16,7 +16,7 @@ type Appointment = {
 }
 
 export default function CalendarView({
-  targetDate,
+  targetDate: _targetDate,
   appointments,
   locale
 }: {

@@ -1,8 +1,7 @@
 'use client'
 
 import { PremiumCard } from '@/components/layout/PageComponents'
-import { Activity, Heart, Thermometer, Weight, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Activity, Heart, Thermometer, Weight } from 'lucide-react'
 import RecordVitalsDialog from './RecordVitalsDialog'
 
 export default function VitalsWidget({ 

@@ -47,7 +47,7 @@ export default function PatientTimeline({ events }: { events: TimelineEvent[] })
         </div>
       ) : (
         <div className="relative border-l border-white/10 ml-4 space-y-6">
-          {events.map((evt, idx) => (
+          {events.map((evt, _idx) => (
             <div key={evt.id} className="relative pl-6">
               <div className={`absolute -left-3 top-0 w-6 h-6 rounded-full border flex items-center justify-center ${getIconBg(evt.type)}`}>
                 {getIcon(evt.type)}

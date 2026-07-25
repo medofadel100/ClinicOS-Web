@@ -34,7 +34,7 @@ interface SidebarProps {
   onMobileClose?: () => void
 }
 
-export function Sidebar({ locale, clinicId, role, specialty, mobile, onMobileClose }: SidebarProps) {
+export function Sidebar({ locale, clinicId, role, specialty: _specialty, mobile, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
   const t = useTranslations('Sidebar')
   const [collapsed, setCollapsed] = useState(false)

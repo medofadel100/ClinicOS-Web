@@ -267,7 +267,7 @@ export async function changeClinicType(clinicId: string, locale: string, newClin
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
-export async function fetchClinicTypes(locale: string) {
+export async function fetchClinicTypes(_locale: string) {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('clinic_types')

@@ -25,7 +25,7 @@ export default function AppointmentStatusSelect({
     setLoading(true)
     try {
       await updateAppointmentStatus(appointmentId, clinicId, locale, newStatus)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في تحديث الحالة' : 'Failed to update status')
       setStatus(initialStatus)
     } finally {

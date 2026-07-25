@@ -27,7 +27,7 @@ export default function NephrologyChart({
   locale: string;
   initialEntries: any[];
 }) {
-  const t = useTranslations('Clinical')
+  const _t = useTranslations('Clinical')
   
   const getReadings = (entries: any[]) => {
     const notes = entries.find(n => n.note_type === 'nephrology_tracker')

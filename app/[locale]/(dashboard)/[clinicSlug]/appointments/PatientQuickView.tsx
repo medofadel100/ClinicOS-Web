@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { X, User, Phone, Calendar, Stethoscope, FileText, Clock, CreditCard, ArrowRight } from 'lucide-react'
+import { X, User, Phone, Stethoscope, FileText, Clock, CreditCard, ArrowRight } from 'lucide-react'
 
 type Appointment = {
   id: string

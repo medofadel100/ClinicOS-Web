@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 export async function POST(req: Request) {
   try {
     const payload = await req.json()
-    const { clinicId, from, message, mediaBase64, mimeType } = payload
+    const { clinicId, from, message, mediaBase64, _mimeType } = payload
 
     if (!clinicId || !from) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })

@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Users, Calendar, Stethoscope, CreditCard, ChevronRight, Check, Pill, BarChart3, Settings, Focus, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Users, Calendar, Stethoscope, CreditCard, ChevronRight, Check, Pill, Focus, X } from 'lucide-react'
 
 const getSteps = (isAr: boolean) => [
   {

@@ -42,7 +42,7 @@ export default function NewWhatsAppCampaignDialog({ clinicId, locale }: { clinic
       setTemplate('')
       setFilterType('all')
       setFilterValue('')
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في إنشاء الحملة' : 'Failed to create campaign')
     } finally {
       setLoading(false)

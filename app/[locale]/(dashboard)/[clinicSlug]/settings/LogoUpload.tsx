@@ -14,7 +14,7 @@ export default function LogoUpload({
   locale: string
   currentLogoUrl?: string | null
 }) {
-  const [logoUrl, setLogoUrl] = useState(currentLogoUrl || '')
+  const [_logoUrl, setLogoUrl] = useState(currentLogoUrl || '')
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState(currentLogoUrl || '')
   const fileRef = useRef<HTMLInputElement>(null)
@@ -39,7 +39,7 @@ export default function LogoUpload({
         setLogoUrl(dataUrl)
       }
       reader.readAsDataURL(file)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل رفع الشعار' : 'Upload failed')
     } finally {
       setUploading(false)

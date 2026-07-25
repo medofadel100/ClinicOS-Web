@@ -54,7 +54,7 @@ export default function ChangeClinicTypeDialog({
       await changeClinicType(clinicId, locale, selectedTypeId)
       setOpen(false)
       window.location.reload()
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في تغيير نوع العيادة' : 'Failed to change clinic type')
     } finally {
       setLoading(false)

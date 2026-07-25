@@ -37,7 +37,7 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
     try {
       await upsertDoctorProfile(clinicId, formData)
       setOpen(false)
-    } catch (err) {
+    } catch {
       toast.error('Failed to save doctor profile')
     } finally {
       setLoading(false)

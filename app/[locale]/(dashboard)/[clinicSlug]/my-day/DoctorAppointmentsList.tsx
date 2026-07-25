@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { Clock, ChevronRight, CheckCircle, Calendar, CreditCard } from 'lucide-react'
+import { Clock, ChevronRight, Calendar, CreditCard } from 'lucide-react'
 import { updateAppointmentStatus } from '../appointments/actions'
 
 type Appointment = {
@@ -47,7 +47,7 @@ export default function DoctorAppointmentsList({
     setLoadingId(appId)
     try {
       await updateAppointmentStatus(appId, clinicId, locale, 'needs_payment')
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في تحديث الحالة' : 'Failed to update status')
     } finally {
       setLoadingId(null)

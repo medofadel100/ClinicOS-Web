@@ -78,7 +78,7 @@ export default function ServicesTab({ clinicId, initialData, locale }: { clinicI
     try {
       await createServiceCategory(clinicId, formData)
       setOpenCat(false)
-    } catch (err) {
+    } catch {
       toast.error(t.failedCategory)
     } finally {
       setLoading(false)
@@ -92,7 +92,7 @@ export default function ServicesTab({ clinicId, initialData, locale }: { clinicI
     try {
       await createClinicService(clinicId, formData)
       setOpenSvc(false)
-    } catch (err) {
+    } catch {
       toast.error(t.failedService)
     } finally {
       setLoading(false)

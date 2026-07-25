@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader, PremiumCard } from '@/components/layout/PageComponents'
 import { Settings } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import StaffSettingsTab from './StaffSettingsTab'
 import ServicesTab from './ServicesTab'
 import EditClinicDialog from './EditClinicDialog'
@@ -8,8 +9,12 @@ import UpdateEmailDialog from './UpdateEmailDialog'
 import ChangeClinicTypeDialog from './ChangeClinicTypeDialog'
 import RegisterAsDoctorButton from './RegisterAsDoctorButton'
 import PaperFormatSettings from './PaperFormatSettings'
-import LogoUpload from './LogoUpload'
 import { requireClinicId } from "@/lib/utils/clinic";
+
+const LogoUpload = dynamic(() => import('./LogoUpload'), {
+  ssr: false,
+  loading: () => <div className="w-20 h-20 animate-pulse bg-white/5 rounded-xl" />
+})
 
 export default async function SettingsPage({
       params: { clinicSlug, locale }
@@ -30,7 +35,7 @@ export default async function SettingsPage({
   }
 
   // Fetch real clinic data from DB
-  const { data: clinic, error } = await supabase
+  const { data: clinic, error: _error } = await supabase
     .from('clinics')
     .select(`
       id, name, owner_full_name, owner_phone, status,

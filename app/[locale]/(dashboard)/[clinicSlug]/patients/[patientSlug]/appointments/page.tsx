@@ -2,8 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireClinicId } from "@/lib/utils/clinic"
 import { PremiumCard, PageHeader, EmptyState } from '@/components/layout/PageComponents'
-import { Calendar, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import { Calendar } from 'lucide-react'
 
 export default async function PatientAppointmentsPage({
   params: { locale, clinicSlug, patientSlug }

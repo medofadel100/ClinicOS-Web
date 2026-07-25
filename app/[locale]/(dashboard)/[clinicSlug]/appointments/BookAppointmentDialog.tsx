@@ -84,7 +84,7 @@ export default function BookAppointmentDialog({
       setNewPatientName('')
       setNewPatientPhone('')
       setShowPatientDropdown(false)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في إنشاء المريض' : 'Failed to create patient')
     } finally {
       setCreatingPatient(false)
@@ -101,7 +101,7 @@ export default function BookAppointmentDialog({
             const slots = await getAvailableSlots(clinicId, selectedDoctor, selectedDate, service.duration_minutes)
             setAvailableSlots(slots)
           }
-        } catch (err) {
+        } catch {
           toast.error(isAr ? 'فشل في تحميل المواعيد المتاحة' : 'Failed to load available slots')
         } finally {
           setIsLoadingSlots(false)
@@ -154,7 +154,7 @@ export default function BookAppointmentDialog({
       setSelectedService('')
       setSelectedDate('')
       setAvailableSlots([])
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في حجز الموعد' : 'Failed to book appointment')
     } finally {
       setLoading(false)
@@ -173,7 +173,7 @@ export default function BookAppointmentDialog({
       setSelectedService('')
       setSelectedDate('')
       setAvailableSlots([])
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في الحجز الفوري' : 'Failed to book walk-in')
     } finally {
       setLoading(false)

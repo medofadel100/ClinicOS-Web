@@ -3,8 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireClinicId } from "@/lib/utils/clinic"
 import BillingTab from '../billing/BillingTab'
 import { PremiumCard, PageHeader } from '@/components/layout/PageComponents'
-import { Wallet, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import { Wallet } from 'lucide-react'
 
 export default async function PatientBillingPage({
   params: { locale, clinicSlug, patientSlug }

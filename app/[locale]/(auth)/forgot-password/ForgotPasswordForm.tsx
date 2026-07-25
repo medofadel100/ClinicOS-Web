@@ -1,13 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, AlertCircle, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ForgotPasswordForm({ locale }: { locale: string }) {
-  const router = useRouter()
   const isAr = locale === 'ar'
 
   const [email, setEmail] = useState('')

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { ClipboardList, Plus, X, CheckCircle } from 'lucide-react'
+import { ClipboardList, Plus, CheckCircle } from 'lucide-react'
 
 type Appointment = {
   id: string
@@ -15,11 +15,11 @@ type Appointment = {
 
 export default function WorkRecorder({
   clinicId,
-  clinicSlug,
-  locale,
+  clinicSlug: _clinicSlug,
+  locale: _locale,
   isAr,
-  staffMemberId,
-  doctorProfileId,
+  staffMemberId: _staffMemberId,
+  doctorProfileId: _doctorProfileId,
   appointments
 }: {
   clinicId: string
@@ -58,7 +58,7 @@ export default function WorkRecorder({
       setSaved(true)
       setNoteText('')
       setTimeout(() => setSaved(false), 2000)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في الحفظ' : 'Failed to save')
     } finally {
       setSaving(false)

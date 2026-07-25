@@ -27,7 +27,7 @@ export default function AttendanceTracker({
     setLoading(true)
     try {
       await recordAttendance(clinicId, locale, action)
-    } catch (err: any) {
+    } catch {
       toast.error(isAr ? 'فشل في تسجيل الحضور' : 'Failed to record attendance')
     } finally {
       setLoading(false)

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireClinicId } from '@/lib/utils/clinic'
 import { PageHeader } from '@/components/layout/PageComponents'
-import { Stethoscope, Clock, Calendar, FileText, ChevronLeft, ChevronRight, Focus } from 'lucide-react'
+import { Stethoscope, FileText, ChevronRight } from 'lucide-react'
 import DoctorAppointmentsList from './DoctorAppointmentsList'
 import WorkRecorder from './WorkRecorder'
 import DutyStatus from './DutyStatus'
@@ -45,7 +45,6 @@ export default async function MyDayPage({
 
   const today = new Date()
   const dayOfWeek = today.getDay()
-  const todayStr = today.toISOString().split('T')[0]
 
   const { data: workingHours } = await supabase
     .from('doctor_working_hours')

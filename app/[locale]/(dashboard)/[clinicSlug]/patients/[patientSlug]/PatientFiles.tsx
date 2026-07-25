@@ -37,7 +37,7 @@ export default function PatientFiles({
       toast.success('File uploaded successfully')
       // Reset form
       e.currentTarget.reset()
-    } catch (err) {
+    } catch {
       toast.error('Failed to upload file')
     } finally {
       setLoading(false)

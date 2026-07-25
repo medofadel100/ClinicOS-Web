@@ -3,8 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireClinicId } from "@/lib/utils/clinic"
 import PatientFiles from '../PatientFiles'
 import { PremiumCard, PageHeader } from '@/components/layout/PageComponents'
-import { FileText, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import { FileText } from 'lucide-react'
 
 export default async function PatientFilesPage({
   params: { locale, clinicSlug, patientSlug }

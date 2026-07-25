@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, X, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useTranslations } from 'next-intl'
 import { upsertCardiologyNote } from './actions'
@@ -27,7 +27,7 @@ export default function CardiologyChart({
   locale: string;
   initialEntries: any[];
 }) {
-  const t = useTranslations('Clinical')
+  const _t = useTranslations('Clinical')
   
   const getPins = (entries: any[]) => {
     const notes = entries.find(n => n.note_type === 'cardiology_map')

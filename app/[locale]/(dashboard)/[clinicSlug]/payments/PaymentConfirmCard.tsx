@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { CheckCircle, Clock, User, Stethoscope, CreditCard, Banknote } from 'lucide-react'
+import { CheckCircle, CreditCard, Banknote } from 'lucide-react'
 import { confirmPayment } from './actions'
 
 type Appointment = {
@@ -18,7 +18,7 @@ type Appointment = {
 export default function PaymentConfirmCard({
   appointment,
   clinicId,
-  locale,
+  locale: _locale,
   isAr
 }: {
   appointment: Appointment
@@ -35,11 +35,12 @@ export default function PaymentConfirmCard({
   const price = appointment.clinic_services?.price || 0
 
   const handleConfirm = async (method: string) => {
+    setPaymentMethod(method)
     setLoading(true)
     try {
       await confirmPayment(appointment.id, clinicId, appointment.patient_id, price, method)
       setConfirmed(true)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في تأكيد الدفع' : 'Failed to confirm payment')
     } finally {
       setLoading(false)

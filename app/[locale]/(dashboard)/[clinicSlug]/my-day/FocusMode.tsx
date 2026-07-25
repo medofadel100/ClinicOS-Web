@@ -22,7 +22,7 @@ export default function FocusMode({
   clinicSlug,
   locale,
   isAr,
-  doctorName
+  doctorName: _doctorName
 }: {
   appointments: Appointment[]
   clinicId: string
@@ -44,7 +44,7 @@ export default function FocusMode({
       if (currentIdx >= activeAppointments.length - 1) {
         setCurrentIdx(Math.max(0, currentIdx - 1))
       }
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل' : 'Failed')
     } finally {
       setLoadingId(null)

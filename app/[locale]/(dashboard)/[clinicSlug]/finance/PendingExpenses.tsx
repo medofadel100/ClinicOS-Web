@@ -23,7 +23,7 @@ export default function PendingExpenses({
     setLoadingId(occurrenceId)
     try {
       await payOccurrence(clinicId, locale, occurrenceId)
-    } catch (err: any) {
+    } catch {
       toast.error(isAr ? 'فشل في التحديد كمدفوع' : 'Failed to mark as paid')
     } finally {
       setLoadingId(null)

@@ -1,8 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import DynamicClinicalModule from './DynamicClinicalModule'
+import dynamic from 'next/dynamic'
 import FreeTextReport from '@/modules/general/FreeTextReport'
+
+const DynamicClinicalModule = dynamic(() => import('./DynamicClinicalModule'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full min-h-[400px]">
+      <div className="h-64 w-full max-w-md animate-pulse bg-white/5 rounded-2xl" />
+    </div>
+  )
+})
 
 export default function ClinicalWorkspaceTabs({
   clinicTypeCode,

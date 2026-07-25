@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Monitor, Smartphone, Apple, Download, Check, ArrowLeft, Stethoscope, HardDrive, Cpu, FileBox } from 'lucide-react'
+import { Monitor, Smartphone, Apple, Download, Check, ArrowLeft, HardDrive, FileBox } from 'lucide-react'
 
 const platforms = [
   {

@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(request: Request) {
   try {
-    const { token, fullName, email, password, specialtyTitle, bioAr, bioEn } = await request.json()
+    const { token, fullName, email, password, specialtyTitle, bioAr, _bioEn } = await request.json()
 
     if (!token || !fullName || !email || !password) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     // 4. Create clinic_staff_memberships
-    const { data: membership, error: membershipError } = await supabase
+    const { data: _membership, error: membershipError } = await supabase
       .from('clinic_staff_memberships')
       .insert({
         staff_member_id: staffMember.id,

@@ -40,7 +40,7 @@ export default function EditClinicDialog({
     try {
       await updateClinicGeneralInfo(clinicId, locale, formData)
       setOpen(false)
-    } catch (err) {
+    } catch {
       toast.error(t.failed)
     } finally {
       setLoading(false)

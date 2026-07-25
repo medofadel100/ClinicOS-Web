@@ -51,7 +51,7 @@ export default function TransactionDialog({
     try {
       await logTransaction(clinicId, locale, itemId, changeQuantity, txnType, note)
       setOpen(false)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في تسجيل المعاملة' : 'Failed to log transaction')
     } finally {
       setLoading(false)

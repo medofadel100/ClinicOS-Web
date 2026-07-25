@@ -1,11 +1,16 @@
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { PageHeader, PremiumCard, PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
+import { PageHeader, PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
 import { DollarSign, ArrowDownRight, ArrowUpRight, TrendingUp } from 'lucide-react'
 import { requireClinicId } from "@/lib/utils/clinic"
+import dynamic from 'next/dynamic'
 import LogExpenseDialog from './LogExpenseDialog'
-import FinancialChart, { ChartDataPoint } from './FinancialChart'
+import type { ChartDataPoint } from './FinancialChart'
 import PendingExpenses from './PendingExpenses'
+
+const FinancialChart = dynamic(() => import('./FinancialChart'), {
+  ssr: false,
+  loading: () => <div className="h-[300px] animate-pulse bg-white/5 rounded-2xl" />
+})
 
 export default async function FinancePage({
       params: { clinicSlug, locale }

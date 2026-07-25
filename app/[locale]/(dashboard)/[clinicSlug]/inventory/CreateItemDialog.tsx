@@ -41,7 +41,7 @@ export default function CreateItemDialog({
     try {
       await createInventoryItem(clinicId, locale, name, unit, minThreshold, category, expiresAt)
       setOpen(false)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في إضافة الصنف' : 'Failed to create inventory item')
     } finally {
       setLoading(false)

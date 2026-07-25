@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { Clock } from 'lucide-react'
 import AppointmentStatusSelect from './AppointmentStatusSelect'
 import RescheduleAppointmentDialog from './RescheduleAppointmentDialog'

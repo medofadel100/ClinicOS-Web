@@ -1,32 +1,40 @@
 'use client'
 
-import DentalChart from '@/modules/dental/DentalChart'
-import BodyChart from '@/modules/orthopedics/BodyChart'
+import dynamic from 'next/dynamic'
 
-import ObgynChart from '@/modules/obgyn/ObgynChart'
-import VitalSigns from '@/modules/general/VitalSigns'
-import DermatologyChart from '@/modules/dermatology/DermatologyChart'
-import CardiologyChart from '@/modules/cardiology/CardiologyChart'
-import NeurologyChart from '@/modules/neurology/NeurologyChart'
-import UrologyChart from '@/modules/urology/UrologyChart'
-import EndocrinologyChart from '@/modules/endocrinology/EndocrinologyChart'
-import HematologyChart from '@/modules/hematology/HematologyChart'
-import NephrologyChart from '@/modules/nephrology/NephrologyChart'
-import PulmonologyChart from '@/modules/pulmonology/PulmonologyChart'
-import OphthalmologyChart from '@/modules/ophthalmology/OphthalmologyChart'
-import ENTChart from '@/modules/ent/ENTChart'
-import PsychiatryChart from '@/modules/psychiatry/PsychiatryChart'
-import PediatricsChart from '@/modules/pediatrics/PediatricsChart'
-import GrowthTracker from '@/modules/pediatrics/GrowthTracker'
-import InternalMedicineChart from '@/modules/internal-medicine/InternalMedicineChart'
-import FamilyMedicineChart from '@/modules/family-medicine/FamilyMedicineChart'
-import GeneralSurgeryChart from '@/modules/general-surgery/GeneralSurgeryChart'
-import OncologyChart from '@/modules/oncology/OncologyChart'
-import NeurosurgeryNotes from '@/modules/neurosurgery/NeurosurgeryNotes'
-import NutritionPlan from '@/modules/nutrition/NutritionPlan'
-import Physiotherapy from '@/modules/physical_therapy/Physiotherapy'
-import SessionNotes from '@/modules/psychology/SessionNotes'
-import GIExam from '@/modules/gastroenterology/GIExam'
+const ChartSkeleton = () => (
+  <div className="flex items-center justify-center h-[400px]">
+    <div className="h-64 w-full max-w-lg animate-pulse bg-white/5 rounded-2xl" />
+  </div>
+)
+
+const DentalChart = dynamic(() => import('@/modules/dental/DentalChart'), { ssr: false, loading: ChartSkeleton })
+const BodyChart = dynamic(() => import('@/modules/orthopedics/BodyChart'), { ssr: false, loading: ChartSkeleton })
+
+const ObgynChart = dynamic(() => import('@/modules/obgyn/ObgynChart'), { ssr: false, loading: ChartSkeleton })
+const VitalSigns = dynamic(() => import('@/modules/general/VitalSigns'), { ssr: false, loading: ChartSkeleton })
+const DermatologyChart = dynamic(() => import('@/modules/dermatology/DermatologyChart'), { ssr: false, loading: ChartSkeleton })
+const CardiologyChart = dynamic(() => import('@/modules/cardiology/CardiologyChart'), { ssr: false, loading: ChartSkeleton })
+const NeurologyChart = dynamic(() => import('@/modules/neurology/NeurologyChart'), { ssr: false, loading: ChartSkeleton })
+const UrologyChart = dynamic(() => import('@/modules/urology/UrologyChart'), { ssr: false, loading: ChartSkeleton })
+const EndocrinologyChart = dynamic(() => import('@/modules/endocrinology/EndocrinologyChart'), { ssr: false, loading: ChartSkeleton })
+const HematologyChart = dynamic(() => import('@/modules/hematology/HematologyChart'), { ssr: false, loading: ChartSkeleton })
+const NephrologyChart = dynamic(() => import('@/modules/nephrology/NephrologyChart'), { ssr: false, loading: ChartSkeleton })
+const PulmonologyChart = dynamic(() => import('@/modules/pulmonology/PulmonologyChart'), { ssr: false, loading: ChartSkeleton })
+const OphthalmologyChart = dynamic(() => import('@/modules/ophthalmology/OphthalmologyChart'), { ssr: false, loading: ChartSkeleton })
+const ENTChart = dynamic(() => import('@/modules/ent/ENTChart'), { ssr: false, loading: ChartSkeleton })
+const PsychiatryChart = dynamic(() => import('@/modules/psychiatry/PsychiatryChart'), { ssr: false, loading: ChartSkeleton })
+const PediatricsChart = dynamic(() => import('@/modules/pediatrics/PediatricsChart'), { ssr: false, loading: ChartSkeleton })
+const GrowthTracker = dynamic(() => import('@/modules/pediatrics/GrowthTracker'), { ssr: false, loading: ChartSkeleton })
+const InternalMedicineChart = dynamic(() => import('@/modules/internal-medicine/InternalMedicineChart'), { ssr: false, loading: ChartSkeleton })
+const FamilyMedicineChart = dynamic(() => import('@/modules/family-medicine/FamilyMedicineChart'), { ssr: false, loading: ChartSkeleton })
+const GeneralSurgeryChart = dynamic(() => import('@/modules/general-surgery/GeneralSurgeryChart'), { ssr: false, loading: ChartSkeleton })
+const OncologyChart = dynamic(() => import('@/modules/oncology/OncologyChart'), { ssr: false, loading: ChartSkeleton })
+const NeurosurgeryNotes = dynamic(() => import('@/modules/neurosurgery/NeurosurgeryNotes'), { ssr: false, loading: ChartSkeleton })
+const NutritionPlan = dynamic(() => import('@/modules/nutrition/NutritionPlan'), { ssr: false, loading: ChartSkeleton })
+const Physiotherapy = dynamic(() => import('@/modules/physical_therapy/Physiotherapy'), { ssr: false, loading: ChartSkeleton })
+const SessionNotes = dynamic(() => import('@/modules/psychology/SessionNotes'), { ssr: false, loading: ChartSkeleton })
+const GIExam = dynamic(() => import('@/modules/gastroenterology/GIExam'), { ssr: false, loading: ChartSkeleton })
 
 export default function DynamicClinicalModule({ 
   clinicTypeCode, 
@@ -239,7 +247,7 @@ function LockedModule({ name }: { name: string }) {
   )
 }
 
-function PlaceholderModule({ name, type }: { name: string, type: string }) {
+function _PlaceholderModule({ name, type }: { name: string, type: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-[500px] text-center p-8 bg-black/20 border-t border-white/5">
       <div className="w-20 h-20 bg-teal-500/10 rounded-full flex items-center justify-center mb-6 border border-teal-500/20">

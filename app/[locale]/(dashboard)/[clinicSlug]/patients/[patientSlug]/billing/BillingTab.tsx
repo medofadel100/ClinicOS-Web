@@ -39,16 +39,15 @@ export default function BillingTab({
   patientId: string
   plans: TreatmentPlan[]
 }) {
-  const params = useParams()
-  const clinicSlug = params?.clinicSlug as string
-  const [plans, setPlans] = useState(initialPlans)
+  const _params = useParams()
+  const [plans, _setPlans] = useState(initialPlans)
   const isAr = locale === 'ar'
 
   const handleToggleSession = async (sessionId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'pending' ? 'completed' : 'pending'
     try {
       await updateSessionStatus(clinicId, locale, patientId, sessionId, newStatus)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في تحديث حالة الجلسة' : 'Failed to update session status')
     }
   }

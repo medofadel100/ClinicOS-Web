@@ -26,7 +26,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
     try {
       const results = await searchGlobalMedications(query)
       setSearchResults(results)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في البحث عن الأدوية' : 'Failed to search medications')
     } finally {
       setLoadingSearch(false)
@@ -48,7 +48,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
       setIsAddOpen(false)
       setSearchQuery('')
       setSearchResults([])
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في إضافة الدواء' : 'Failed to add medication')
     } finally {
       setAddingMed(false)
@@ -60,7 +60,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
     try {
       await deleteClinicMedication(clinicId, id)
       setMeds(meds.filter(m => m.id !== id))
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في الحذف' : 'Failed to delete. It might be linked to a patient prescription.')
     }
   }
@@ -78,7 +78,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
       })
       setMeds([newMed[0], ...meds])
       setIsAddOpen(false)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في إضافة الدواء' : 'Failed to add custom medication')
     } finally {
       setAddingMed(false)

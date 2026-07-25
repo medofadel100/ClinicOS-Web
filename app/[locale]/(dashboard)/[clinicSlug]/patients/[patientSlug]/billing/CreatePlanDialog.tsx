@@ -40,7 +40,7 @@ export default function CreatePlanDialog({
     try {
       await createTreatmentPlan(clinicId, locale, patientId, title, totalPrice, sessionCount)
       setOpen(false)
-    } catch (err) {
+    } catch {
       toast.error('Failed to create treatment plan.')
     } finally {
       setLoading(false)

@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireClinicId } from '@/lib/utils/clinic'
-import { PremiumCard } from '@/components/layout/PageComponents'
 import { Activity, FileText } from 'lucide-react'
 import Link from 'next/link'
 import PatientTimeline, { TimelineEvent } from './components/PatientTimeline'

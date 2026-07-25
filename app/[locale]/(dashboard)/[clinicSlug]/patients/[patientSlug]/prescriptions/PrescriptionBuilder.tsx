@@ -58,7 +58,7 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
     try {
       const results = await smartSearchMedications(clinicId, query)
       setSearchResults(results)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في البحث عن الأدوية' : 'Failed to search medications')
     } finally {
       setLoadingSearch(false)
@@ -70,7 +70,7 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
     if (med.type === 'new_global') {
       try {
         clinicMedId = await ensureClinicMedication(clinicId, med.medication_global_id)
-      } catch (err) {
+      } catch {
         toast.error(isAr ? 'فشل في إضافة الدواء للصيدلية' : 'Failed to add global medication to clinic pharmacy.')
         return
       }
@@ -99,7 +99,7 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
     try {
       const alts = await getMedicationAlternatives(genericName)
       setAlternatives(alts)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في تحميل البدائل' : 'Failed to load alternatives')
     } finally {
       setLoadingAlternatives(false)
@@ -132,13 +132,13 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
     e.preventDefault()
     if (!templateName.trim() || draftItems.length === 0) return
     try {
-      const newTmpl = await savePrescriptionTemplate(clinicId, templateName, draftItems)
+      const _newTmpl = await savePrescriptionTemplate(clinicId, templateName, draftItems)
       toast.success(isAr ? 'تم حفظ القالب بنجاح' : 'Template saved successfully!')
       setIsTemplateModalOpen(false)
       setTemplateName('')
       // Refresh templates
     getPrescriptionTemplates(clinicId).then(setTemplates).catch(() => {})
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في حفظ القالب' : 'Failed to save template.')
     }
   }
@@ -159,7 +159,7 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
       setDraftItems([])
       setNotes('')
       toast.success(isAr ? 'تم حفظ الروشتة بنجاح' : 'Prescription saved successfully!')
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في حفظ الروشتة' : 'Failed to save prescription.')
     } finally {
       setSaving(false)

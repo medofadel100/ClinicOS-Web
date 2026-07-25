@@ -26,7 +26,7 @@ export default function FamilyMedicineChart({
   locale: string;
   initialEntries: any[];
 }) {
-  const t = useTranslations('Clinical')
+  const _t = useTranslations('Clinical')
   
   const getNotes = (entries: any[]) => {
     const notes = entries.find(n => n.note_type === 'family_medicine_notes')

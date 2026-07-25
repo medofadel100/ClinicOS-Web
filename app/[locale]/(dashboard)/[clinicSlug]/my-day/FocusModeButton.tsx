@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { Clock, ChevronRight, CreditCard, FileText, Stethoscope, ArrowLeft, Focus } from 'lucide-react'
-import { updateAppointmentStatus } from '../appointments/actions'
+import { Focus } from 'lucide-react'
 
 type Appointment = {
   id: string
@@ -17,7 +15,7 @@ type Appointment = {
 
 export default function FocusModeButton({
   appointments,
-  clinicId,
+  clinicId: _clinicId,
   clinicSlug,
   locale,
   isAr

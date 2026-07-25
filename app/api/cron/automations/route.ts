@@ -52,7 +52,7 @@ export async function GET(req: Request) {
       // B. Morning Summaries
       if (config.morning_summary_enabled && config.morning_summary_time) {
         // Parse time
-        const [hr, min] = config.morning_summary_time.split(':').map(Number)
+        const [hr, _min] = config.morning_summary_time.split(':').map(Number)
         // Check if current hour matches (assuming cron runs hourly)
         if (now.getHours() === hr) {
           // Find all active doctors

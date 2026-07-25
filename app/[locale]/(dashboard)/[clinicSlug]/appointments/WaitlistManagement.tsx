@@ -2,9 +2,6 @@
 
 import { useState } from 'react'
 import { PremiumCard } from '@/components/layout/PageComponents'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { addToWaitlist } from './actions'
@@ -101,7 +98,7 @@ function AddWaitlistDialog({ clinicId, locale, patients, doctors }: { clinicId: 
     try {
       await addToWaitlist(clinicId, locale, formData)
       setOpen(false)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في الإضافة لقائمة الانتظار' : 'Failed to add to waitlist')
     } finally {
       setLoading(false)

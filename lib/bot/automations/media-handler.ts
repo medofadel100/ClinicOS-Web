@@ -38,7 +38,7 @@ export async function handleIncomingMedia(clinicId: string, from: string, mediaB
     const filename = `${clinicId}/${patient.id}/${Date.now()}.${ext}`
 
     // Upload to Supabase Storage 'patient_documents' bucket
-    const { data: uploadData, error: uploadError } = await supabase
+    const { data: _uploadData, error: uploadError } = await supabase
       .storage
       .from('patient_documents')
       .upload(filename, buffer, {

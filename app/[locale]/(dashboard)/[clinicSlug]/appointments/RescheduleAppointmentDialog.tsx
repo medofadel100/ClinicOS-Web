@@ -41,7 +41,7 @@ export default function RescheduleAppointmentDialog({
     try {
       await rescheduleAppointment(appointmentId, clinicId, locale, formData)
       setOpen(false)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في إعادة جدولة الموعد' : 'Failed to reschedule appointment')
     } finally {
       setLoading(false)

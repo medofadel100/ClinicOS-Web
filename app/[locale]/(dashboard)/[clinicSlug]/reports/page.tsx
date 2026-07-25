@@ -2,9 +2,17 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/layout/PageComponents'
 import { BarChart3 } from 'lucide-react'
-import FinancialChart from './FinancialChart'
-import AppointmentsChart from './AppointmentsChart'
+import dynamic from 'next/dynamic'
 import { requireClinicId } from "@/lib/utils/clinic";
+
+const FinancialChart = dynamic(() => import('./FinancialChart'), {
+  ssr: false,
+  loading: () => <div className="col-span-1 lg:col-span-2 h-[300px] animate-pulse bg-white/5 rounded-2xl" />
+})
+const AppointmentsChart = dynamic(() => import('./AppointmentsChart'), {
+  ssr: false,
+  loading: () => <div className="col-span-1 h-[300px] animate-pulse bg-white/5 rounded-2xl" />
+})
 
 export default async function ReportsPage({
       params: { locale, clinicSlug }

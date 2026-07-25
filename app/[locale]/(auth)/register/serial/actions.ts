@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 export async function verifySerial(serialCode: string) {
   const supabase = createClient()
@@ -90,5 +91,6 @@ export async function claimSerial(
   
   const targetSlug = slugData?.slug || clinicId
   
+  revalidatePath('/')
   redirect(`/${locale}/${targetSlug}`)
 }

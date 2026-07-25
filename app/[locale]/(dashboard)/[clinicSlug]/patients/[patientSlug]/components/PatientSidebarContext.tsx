@@ -1,7 +1,7 @@
 'use client'
 
 import { PremiumCard } from '@/components/layout/PageComponents'
-import { AlertTriangle, Activity, Pill, Stethoscope, Phone, Calendar } from 'lucide-react'
+import { AlertTriangle, Pill, Stethoscope, Phone, Calendar } from 'lucide-react'
 
 import EditContextDialog from './EditContextDialog'
 

@@ -26,9 +26,9 @@ export function DashboardShell({
   role,
   specialty,
   clinicName,
-  userInitials,
-  roleLabel,
-  userEmail,
+  userInitials: _userInitials,
+  roleLabel: _roleLabel,
+  userEmail: _userEmail,
   headerActions,
 }: DashboardShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false)

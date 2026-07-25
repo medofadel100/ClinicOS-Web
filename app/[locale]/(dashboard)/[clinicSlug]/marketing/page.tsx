@@ -10,8 +10,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/layout/PageComponents'
-import { Megaphone } from 'lucide-react'
 import CampaignDialog from './CampaignDialog'
 import WhatsAppCampaigns from './WhatsAppCampaigns'
 import { requireClinicId } from "@/lib/utils/clinic";

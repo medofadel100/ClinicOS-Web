@@ -63,7 +63,7 @@ export default async function DashboardLayout({
   const isDental = specialtyCode.includes('dental')
   const clinicName = clinic?.name || 'Clinic'
 
-  const displayName = staffMember.full_name || user.email || ''
+  const _displayName = staffMember.full_name || user.email || ''
   const emailName = user.email?.split('@')[0] || 'User'
   const userInitials = (staffMember.full_name
     ? staffMember.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)

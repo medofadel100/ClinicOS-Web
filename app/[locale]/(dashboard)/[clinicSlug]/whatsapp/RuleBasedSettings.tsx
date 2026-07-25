@@ -39,7 +39,7 @@ export default function RuleBasedSettings({
       setNewEn('')
       setNewAr('')
       setNewResponse('')
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في إضافة القاعدة' : 'Failed to add option')
     } finally {
       setLoading(false)
@@ -50,7 +50,7 @@ export default function RuleBasedSettings({
     setLoading(true)
     try {
       await deleteMenuOption(clinicId, locale, id)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في حذف القاعدة' : 'Failed to delete option')
     } finally {
       setLoading(false)

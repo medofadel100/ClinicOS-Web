@@ -1,6 +1,6 @@
 'use client'
 
-import { Printer, MessageCircle, Download } from 'lucide-react'
+import { Printer, MessageCircle } from 'lucide-react'
 
 type PrescriptionItem = {
   id: string

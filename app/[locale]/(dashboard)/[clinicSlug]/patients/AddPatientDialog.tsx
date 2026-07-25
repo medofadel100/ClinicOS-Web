@@ -34,7 +34,7 @@ export default function AddPatientDialog({ clinicId, clinicSlug, locale }: { cli
     try {
       await createPatient(clinicId, clinicSlug, locale, formData)
       setOpen(false)
-    } catch (err) {
+    } catch {
       toast.error(t.error)
     } finally {
       setLoading(false)

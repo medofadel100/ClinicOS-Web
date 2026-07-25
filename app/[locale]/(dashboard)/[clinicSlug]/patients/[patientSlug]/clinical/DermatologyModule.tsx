@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Plus, X, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useTranslations } from 'next-intl'
 
@@ -26,13 +26,13 @@ interface DermatologyModuleProps {
 }
 
 export default function DermatologyModule({
-  patientId,
-  clinicId,
+  patientId: _patientId,
+  clinicId: _clinicId,
   clinicalNotes,
   onUpdate,
   isOwnerOrDoctor
 }: DermatologyModuleProps) {
-  const t = useTranslations('Clinical')
+  const _t = useTranslations('Clinical')
   
   // Find latest dermatology notes
   const dermNotes = clinicalNotes.find(n => n.note_type === 'dermatology_map')
@@ -118,7 +118,7 @@ export default function DermatologyModule({
       setIsDialogOpen(false)
       setNewPinCoords(null)
       setSelectedPin(null)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في حفظ العلامات' : 'Failed to save pins')
     } finally {
       setLoading(false)
@@ -134,7 +134,7 @@ export default function DermatologyModule({
       setPins(updatedPins)
       setIsDialogOpen(false)
       setSelectedPin(null)
-    } catch (err) {
+    } catch {
       toast.error(isAr ? 'فشل في حذف العلامة' : 'Failed to delete pin')
     } finally {
       setLoading(false)

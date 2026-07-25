@@ -1,13 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, AlertCircle, Lock, ArrowLeft, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ResetPasswordForm({ locale }: { locale: string }) {
-  const router = useRouter()
   const isAr = locale === 'ar'
 
   const [password, setPassword] = useState('')
@@ -37,7 +35,7 @@ export default function ResetPasswordForm({ locale }: { locale: string }) {
   }
 
   useEffect(() => {
-    const supabase = createClient()
+    const _supabase = createClient()
     const hash = window.location.hash
 
     if (hash && hash.includes('access_token')) {

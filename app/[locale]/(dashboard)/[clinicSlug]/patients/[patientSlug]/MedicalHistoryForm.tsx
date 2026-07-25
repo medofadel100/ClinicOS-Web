@@ -50,7 +50,7 @@ export default function MedicalHistoryForm({
       const { updateMedicalHistory } = await import('../actions')
       await updateMedicalHistory(patientId, clinicId, locale, formData)
       toast.success(t.success)
-    } catch (err) {
+    } catch {
       toast.error(t.error)
     } finally {
       setLoading(false)

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { PremiumCard } from '@/components/layout/PageComponents'
-import { Badge } from '@/components/ui/badge'
 import { Loader2, QrCode, Smartphone, Wifi, WifiOff } from 'lucide-react'
 import { initSession, getSessionStatus, disconnectSession } from '@/lib/whatsapp-client'
 import { updateWhatsAppConfig } from './actions'
@@ -63,7 +62,7 @@ export default function ConnectionManager({
         setQrCode(res.qr)
         setPolling(true)
       }
-    } catch (error) {
+    } catch {
       toast.error(isAr ? 'فشل في الاتصال بخدمة واتساب' : 'Failed to initialize connection to WhatsApp service.')
     } finally {
       setLoading(false)
@@ -82,7 +81,7 @@ export default function ConnectionManager({
         is_connected: false,
         connected_phone_number: null
       })
-    } catch (error) {
+    } catch {
       toast.error(isAr ? 'فشل في قطع الاتصال' : 'Failed to disconnect session.')
     } finally {
       setLoading(false)
