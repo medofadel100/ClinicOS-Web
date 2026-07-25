@@ -41,7 +41,7 @@ export default function PatientSidebar({ patient, medicalHistory, locale, clinic
               {isAr ? 'الأمراض المزمنة' : 'Chronic Conditions'}
             </div>
             {medicalHistory.systemic_diseases ? (
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <p className="text-sm text-slate-300 leading-relaxed break-words">
                 {medicalHistory.systemic_diseases}
               </p>
             ) : (
@@ -57,7 +57,7 @@ export default function PatientSidebar({ patient, medicalHistory, locale, clinic
               {isAr ? 'الأدوية الحالية' : 'Current Medications'}
             </div>
             {medicalHistory.current_medications ? (
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <p className="text-sm text-slate-300 leading-relaxed break-words">
                 {medicalHistory.current_medications}
               </p>
             ) : (

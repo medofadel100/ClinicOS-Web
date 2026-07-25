@@ -140,13 +140,13 @@ export default async function PatientsPage({
                   className="group transition-colors duration-150 hover:bg-white/[0.03]"
                   style={{ borderBottom: i < patients.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
                 >
-                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200 max-w-[200px] truncate">
                     {patient.full_name}
                   </td>
-                  <td className="px-5 py-4 text-sm text-slate-400">
+                  <td className="px-5 py-4 text-sm text-slate-400 whitespace-nowrap">
                     {patient.phone || <span className="text-slate-700">—</span>}
                   </td>
-                  <td className="px-5 py-4 text-sm text-slate-400">
+                  <td className="px-5 py-4 text-sm text-slate-400 whitespace-nowrap">
                     {patient.date_of_birth || <span className="text-slate-700">—</span>}
                   </td>
                   <td className="px-5 py-4 text-sm text-slate-500">

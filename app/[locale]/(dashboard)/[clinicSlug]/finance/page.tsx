@@ -208,10 +208,10 @@ export default async function FinancePage({
               ) : recentPayments.map((p, i) => (
                 <tr key={p.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < recentPayments.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <td className="px-5 py-4 text-sm text-slate-400">{new Date(p.paid_at).toLocaleDateString()}</td>
-                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{p.patients?.full_name || '—'}</td>
-                  <td className="px-5 py-4 text-sm font-bold text-green-400">{Number(p.amount_egp).toFixed(2)} EGP</td>
-                  <td className="px-5 py-4 text-sm text-slate-400 capitalize">{p.payment_method?.replace('_', ' ') || '—'}</td>
-                  <td className="px-5 py-4 text-sm text-slate-500">{p.staff_members?.full_name || '—'}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200 max-w-[200px] truncate">{p.patients?.full_name || '—'}</td>
+                  <td className="px-5 py-4 text-sm font-bold text-green-400 whitespace-nowrap">{Number(p.amount_egp).toFixed(2)} EGP</td>
+                  <td className="px-5 py-4 text-sm text-slate-400 capitalize whitespace-nowrap">{p.payment_method?.replace('_', ' ') || '—'}</td>
+                  <td className="px-5 py-4 text-sm text-slate-500 max-w-[150px] truncate">{p.staff_members?.full_name || '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -245,7 +245,7 @@ export default async function FinancePage({
               ) : recentExpenses.map((e, i) => (
                 <tr key={e.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < recentExpenses.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <td className="px-5 py-4 text-sm text-slate-400">{new Date(e.start_date || e.created_at).toLocaleDateString()}</td>
-                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{e.title}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200 max-w-[200px] truncate">{e.title}</td>
                   <td className="px-5 py-4 text-sm text-slate-400 capitalize">{e.category || '—'}</td>
                   <td className="px-5 py-4 text-sm font-bold text-red-400">{Number(e.amount_egp).toFixed(2)} EGP</td>
                   <td className="px-5 py-4 text-sm text-slate-500 capitalize">{e.recurrence?.replace('_', ' ') || '—'}</td>

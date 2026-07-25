@@ -164,7 +164,7 @@ export default async function HRDashboard({
                 <tr><td colSpan={3}><EmptyState icon={Users} title={isAr ? 'لا يوجد موظفين.' : 'No staff members found.'} /></td></tr>
               ) : staffDirectory.map((staff, i) => (
                 <tr key={staff.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < staffDirectory.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{staff.staff_members?.full_name || 'Unknown'}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200 max-w-[200px] truncate">{staff.staff_members?.full_name || 'Unknown'}</td>
                   <td className="px-5 py-4 text-sm text-slate-400 capitalize">{staff.role === 'owner' ? (isAr ? 'المالك' : 'Owner') : staff.role === 'admin' ? (isAr ? 'مدير' : 'Admin') : staff.role === 'doctor' ? (isAr ? 'طبيب' : 'Doctor') : staff.role === 'receptionist' ? (isAr ? 'موظفة استقبال' : 'Receptionist') : staff.role}</td>
                   <td className="px-5 py-4"><StatusBadge status={staff.is_active ? 'active' : 'inactive'} /></td>
                 </tr>
@@ -192,7 +192,7 @@ export default async function HRDashboard({
               ) : attendanceRecords.map((record, i) => (
                 <tr key={record.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < attendanceRecords.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <td className="px-5 py-4 text-sm text-slate-400">{record.work_date}</td>
-                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{record.clinic_staff_memberships?.staff_members?.full_name || '—'}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200 max-w-[200px] truncate">{record.clinic_staff_memberships?.staff_members?.full_name || '—'}</td>
                   <td className="px-5 py-4 text-sm text-slate-400">{record.check_in_at ? new Date(record.check_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                   <td className="px-5 py-4 text-sm text-slate-400">{record.check_out_at ? new Date(record.check_out_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                   <td className="px-5 py-4"><StatusBadge status={record.status} label={record.status === 'checked_in' ? (isAr ? 'تم تسجيل الدخول' : 'Checked In') : record.status === 'checked_out' ? (isAr ? 'تم تسجيل الخروج' : 'Checked Out') : (isAr ? 'لم يسجل دخول' : 'Not checked in')} /></td>

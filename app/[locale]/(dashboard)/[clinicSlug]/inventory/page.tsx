@@ -141,7 +141,7 @@ export default async function InventoryPage({
                   className="hover:bg-white/[0.02] transition-colors"
                   style={{ borderBottom: i < inventoryItems.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
                 >
-                  <td className="px-5 py-4 text-sm font-semibold text-slate-200">{item.name}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-slate-200 max-w-[200px] truncate">{item.name}</td>
                   <td className="px-5 py-4 text-sm text-slate-400 capitalize">{item.category || '—'}</td>
                   <td className="px-5 py-4">
                     <span
