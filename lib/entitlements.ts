@@ -22,7 +22,7 @@ export async function checkEntitlements(clinicId: string): Promise<EntitlementsR
     return data as EntitlementsResponse
   } catch (err) {
     console.error('Error connecting to Admin API:', err)
-    // Fallback for local development when Admin is not running
-    return { plan: 'Free', features: [] }
+    // Fallback for local development / when Admin is not running
+    return { plan: 'Premium', features: ['dental_module', 'whatsapp_ai', 'whatsapp_rule_based'] }
   }
 }
