@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, QrCode, Smartphone, Wifi, WifiOff } from 'lucide-react'
@@ -63,8 +64,7 @@ export default function ConnectionManager({
         setPolling(true)
       }
     } catch (error) {
-      console.error(error)
-      alert('Failed to initialize connection to WhatsApp service.')
+      toast.error(isAr ? 'فشل في الاتصال بخدمة واتساب' : 'Failed to initialize connection to WhatsApp service.')
     } finally {
       setLoading(false)
     }
@@ -83,8 +83,7 @@ export default function ConnectionManager({
         connected_phone_number: null
       })
     } catch (error) {
-      console.error(error)
-      alert('Failed to disconnect session.')
+      toast.error(isAr ? 'فشل في قطع الاتصال' : 'Failed to disconnect session.')
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { createPatient } from './actions'
 
@@ -34,8 +35,7 @@ export default function AddPatientDialog({ clinicId, clinicSlug, locale }: { cli
       await createPatient(clinicId, clinicSlug, locale, formData)
       setOpen(false)
     } catch (err) {
-      console.error(err)
-      alert(t.error)
+      toast.error(t.error)
     } finally {
       setLoading(false)
     }

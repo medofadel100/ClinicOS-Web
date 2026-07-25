@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { ClipboardList, Plus, X, CheckCircle } from 'lucide-react'
 
 type Appointment = {
@@ -58,8 +59,7 @@ export default function WorkRecorder({
       setNoteText('')
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
-      console.error(err)
-      alert(isAr ? 'فشل في الحفظ' : 'Failed to save')
+      toast.error(isAr ? 'فشل في الحفظ' : 'Failed to save')
     } finally {
       setSaving(false)
     }

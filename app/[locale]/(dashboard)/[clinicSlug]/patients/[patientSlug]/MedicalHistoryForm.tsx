@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { PremiumCard } from '@/components/layout/PageComponents'
 
 interface MedicalHistoryData {
@@ -48,10 +49,9 @@ export default function MedicalHistoryForm({
     try {
       const { updateMedicalHistory } = await import('../actions')
       await updateMedicalHistory(patientId, clinicId, locale, formData)
-      alert(t.success)
+      toast.success(t.success)
     } catch (err) {
-      console.error(err)
-      alert(t.error)
+      toast.error(t.error)
     } finally {
       setLoading(false)
     }

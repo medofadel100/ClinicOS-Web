@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,8 +42,7 @@ export default function RescheduleAppointmentDialog({
       await rescheduleAppointment(appointmentId, clinicId, locale, formData)
       setOpen(false)
     } catch (err) {
-      console.error(err)
-      alert(isAr ? 'فشل في إعادة جدولة الموعد' : 'Failed to reschedule appointment')
+      toast.error(isAr ? 'فشل في إعادة جدولة الموعد' : 'Failed to reschedule appointment')
     } finally {
       setLoading(false)
     }

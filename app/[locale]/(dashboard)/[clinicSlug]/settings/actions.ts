@@ -290,7 +290,7 @@ export async function loadServicesFromTemplate(clinicId: string, locale: string)
 
   if (clinicErr || !clinic) throw new Error('Clinic not found')
 
-  const typeCode = (clinic.clinic_types as any)?.code
+  const typeCode = (clinic.clinic_types as { code?: string } | null)?.code
   if (!typeCode) throw new Error('Clinic type not found')
 
   const { count } = await supabase
@@ -315,7 +315,7 @@ export async function loadServicesFromTemplate(clinicId: string, locale: string)
   }
 
   let orderIdx = 0
-  for (const [catName, catTemplates] of categoryMap) {
+  for (const [catName, catTemplates] of Array.from(categoryMap.entries())) {
     const { data: newCat, error: catErr } = await supabase
       .from('service_categories')
       .insert({ clinic_id: clinicId, name: catName, order_index: orderIdx })
@@ -324,7 +324,7 @@ export async function loadServicesFromTemplate(clinicId: string, locale: string)
 
     if (catErr) { console.error(catErr); continue }
 
-    const serviceRows = catTemplates.map(tpl => ({
+    const serviceRows = catTemplates.map((tpl: { c: string; n: string; d: string; p: number; m: number }) => ({
       clinic_id: clinicId,
       category_id: newCat.id,
       name: tpl.n,

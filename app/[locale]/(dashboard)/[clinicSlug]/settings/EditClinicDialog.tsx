@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { toast } from 'sonner'
 import { updateClinicGeneralInfo } from './actions'
 import { Loader2, Edit2 } from 'lucide-react'
 
@@ -40,8 +41,7 @@ export default function EditClinicDialog({
       await updateClinicGeneralInfo(clinicId, locale, formData)
       setOpen(false)
     } catch (err) {
-      console.error(err)
-      alert(t.failed)
+      toast.error(t.failed)
     } finally {
       setLoading(false)
     }

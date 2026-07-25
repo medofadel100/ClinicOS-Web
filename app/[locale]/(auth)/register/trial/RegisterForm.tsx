@@ -25,17 +25,6 @@ export default function RegisterForm({
   const router = useRouter()
   const supabase = createClient()
 
-  useEffect(() => {
-    // Unregister any rogue Service Workers that break Next.js Server Actions
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        registrations.forEach((registration) => {
-          registration.unregister()
-        })
-      })
-    }
-  }, [])
-
   const [mode, setMode] = useState<'trial' | 'serial'>('trial')
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)

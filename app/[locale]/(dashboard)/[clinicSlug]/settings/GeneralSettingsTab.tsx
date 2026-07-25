@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 import { updateClinicSettings } from './actions'
 
 interface ClinicSettings {
@@ -25,8 +26,7 @@ export default function GeneralSettingsTab({ clinicId, initialData }: { clinicId
     try {
       await updateClinicSettings(clinicId, formData)
     } catch (err) {
-      console.error(err)
-      alert('Failed to save settings')
+      toast.error('Failed to save settings')
     } finally {
       setLoading(false)
     }

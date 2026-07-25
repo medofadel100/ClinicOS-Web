@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 
 export async function GET(request: Request, { params }: { params: { locale: string } }) {
   const { searchParams } = new URL(request.url)
@@ -8,15 +7,21 @@ export async function GET(request: Request, { params }: { params: { locale: stri
   const locale = params.locale || 'en'
   const next = searchParams.get('next') ?? `/${locale}/clinic-switcher`
 
-  if (code) {
-    const supabase = createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (!error) {
-      return NextResponse.redirect(new URL(next, request.url))
-    }
+  if (!code) {
+    return NextResponse.redirect(
+      new URL(`/${locale}/login?error=Missing+confirmation+code`, request.url)
+    )
   }
 
-  // return the user to an error page with some instructions
-  return NextResponse.redirect(new URL(`/${locale}/login?error=Invalid+or+expired+confirmation+link`, request.url))
+  const supabase = createClient()
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+  if (error) {
+    console.error('[Auth Callback] exchangeCodeForSession failed:', error.message)
+    return NextResponse.redirect(
+      new URL(`/${locale}/login?error=Invalid+or+expired+confirmation+link`, request.url)
+    )
+  }
+
+  return NextResponse.redirect(new URL(next, request.url))
 }

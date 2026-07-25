@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toast } from 'sonner'
 import { upsertPayrollConfig } from './actions'
 
 type PayrollConfig = {
@@ -73,8 +74,7 @@ export default function EditPayrollDialog({
       await upsertPayrollConfig(clinicId, membershipId, type, baseSalary, commission)
       setOpen(false)
     } catch (err: unknown) {
-      console.error(err)
-      alert(err instanceof Error ? err.message : t.failed)
+      toast.error(err instanceof Error ? err.message : t.failed)
     } finally {
       setLoading(false)
     }

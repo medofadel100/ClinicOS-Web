@@ -1,5 +1,6 @@
 'use client'
 
+import { toast } from 'sonner'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -21,8 +22,7 @@ export default function BotModeSettings({
     try {
       await updateWhatsAppConfig(clinicId, locale, { mode: newMode })
     } catch (err) {
-      console.error(err)
-      alert('Failed to update bot mode.')
+      toast.error(isAr ? 'فشل في تحديث وضع البوت' : 'Failed to update bot mode.')
     }
   }
 

@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DollarSign } from 'lucide-react'
+import { toast } from 'sonner'
 import { generatePayroll } from './actions'
 
 export default function GeneratePayrollDialog({
@@ -39,10 +40,9 @@ export default function GeneratePayrollDialog({
       const periodMonth = `${month}-01`
       await generatePayroll(clinicId, locale, periodMonth)
       setOpen(false)
-      alert('Payroll generated successfully!')
+      toast.success('Payroll generated successfully!')
     } catch (err: unknown) {
-      console.error(err)
-      alert(err instanceof Error ? err.message : 'Failed to generate payroll')
+      toast.error(err instanceof Error ? err.message : 'Failed to generate payroll')
     } finally {
       setLoading(false)
     }

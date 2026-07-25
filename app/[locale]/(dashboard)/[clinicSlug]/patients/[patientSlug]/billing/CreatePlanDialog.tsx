@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 import { createTreatmentPlan } from './actions'
 
 export default function CreatePlanDialog({
@@ -40,8 +41,7 @@ export default function CreatePlanDialog({
       await createTreatmentPlan(clinicId, locale, patientId, title, totalPrice, sessionCount)
       setOpen(false)
     } catch (err) {
-      console.error(err)
-      alert('Failed to create treatment plan.')
+      toast.error('Failed to create treatment plan.')
     } finally {
       setLoading(false)
     }

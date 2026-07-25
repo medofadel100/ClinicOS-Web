@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toast } from 'sonner'
 import { upsertCampaign } from './actions'
 import { Switch } from '@/components/ui/switch'
 
@@ -68,8 +69,7 @@ export default function CampaignDialog({
       )
       setOpen(false)
     } catch (err: unknown) {
-      console.error(err)
-      alert(err instanceof Error ? err.message : 'Failed to save campaign')
+      toast.error(err instanceof Error ? err.message : (isAr ? 'فشل في حفظ الحملة' : 'Failed to save campaign'))
     } finally {
       setLoading(false)
     }

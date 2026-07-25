@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { CheckCircle, Clock, User, Stethoscope, CreditCard, Banknote } from 'lucide-react'
 import { confirmPayment } from './actions'
 
@@ -39,8 +40,7 @@ export default function PaymentConfirmCard({
       await confirmPayment(appointment.id, clinicId, appointment.patient_id, price, method)
       setConfirmed(true)
     } catch (err) {
-      console.error(err)
-      alert(isAr ? 'فشل في تأكيد الدفع' : 'Failed to confirm payment')
+      toast.error(isAr ? 'فشل في تأكيد الدفع' : 'Failed to confirm payment')
     } finally {
       setLoading(false)
     }

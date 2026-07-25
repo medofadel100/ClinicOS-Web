@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { registerOwnerAsDoctor } from './actions'
 import { UserCog } from 'lucide-react'
@@ -28,7 +29,7 @@ export default function RegisterAsDoctorButton({
       await registerOwnerAsDoctor(clinicId, locale)
       window.location.reload()
     } catch (err: any) {
-      alert(err?.message || (isAr ? 'فشل في التسجيل' : 'Failed to register'))
+      toast.error(err?.message || (isAr ? 'فشل في التسجيل' : 'Failed to register'))
     } finally {
       setLoading(false)
     }

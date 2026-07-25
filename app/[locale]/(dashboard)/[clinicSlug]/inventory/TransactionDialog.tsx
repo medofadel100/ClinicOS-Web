@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toast } from 'sonner'
 import { logTransaction } from './actions'
 
 export default function TransactionDialog({
@@ -51,8 +52,7 @@ export default function TransactionDialog({
       await logTransaction(clinicId, locale, itemId, changeQuantity, txnType, note)
       setOpen(false)
     } catch (err) {
-      console.error(err)
-      alert('Failed to log transaction')
+      toast.error(isAr ? 'فشل في تسجيل المعاملة' : 'Failed to log transaction')
     } finally {
       setLoading(false)
     }

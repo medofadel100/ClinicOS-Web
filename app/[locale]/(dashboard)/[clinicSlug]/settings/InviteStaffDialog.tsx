@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 import { generateStaffInvite, addStaffMemberDirectly } from './actions'
 import { Copy, CheckCircle2, Link, UserPlus, UserCog } from 'lucide-react'
 
@@ -75,7 +76,7 @@ export default function InviteStaffDialog({ clinicId, locale = 'en' }: { clinicI
       const link = `${window.location.origin}/${lang}/invite/${token}`
       setInviteLink(link)
     } catch (err) {
-      console.error(err)
+      toast.error(isAr ? 'حدث خطأ أثناء إنشاء الرابط' : 'Failed to generate invite link')
     } finally {
       setLoading(false)
     }
@@ -88,8 +89,7 @@ export default function InviteStaffDialog({ clinicId, locale = 'en' }: { clinicI
       await addStaffMemberDirectly(clinicId, locale, directName.trim(), role, directPhone.trim() || undefined)
       setSuccess(true)
     } catch (err) {
-      console.error(err)
-      alert(isAr ? 'فشل في الإضافة' : 'Failed to add member')
+      toast.error(isAr ? 'فشل في الإضافة' : 'Failed to add member')
     } finally {
       setLoading(false)
     }

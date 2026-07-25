@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { toast } from 'sonner'
 import { Plus, X, AlertCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useTranslations } from 'next-intl'
@@ -37,6 +38,12 @@ export default function DermatologyModule({
   const dermNotes = clinicalNotes.find(n => n.note_type === 'dermatology_map')
   const initialPins: Pin[] = dermNotes?.content?.pins || []
   
+  const [isAr, setIsAr] = useState(false)
+
+  useEffect(() => {
+    setIsAr(document.documentElement.lang === 'ar')
+  }, [])
+
   const [pins, setPins] = useState<Pin[]>(initialPins)
   const [activeView, setActiveView] = useState<'anterior' | 'posterior'>('anterior')
   const [newPinCoords, setNewPinCoords] = useState<{x: number, y: number} | null>(null)
@@ -112,7 +119,7 @@ export default function DermatologyModule({
       setNewPinCoords(null)
       setSelectedPin(null)
     } catch (err) {
-      console.error('Failed to save pins', err)
+      toast.error(isAr ? 'فشل في حفظ العلامات' : 'Failed to save pins')
     } finally {
       setLoading(false)
     }
@@ -128,7 +135,7 @@ export default function DermatologyModule({
       setIsDialogOpen(false)
       setSelectedPin(null)
     } catch (err) {
-      console.error(err)
+      toast.error(isAr ? 'فشل في حذف العلامة' : 'Failed to delete pin')
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { uploadPatientFile } from '../actions'
 import { Download } from 'lucide-react'
@@ -33,12 +34,11 @@ export default function PatientFiles({
     const formData = new FormData(e.currentTarget)
     try {
       await uploadPatientFile(patientId, clinicId, locale, formData)
-      alert('File uploaded successfully')
+      toast.success('File uploaded successfully')
       // Reset form
       e.currentTarget.reset()
     } catch (err) {
-      console.error(err)
-      alert('Failed to upload file')
+      toast.error('Failed to upload file')
     } finally {
       setLoading(false)
     }

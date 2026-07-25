@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { PremiumTableWrapper, EmptyState, StatusBadge } from '@/components/layout/PageComponents'
 import { Button } from '@/components/ui/button'
 import { Clock, CheckCircle } from 'lucide-react'
@@ -23,8 +24,7 @@ export default function PendingExpenses({
     try {
       await payOccurrence(clinicId, locale, occurrenceId)
     } catch (err: any) {
-      console.error(err)
-      alert(err.message || 'Failed to mark as paid')
+      toast.error(isAr ? 'فشل في التحديد كمدفوع' : 'Failed to mark as paid')
     } finally {
       setLoadingId(null)
     }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { updateAppointmentStatus } from './actions'
 
 export default function AppointmentStatusSelect({
@@ -25,8 +26,7 @@ export default function AppointmentStatusSelect({
     try {
       await updateAppointmentStatus(appointmentId, clinicId, locale, newStatus)
     } catch (err) {
-      console.error(err)
-      alert(isAr ? 'فشل في تحديث الحالة' : 'Failed to update status')
+      toast.error(isAr ? 'فشل في تحديث الحالة' : 'Failed to update status')
       setStatus(initialStatus)
     } finally {
       setLoading(false)

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { toast } from 'sonner'
 import { createServiceCategory, createClinicService, loadServicesFromTemplate } from './actions'
 
 interface ClinicService {
@@ -40,8 +41,7 @@ export default function ServicesTab({ clinicId, initialData, locale }: { clinicI
       await loadServicesFromTemplate(clinicId, locale)
       window.location.reload()
     } catch (err: any) {
-      console.error(err)
-      alert(err?.message || (isAr ? 'فشل في التحميل' : 'Failed to load template'))
+      toast.error(err?.message || (isAr ? 'فشل في التحميل' : 'Failed to load template'))
     } finally {
       setLoadingTemplate(false)
     }
@@ -79,8 +79,7 @@ export default function ServicesTab({ clinicId, initialData, locale }: { clinicI
       await createServiceCategory(clinicId, formData)
       setOpenCat(false)
     } catch (err) {
-      console.error(err)
-      alert(t.failedCategory)
+      toast.error(t.failedCategory)
     } finally {
       setLoading(false)
     }
@@ -94,8 +93,7 @@ export default function ServicesTab({ clinicId, initialData, locale }: { clinicI
       await createClinicService(clinicId, formData)
       setOpenSvc(false)
     } catch (err) {
-      console.error(err)
-      alert(t.failedService)
+      toast.error(t.failedService)
     } finally {
       setLoading(false)
     }

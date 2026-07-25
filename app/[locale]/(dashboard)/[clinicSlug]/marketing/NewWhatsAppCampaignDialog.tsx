@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { toast } from 'sonner'
 import { createWhatsAppCampaign } from './actions'
 
 export default function NewWhatsAppCampaignDialog({ clinicId, locale }: { clinicId: string, locale: string }) {
@@ -42,8 +43,7 @@ export default function NewWhatsAppCampaignDialog({ clinicId, locale }: { clinic
       setFilterType('all')
       setFilterValue('')
     } catch (err) {
-      console.error(err)
-      alert("Failed to create campaign")
+      toast.error(isAr ? 'فشل في إنشاء الحملة' : 'Failed to create campaign')
     } finally {
       setLoading(false)
     }

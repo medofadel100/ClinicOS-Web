@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { FileText } from 'lucide-react'
+import { toast } from 'sonner'
 import { savePaperFormat } from './actions'
 
 type PaperFormat = {
@@ -41,8 +42,7 @@ export default function PaperFormatSettings({
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
-      console.error(err)
-      alert(isAr ? 'فشل في الحفظ' : 'Failed to save')
+      toast.error(isAr ? 'فشل في الحفظ' : 'Failed to save')
     } finally {
       setSaving(false)
     }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { Trash2 } from 'lucide-react'
 import { addMenuOption, deleteMenuOption } from './actions'
@@ -39,8 +40,7 @@ export default function RuleBasedSettings({
       setNewAr('')
       setNewResponse('')
     } catch (err) {
-      console.error(err)
-      alert('Failed to add option')
+      toast.error(isAr ? 'فشل في إضافة القاعدة' : 'Failed to add option')
     } finally {
       setLoading(false)
     }
@@ -51,8 +51,7 @@ export default function RuleBasedSettings({
     try {
       await deleteMenuOption(clinicId, locale, id)
     } catch (err) {
-      console.error(err)
-      alert('Failed to delete option')
+      toast.error(isAr ? 'فشل في حذف القاعدة' : 'Failed to delete option')
     } finally {
       setLoading(false)
     }

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 import { createInventoryItem } from './actions'
 
 export default function CreateItemDialog({
@@ -41,8 +42,7 @@ export default function CreateItemDialog({
       await createInventoryItem(clinicId, locale, name, unit, minThreshold, category, expiresAt)
       setOpen(false)
     } catch (err) {
-      console.error(err)
-      alert('Failed to create inventory item')
+      toast.error(isAr ? 'فشل في إضافة الصنف' : 'Failed to create inventory item')
     } finally {
       setLoading(false)
     }

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { DashboardShell } from '@/components/layout/DashboardShell'
 import { HeaderActions } from '@/components/layout/HeaderActions'
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
+import ToastProvider from '@/components/layout/ToastProvider'
 import { requireClinicId } from "@/lib/utils/clinic";
 
 export default async function DashboardLayout({
@@ -102,6 +103,7 @@ export default async function DashboardLayout({
       </DashboardShell>
 
       <OnboardingTour />
+      <ToastProvider />
     </div>
   )
 }

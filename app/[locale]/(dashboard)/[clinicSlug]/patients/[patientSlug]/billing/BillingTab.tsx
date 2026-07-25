@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { useParams } from 'next/navigation'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import CreatePlanDialog from './CreatePlanDialog'
@@ -48,8 +49,7 @@ export default function BillingTab({
     try {
       await updateSessionStatus(clinicId, locale, patientId, sessionId, newStatus)
     } catch (err) {
-      console.error(err)
-      alert('Failed to update session status')
+      toast.error(isAr ? 'فشل في تحديث حالة الجلسة' : 'Failed to update session status')
     }
   }
 

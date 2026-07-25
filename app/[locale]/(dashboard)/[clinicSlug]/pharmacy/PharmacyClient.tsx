@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { searchGlobalMedications, addClinicMedication, deleteClinicMedication } from './actions'
 import { Plus, Search, Trash2, Globe, Pill, AlertCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
@@ -26,7 +27,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
       const results = await searchGlobalMedications(query)
       setSearchResults(results)
     } catch (err) {
-      console.error(err)
+      toast.error(isAr ? 'فشل في البحث عن الأدوية' : 'Failed to search medications')
     } finally {
       setLoadingSearch(false)
     }
@@ -48,8 +49,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
       setSearchQuery('')
       setSearchResults([])
     } catch (err) {
-      console.error(err)
-      alert('Failed to add medication')
+      toast.error(isAr ? 'فشل في إضافة الدواء' : 'Failed to add medication')
     } finally {
       setAddingMed(false)
     }
@@ -61,8 +61,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
       await deleteClinicMedication(clinicId, id)
       setMeds(meds.filter(m => m.id !== id))
     } catch (err) {
-      console.error(err)
-      alert('Failed to delete. It might be linked to a patient prescription.')
+      toast.error(isAr ? 'فشل في الحذف' : 'Failed to delete. It might be linked to a patient prescription.')
     }
   }
 
@@ -80,8 +79,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
       setMeds([newMed[0], ...meds])
       setIsAddOpen(false)
     } catch (err) {
-      console.error(err)
-      alert('Failed to add custom medication')
+      toast.error(isAr ? 'فشل في إضافة الدواء' : 'Failed to add custom medication')
     } finally {
       setAddingMed(false)
     }

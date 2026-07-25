@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Upload, X, Image, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { saveClinicLogo } from './actions'
 
 export default function LogoUpload({
@@ -24,7 +25,7 @@ export default function LogoUpload({
     if (!file) return
 
     if (file.size > 2 * 1024 * 1024) {
-      alert(isAr ? 'الحجم الأقصى 2 ميجا' : 'Max size 2MB')
+      toast.error(isAr ? 'الحجم الأقصى 2 ميجا' : 'Max size 2MB')
       return
     }
 
@@ -39,8 +40,7 @@ export default function LogoUpload({
       }
       reader.readAsDataURL(file)
     } catch (err) {
-      console.error('Logo upload failed:', err)
-      alert(isAr ? 'فشل الرفع' : 'Upload failed')
+      toast.error(isAr ? 'فشل رفع الشعار' : 'Upload failed')
     } finally {
       setUploading(false)
     }

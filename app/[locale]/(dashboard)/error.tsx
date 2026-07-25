@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+
 export default function DashboardError({
   error,
   reset,
@@ -7,7 +9,10 @@ export default function DashboardError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  void error
+  useEffect(() => {
+    console.error('[Dashboard Error]', error)
+  }, [error])
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
       <div className="max-w-md">
@@ -17,15 +22,28 @@ export default function DashboardError({
           </svg>
         </div>
         <h2 className="text-xl font-bold text-slate-200 mb-2">Something went wrong</h2>
-        <p className="text-sm text-slate-400 mb-6">
-          An unexpected error occurred. Please try again.
+        <p className="text-sm text-slate-400 mb-2">
+          An unexpected error occurred while loading this page.
         </p>
-        <button
-          onClick={reset}
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-teal-500/20 text-teal-400 border border-teal-500/30 hover:bg-teal-500/30 transition-all"
-        >
-          Try Again
-        </button>
+        {error.digest && (
+          <p className="text-xs text-slate-500 mb-6 font-mono">
+            Error ID: {error.digest}
+          </p>
+        )}
+        <div className="flex items-center justify-center gap-3">
+          <button
+            onClick={reset}
+            className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-teal-500/20 text-teal-400 border border-teal-500/30 hover:bg-teal-500/30 transition-all"
+          >
+            Try Again
+          </button>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20 hover:bg-slate-500/20 transition-all"
+          >
+            Go Home
+          </button>
+        </div>
       </div>
     </div>
   )

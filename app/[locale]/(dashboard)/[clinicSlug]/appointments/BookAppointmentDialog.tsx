@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 import { createAppointment, getAvailableSlots, bookWalkIn } from './actions'
 import { Search, UserPlus, X } from 'lucide-react'
 
@@ -84,7 +85,7 @@ export default function BookAppointmentDialog({
       setNewPatientPhone('')
       setShowPatientDropdown(false)
     } catch (err) {
-      alert(isAr ? 'فشل في إنشاء المريض' : 'Failed to create patient')
+      toast.error(isAr ? 'فشل في إنشاء المريض' : 'Failed to create patient')
     } finally {
       setCreatingPatient(false)
     }
@@ -101,7 +102,7 @@ export default function BookAppointmentDialog({
             setAvailableSlots(slots)
           }
         } catch (err) {
-          console.error('Failed to load slots', err)
+          toast.error(isAr ? 'فشل في تحميل المواعيد المتاحة' : 'Failed to load available slots')
         } finally {
           setIsLoadingSlots(false)
         }
@@ -154,8 +155,7 @@ export default function BookAppointmentDialog({
       setSelectedDate('')
       setAvailableSlots([])
     } catch (err) {
-      console.error(err)
-      alert(isAr ? 'فشل في حجز الموعد' : 'Failed to book appointment')
+      toast.error(isAr ? 'فشل في حجز الموعد' : 'Failed to book appointment')
     } finally {
       setLoading(false)
     }
@@ -174,8 +174,7 @@ export default function BookAppointmentDialog({
       setSelectedDate('')
       setAvailableSlots([])
     } catch (err) {
-      console.error(err)
-      alert(isAr ? 'فشل في الحجز' : 'Failed to book walk-in')
+      toast.error(isAr ? 'فشل في الحجز الفوري' : 'Failed to book walk-in')
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toast } from 'sonner'
 import { recordPayment } from './actions'
 
 export default function RecordPaymentDialog({
@@ -31,6 +32,11 @@ export default function RecordPaymentDialog({
 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isAr, setIsAr] = useState(false)
+
+  useEffect(() => {
+    setIsAr(document.documentElement.lang === 'ar')
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -46,8 +52,7 @@ export default function RecordPaymentDialog({
       setOpen(false)
     } catch (err) {
       const error = err as Error
-      console.error(error)
-      alert(error.message || 'Failed to record payment. You may not be authorized.')
+      toast.error(error.message || (isAr ? 'فشل في تسجيل الدفع' : 'Failed to record payment. You may not be authorized.'))
     } finally {
       setLoading(false)
     }

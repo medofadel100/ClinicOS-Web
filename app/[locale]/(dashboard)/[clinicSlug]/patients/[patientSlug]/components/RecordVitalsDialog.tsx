@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -24,7 +25,12 @@ export default function RecordVitalsDialog({
 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  
+  const [isAr, setIsAr] = useState(false)
+
+  useEffect(() => {
+    setIsAr(document.documentElement.lang === 'ar')
+  }, [])
+
   const [bp, setBp] = useState('')
   const [hr, setHr] = useState('')
   const [temp, setTemp] = useState('')
@@ -43,8 +49,7 @@ export default function RecordVitalsDialog({
       setTemp('')
       setWeight('')
     } catch (err: any) {
-      console.error(err)
-      alert(err.message || 'Error recording vitals')
+      toast.error(err.message || (isAr ? 'فشل في تسجيل العلامات الحيوية' : 'Error recording vitals'))
     } finally {
       setLoading(false)
     }

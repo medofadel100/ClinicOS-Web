@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { Sidebar } from './Sidebar'
+import InstallPWA from './InstallPWA'
 
 interface DashboardShellProps {
   children: React.ReactNode
@@ -121,7 +122,10 @@ export function DashboardShell({
             </div>
           </div>
 
-          {headerActions}
+          <div className="flex items-center gap-3">
+            <InstallPWA />
+            {headerActions}
+          </div>
         </header>
 
         {/* Main Content */}

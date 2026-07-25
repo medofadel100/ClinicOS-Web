@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { Button } from '@/components/ui/button'
 import { Clock, LogIn, LogOut } from 'lucide-react'
@@ -27,8 +28,7 @@ export default function AttendanceTracker({
     try {
       await recordAttendance(clinicId, locale, action)
     } catch (err: any) {
-      console.error(err)
-      alert(err.message || 'Failed to record attendance')
+      toast.error(isAr ? 'فشل في تسجيل الحضور' : 'Failed to record attendance')
     } finally {
       setLoading(false)
     }

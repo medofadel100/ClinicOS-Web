@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toast } from 'sonner'
 import { logExpense } from './actions'
 
 export default function LogExpenseDialog({
@@ -42,8 +43,7 @@ export default function LogExpenseDialog({
       await logExpense(clinicId, locale, title, category, amount, recurrence, startDate)
       setOpen(false)
     } catch (err: unknown) {
-      console.error(err)
-      alert(err instanceof Error ? err.message : 'Failed to log expense')
+      toast.error(err instanceof Error ? err.message : (isAr ? 'فشل في تسجيل المصروف' : 'Failed to log expense'))
     } finally {
       setLoading(false)
     }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { Clock, ChevronRight, CreditCard, FileText, Stethoscope, ArrowLeft } from 'lucide-react'
 import { updateAppointmentStatus } from '../appointments/actions'
 
@@ -44,7 +45,7 @@ export default function FocusMode({
         setCurrentIdx(Math.max(0, currentIdx - 1))
       }
     } catch (err) {
-      alert(isAr ? 'فشل' : 'Failed')
+      toast.error(isAr ? 'فشل' : 'Failed')
     } finally {
       setLoadingId(null)
     }

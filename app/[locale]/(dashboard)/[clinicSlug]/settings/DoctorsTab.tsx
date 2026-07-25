@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { toast } from 'sonner'
 import { upsertDoctorProfile } from './actions'
 
 interface StaffMember {
@@ -23,6 +24,11 @@ interface DoctorProfile {
 export default function DoctorsTab({ clinicId, initialData, availableStaff }: { clinicId: string, initialData: DoctorProfile[], availableStaff: StaffMember[] }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isAr, setIsAr] = useState(false)
+
+  useEffect(() => {
+    setIsAr(document.documentElement.lang === 'ar')
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -32,8 +38,7 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
       await upsertDoctorProfile(clinicId, formData)
       setOpen(false)
     } catch (err) {
-      console.error(err)
-      alert('Failed to save doctor profile')
+      toast.error('Failed to save doctor profile')
     } finally {
       setLoading(false)
     }
@@ -91,7 +96,7 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
                   <p className="font-medium">{doc.staff_members?.full_name}</p>
                   <p className="text-sm text-muted-foreground">{doc.specialty}</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => alert('Editing coming soon')}>Edit Hours</Button>
+                <Button variant="outline" size="sm" onClick={() => toast.info(isAr ? 'التعديل قادم قريباً' : 'Editing coming soon')}>Edit Hours</Button>
               </div>
             ))}
           </div>

@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 import { changeClinicType, fetchClinicTypes } from './actions'
 import { RefreshCw } from 'lucide-react'
 
@@ -38,7 +39,7 @@ export default function ChangeClinicTypeDialog({
       setFetching(true)
       fetchClinicTypes(locale)
         .then(setTypes)
-        .catch(console.error)
+        .catch(() => toast.error(isAr ? 'فشل في تحميل الأنواع' : 'Failed to load clinic types'))
         .finally(() => setFetching(false))
     }
   }, [open, types.length, locale])
@@ -54,8 +55,7 @@ export default function ChangeClinicTypeDialog({
       setOpen(false)
       window.location.reload()
     } catch (err) {
-      console.error(err)
-      alert(isAr ? 'فشل في تغيير نوع العيادة' : 'Failed to change clinic type')
+      toast.error(isAr ? 'فشل في تغيير نوع العيادة' : 'Failed to change clinic type')
     } finally {
       setLoading(false)
     }

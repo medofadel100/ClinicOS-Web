@@ -4,18 +4,19 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  // next-intl forces locale redirect if needed.
-  // We'll let middleware handle where to route them post-login based on memberships
   const next = searchParams.get('next') ?? '/en/clinic-switcher'
 
-  if (code) {
-    const supabase = createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
-    }
+  if (!code) {
+    return NextResponse.redirect(`${origin}/en/login?error=Missing+confirmation+code`)
   }
 
-  // return the user to an error page
-  return NextResponse.redirect(`${origin}/en/login?error=auth`)
+  const supabase = createClient()
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+  if (error) {
+    console.error('[API Auth Callback] exchangeCodeForSession failed:', error.message)
+    return NextResponse.redirect(`${origin}/en/login?error=Invalid+or+expired+confirmation+link`)
+  }
+
+  return NextResponse.redirect(`${origin}${next}`)
 }
