@@ -189,7 +189,7 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto mt-16">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-lg mx-auto mt-16">
           {[
             { value: hero.stat1val, label: hero.stat1 },
             { value: hero.stat2val, label: hero.stat2 },

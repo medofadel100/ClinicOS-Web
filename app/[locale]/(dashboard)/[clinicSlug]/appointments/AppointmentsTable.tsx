@@ -40,9 +40,13 @@ export default function AppointmentsTable({
       <table className="w-full">
         <thead>
           <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            {(isAr ? ['الوقت', 'المريض', 'العمر', 'الطبيب', 'الخدمة', 'السعر', 'الحالة'] : ['Time', 'Patient', 'Age', 'Doctor', 'Service', 'Price', 'Status']).map(h => (
-              <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{h}</th>
-            ))}
+            <th className="px-3 md:px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{isAr ? 'الوقت' : 'Time'}</th>
+            <th className="px-3 md:px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{isAr ? 'المريض' : 'Patient'}</th>
+            <th className="hidden md:table-cell px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{isAr ? 'العمر' : 'Age'}</th>
+            <th className="hidden lg:table-cell px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{isAr ? 'الطبيب' : 'Doctor'}</th>
+            <th className="hidden sm:table-cell px-3 md:px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{isAr ? 'الخدمة' : 'Service'}</th>
+            <th className="hidden md:table-cell px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{isAr ? 'السعر' : 'Price'}</th>
+            <th className="px-3 md:px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{isAr ? 'الحالة' : 'Status'}</th>
           </tr>
         </thead>
         <tbody>
@@ -71,13 +75,13 @@ export default function AppointmentsTable({
                 style={{ borderBottom: i < appointments.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
                 onClick={() => setSelectedAppointment(app)}
               >
-                <td className="px-5 py-4">
+                <td className="px-3 md:px-5 py-4">
                   <div className="flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5 text-slate-600" />
                     <span className="text-sm font-semibold text-slate-200">{time}</span>
                   </div>
                 </td>
-                <td className="px-5 py-4">
+                <td className="px-3 md:px-5 py-4">
                   <div>
                     <span
                       className="text-sm font-semibold"
@@ -86,11 +90,11 @@ export default function AppointmentsTable({
                       {app.patients?.full_name || '—'}
                     </span>
                     {app.patients?.phone && (
-                      <p className="text-[11px] text-slate-500 mt-0.5">{app.patients.phone}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5 hidden sm:block">{app.patients.phone}</p>
                     )}
                   </div>
                 </td>
-                <td className="px-5 py-4 text-sm text-slate-400">
+                <td className="hidden md:table-cell px-5 py-4 text-sm text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <span>{age}</span>
                     {app.patients?.gender && (
@@ -100,16 +104,16 @@ export default function AppointmentsTable({
                     )}
                   </div>
                 </td>
-                <td className="px-5 py-4 text-sm text-slate-400" onClick={e => e.stopPropagation()}>
+                <td className="hidden lg:table-cell px-5 py-4 text-sm text-slate-400" onClick={e => e.stopPropagation()}>
                   {app.clinic_staff_memberships?.staff_members?.full_name || '—'}
                 </td>
-                <td className="px-5 py-4 text-sm text-slate-500">
+                <td className="hidden sm:table-cell px-3 md:px-5 py-4 text-sm text-slate-500">
                   {app.clinic_services?.name || '—'}
                 </td>
-                <td className="px-5 py-4 text-sm font-medium text-teal-400">
+                <td className="hidden md:table-cell px-5 py-4 text-sm font-medium text-teal-400">
                   {app.clinic_services?.price ? `${app.clinic_services.price.toLocaleString()} EGP` : '—'}
                 </td>
-                <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
+                <td className="px-3 md:px-5 py-4" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
                     <AppointmentStatusSelect
                       appointmentId={app.id}

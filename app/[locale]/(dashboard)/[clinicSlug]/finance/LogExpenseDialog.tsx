@@ -67,7 +67,7 @@ export default function LogExpenseDialog({
             <Label htmlFor="title">{isAr ? 'العنوان' : 'Title'}</Label>
             <Input id="title" name="title" required placeholder={isAr ? 'مثال: إيجار أغسطس' : 'e.g. August Rent'} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="category">{isAr ? 'الفئة' : 'Category'}</Label>
               <Select name="category" defaultValue="supplies" required>
@@ -89,7 +89,7 @@ export default function LogExpenseDialog({
               <Input id="amount" name="amount" type="number" step="0.01" required min="0.01" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="recurrence">{isAr ? 'التكرار' : 'Recurrence'}</Label>
               <Select name="recurrence" defaultValue="one_time" required>

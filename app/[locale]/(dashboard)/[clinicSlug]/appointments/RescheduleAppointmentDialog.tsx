@@ -59,7 +59,7 @@ export default function RescheduleAppointmentDialog({
           <DialogTitle>{isAr ? 'إعادة جدولة الموعد' : 'Reschedule Appointment'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date">{isAr ? 'التاريخ الجديد' : 'New Date'}</Label>
               <Input id="date" name="date" type="date" defaultValue={initialDate} required />

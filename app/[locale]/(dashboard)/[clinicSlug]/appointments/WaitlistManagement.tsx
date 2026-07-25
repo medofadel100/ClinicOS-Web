@@ -141,7 +141,7 @@ function AddWaitlistDialog({ clinicId, locale, patients, doctors }: { clinicId: 
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-wider text-slate-400" htmlFor="desired_from">{isAr ? 'من تاريخ' : 'From Date'}</label>
               <input className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all" id="desired_from" name="desired_from" type="date" required />

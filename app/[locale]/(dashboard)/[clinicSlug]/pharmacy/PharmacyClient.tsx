@@ -213,7 +213,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
                 <p>{isAr ? 'الأدوية المتاحة في عيادتك.' : 'Use custom medications only if you cannot find the drug in the global index. Custom drugs will not benefit from global updates.'}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-400">{isAr ? 'الاسم التجاري' : 'Brand Name'}</label>
                   <input required name="brandName" className="w-full h-10 px-3 bg-black/40 border border-white/10 rounded-lg text-sm text-white" />

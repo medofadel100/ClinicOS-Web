@@ -94,7 +94,7 @@ export default function PaymentConfirmCard({
       ) : (
         <div className="mt-3 space-y-2">
           <p className="text-[11px] text-slate-500 font-medium">{isAr ? 'طريقة الدفع' : 'Payment Method'}</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {[
               { value: 'cash', label: isAr ? 'نقداً' : 'Cash', icon: Banknote },
               { value: 'card', label: isAr ? 'بطاقة' : 'Card', icon: CreditCard },

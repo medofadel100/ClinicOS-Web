@@ -281,7 +281,7 @@ export default function DermatologyChart({
 
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Severity</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {['mild', 'moderate', 'severe'].map((sev) => (
                   <label key={sev} className={`
                     flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all text-xs font-medium uppercase tracking-wider

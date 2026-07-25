@@ -153,10 +153,34 @@ export default async function SettingsPage({
         iconBg="rgba(148,163,184,0.12)"
       />
 
+      {/* Mobile horizontal tabs */}
+      <div className="flex lg:hidden overflow-x-auto gap-1 pb-2 -mx-1 px-1 scrollbar-hide">
+        {[
+          { id: 'general', label: t.general, dot: 'bg-teal-400' },
+          { id: 'staff', label: t.staff, dot: 'bg-violet-400' },
+          { id: 'services', label: t.services, dot: 'bg-blue-400' },
+          { id: 'billing', label: t.billing, dot: 'bg-green-400' },
+          { id: 'paper', label: isAr ? 'شكل الورقة' : 'Paper', dot: 'bg-indigo-400' },
+        ].map((item) => (
+          <a
+            key={item.id}
+            href={`#${item.id}`}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.05] transition-all whitespace-nowrap shrink-0"
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.06)',
+            }}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${item.dot}`} />
+            {item.label}
+          </a>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left sidebar nav */}
+        {/* Desktop sidebar nav */}
         <div
-          className="lg:col-span-1 rounded-2xl p-3 h-fit sticky top-24"
+          className="hidden lg:block lg:col-span-1 rounded-2xl p-3 h-fit sticky top-24"
           style={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
             border: '1px solid rgba(255,255,255,0.07)',

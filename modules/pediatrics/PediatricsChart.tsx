@@ -151,7 +151,7 @@ export default function PediatricsChart({
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 mb-6 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 text-center">
                   <div className="bg-black/20 p-3 rounded-lg border border-white/5">
                     <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Weight</div>
                     <div className="font-bold text-slate-200 text-lg">{record.weightKg || '-'} <span className="text-xs font-normal text-slate-500">kg</span></div>
@@ -229,7 +229,7 @@ export default function PediatricsChart({
 
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-4">
               <h3 className="font-bold text-pink-400 border-b border-pink-400/20 pb-2">Growth Parameters</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-400">Weight (kg)</label>
                   <input type="number" step="0.1" name="weightKg" placeholder="kg" className="w-full h-10 px-3 rounded-lg text-sm bg-black/40 border border-white/10 text-white focus:outline-none focus:border-pink-500/50" />

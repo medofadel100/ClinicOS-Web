@@ -98,7 +98,7 @@ export default function RuleBasedSettings({
           <div className="pt-6 mt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             <h4 className="font-medium text-slate-200 mb-4">{isAr ? 'إضافة قاعدة' : 'Add Rule'}</h4>
             <form onSubmit={handleAdd} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">{isAr ? 'الاسم' : 'Label (English)'}</label>
                   <input

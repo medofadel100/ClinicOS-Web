@@ -99,7 +99,7 @@ export default async function PatientOverviewPage({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       
       {/* Quick Actions */}
-      <div className="md:col-span-2 flex gap-4">
+      <div className="md:col-span-2 flex flex-col sm:flex-row gap-4">
         <Link 
           href={`/${locale}/${clinicSlug}/patients/${patient.id}/clinical`}
           className="flex-1 p-4 bg-gradient-to-r from-teal-500/20 to-teal-500/5 hover:from-teal-500/30 hover:to-teal-500/10 border border-teal-500/20 rounded-2xl flex items-center gap-4 transition-all group"

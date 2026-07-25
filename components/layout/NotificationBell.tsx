@@ -190,7 +190,7 @@ export default function NotificationBell({ locale }: NotificationBellProps) {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute right-0 top-full mt-2 w-80 max-h-96 rounded-2xl z-50 overflow-hidden animate-slide-in-up"
+            className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] max-h-96 rounded-2xl z-50 overflow-hidden animate-slide-in-up"
             style={{
               background: 'hsl(222 47% 9%)',
               border: '1px solid rgba(255,255,255,0.08)',

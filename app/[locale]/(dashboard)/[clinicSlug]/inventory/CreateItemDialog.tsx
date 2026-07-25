@@ -74,7 +74,7 @@ export default function CreateItemDialog({
             <Label htmlFor="expiresAt">{isAr ? 'تاريخ الانتهاء (اختياري)' : 'Expiry Date (Optional)'}</Label>
             <Input id="expiresAt" name="expiresAt" type="date" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="unit">{isAr ? 'الوحدة' : 'Unit'}</Label>
               <Input id="unit" name="unit" required placeholder={isAr ? 'مثال: علبة، قطعة' : 'e.g. Box, Piece'} />

@@ -94,7 +94,7 @@ export default function PatientQuickView({
           </div>
 
           {/* Details Grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {patient?.phone && (
               <div className="flex items-center gap-2.5 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <Phone className="w-4 h-4 text-slate-500 shrink-0" />

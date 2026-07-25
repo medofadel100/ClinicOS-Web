@@ -58,7 +58,7 @@ export default async function ResetPasswordPage({
           </div>
         </div>
 
-        <div className="relative z-10 px-10 xl:px-14 pb-10 xl:pb-14">
+        <div className="relative z-10 px-6 sm:px-10 xl:px-14 pb-10 xl:pb-14">
           <div className="space-y-5">
             <h1 className="text-3xl xl:text-4xl font-bold text-white leading-[1.1] tracking-tight">
               {locale === 'ar' ? 'خطوة أخيرة' : 'One last step,'}

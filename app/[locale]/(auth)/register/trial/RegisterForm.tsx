@@ -331,7 +331,7 @@ export default function RegisterForm({
       {step === 1 && mode === 'trial' && (
         <form onSubmit={handleNext} className="space-y-6">
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName">{t('fullName')}</Label>
                 <Input
@@ -355,7 +355,7 @@ export default function RegisterForm({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="clinicName">{t('clinicName')}</Label>
                 <Input
@@ -490,7 +490,7 @@ export default function RegisterForm({
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="clinicName">Clinic Name (Edit if needed)</Label>
                 <Input
@@ -532,7 +532,7 @@ export default function RegisterForm({
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email">{t('email')} (Your primary login)</Label>
                 <Input

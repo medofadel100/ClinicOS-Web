@@ -177,7 +177,7 @@ export default function NephrologyChart({
                       <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded uppercase tracking-wider">Dialysis</span>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-2 mb-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                     {reading.egfr && (
                       <div className="bg-black/20 rounded p-2 text-center">
                         <div className="text-[10px] text-slate-500 uppercase">eGFR</div>
@@ -225,7 +225,7 @@ export default function NephrologyChart({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">eGFR</label>
                 <input 

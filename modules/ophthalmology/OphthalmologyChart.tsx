@@ -160,7 +160,7 @@ export default function OphthalmologyChart({
                     <h5 className="font-bold text-slate-300 border-b border-white/10 pb-2 flex justify-between">
                       <span>OD (Right Eye)</span>
                     </h5>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div className="text-slate-400">Visual Acuity:</div>
                       <div className="font-mono text-white">{record.od.visualAcuity || '-'}</div>
                       
@@ -189,7 +189,7 @@ export default function OphthalmologyChart({
                     <h5 className="font-bold text-slate-300 border-b border-white/10 pb-2 flex justify-between">
                       <span>OS (Left Eye)</span>
                     </h5>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div className="text-slate-400">Visual Acuity:</div>
                       <div className="font-mono text-white">{record.os.visualAcuity || '-'}</div>
                       
@@ -259,7 +259,7 @@ export default function OphthalmologyChart({
               <div className="space-y-4 p-4 bg-white/5 border border-white/10 rounded-xl">
                 <h3 className="font-bold text-emerald-400 border-b border-emerald-400/20 pb-2">OD (Right Eye)</h3>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-400">Visual Acuity</label>
                     <select name="od_va" className="w-full h-10 px-3 rounded-lg text-sm bg-black/40 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50">
@@ -299,7 +299,7 @@ export default function OphthalmologyChart({
               <div className="space-y-4 p-4 bg-white/5 border border-white/10 rounded-xl">
                 <h3 className="font-bold text-emerald-400 border-b border-emerald-400/20 pb-2">OS (Left Eye)</h3>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-400">Visual Acuity</label>
                     <select name="os_va" className="w-full h-10 px-3 rounded-lg text-sm bg-black/40 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50">

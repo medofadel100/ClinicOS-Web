@@ -224,7 +224,7 @@ export default function GeneralSurgeryChart({
           </DialogHeader>
           <form onSubmit={handleSaveNote} className="space-y-6 mt-4">
             
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <div className="space-y-2 flex-1">
                 <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Note Type</label>
                 <select name="type" className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white focus:outline-none focus:border-rose-500/50">

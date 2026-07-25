@@ -338,7 +338,7 @@ export default function BookAppointmentDialog({
           </div>
 
           {/* Date & Time */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{isAr ? 'التاريخ' : 'Date'}</Label>
               <Input name="date" type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} required />
