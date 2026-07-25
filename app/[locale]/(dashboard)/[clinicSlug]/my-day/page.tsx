@@ -62,7 +62,7 @@ export default async function MyDayPage({
 
   const { data: appointments } = await supabase
     .from('appointments')
-    .select(`*, patients ( full_name, phone ), clinic_services ( name, price )`)
+    .select(`*, patients ( full_name, phone, display_id ), clinic_services ( name, price )`)
     .eq('clinic_id', clinicId)
     .eq('membership_id', membership.id)
     .gte('scheduled_at', startOfDay.toISOString())

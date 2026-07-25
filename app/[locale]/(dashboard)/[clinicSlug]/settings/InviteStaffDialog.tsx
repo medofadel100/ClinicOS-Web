@@ -219,10 +219,6 @@ export default function InviteStaffDialog({ clinicId, locale = 'en' }: { clinicI
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="doctor">{t.doctor}</SelectItem>
-                  <SelectItem value="nurse">{t.nurse}</SelectItem>
-                  <SelectItem value="reception">{t.reception}</SelectItem>
-                  <SelectItem value="accountant">{t.accountant}</SelectItem>
                   <SelectItem value="cleaner">{t.cleaner}</SelectItem>
                   <SelectItem value="cafeteria">{t.cafeteria}</SelectItem>
                   <SelectItem value="other">{t.other}</SelectItem>

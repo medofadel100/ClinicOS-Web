@@ -86,11 +86,43 @@ export default async function PatientClinicalPage({
       .order('created_at', { ascending: false })
     clinicalData = data || []
   } else {
-    const { data } = await supabase.from('patient_clinical_notes')
+    // Map clinic type to the correct note_type filter
+    const noteTypeMap: Record<string, string> = {
+      'cardiology': 'cardiology_map',
+      'neurology': 'neurology_map',
+      'dermatology': 'dermatology_map',
+      'urology': 'urology_map',
+      'ophthalmology_ext': 'ophthalmology_tracker',
+      'pulmonology': 'pulmonology_tracker',
+      'endocrinology': 'endocrinology_tracker',
+      'hematology': 'hematology_tracker',
+      'nephrology': 'nephrology_tracker',
+      'ent': 'ent_tracker',
+      'psychiatry': 'psychiatry_tracker',
+      'pediatrics': 'pediatrics_tracker',
+      'oncology': 'oncology_notes',
+      'internal_medicine': 'internal_medicine_notes',
+      'family_medicine': 'family_medicine_notes',
+      'general_surgery': 'general_surgery_notes',
+      'neurosurgery': 'neurosurgery_notes',
+      'clinical_nutrition': 'clinical_nutrition_notes',
+      'physical_therapy': 'physical_therapy_notes',
+      'gastroenterology': 'gastroenterology_notes',
+      'psychology': 'psychology_session',
+    }
+    const targetNoteType = noteTypeMap[clinicTypeCode || '']
+
+    let query = supabase.from('patient_clinical_notes')
       .select('*')
       .eq('patient_id', patient.id)
       .eq('clinic_id', clinicId)
       .order('created_at', { ascending: false })
+
+    if (targetNoteType) {
+      query = query.eq('note_type', targetNoteType)
+    }
+
+    const { data } = await query
     clinicalData = data || []
   }
 

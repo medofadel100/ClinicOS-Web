@@ -11,7 +11,7 @@ type Appointment = {
   scheduled_at: string
   duration_minutes: number
   status: string
-  patients?: { full_name: string; phone?: string }
+  patients?: { full_name: string; phone?: string; display_id?: string }
   clinic_services?: { name?: string; price?: number }
 }
 
@@ -119,7 +119,7 @@ export default function FocusMode({
           {/* Quick Actions */}
           <div className="space-y-3">
             <Link
-              href={`/${locale}/${clinicSlug}/patients/${current.patient_id}/clinical`}
+              href={`/${locale}/${clinicSlug}/patients/${current.patients?.display_id || current.patient_id}/clinical`}
               className="flex items-center justify-center gap-3 w-full h-14 rounded-xl text-base font-medium transition-all bg-teal-500/15 text-teal-400 border border-teal-500/25 hover:bg-teal-500/25"
             >
               <Stethoscope className="w-5 h-5" />
@@ -127,7 +127,7 @@ export default function FocusMode({
             </Link>
 
             <Link
-              href={`/${locale}/${clinicSlug}/patients/${current.patient_id}/prescriptions`}
+              href={`/${locale}/${clinicSlug}/patients/${current.patients?.display_id || current.patient_id}/prescriptions`}
               className="flex items-center justify-center gap-3 w-full h-14 rounded-xl text-base font-medium transition-all bg-violet-500/15 text-violet-400 border border-violet-500/25 hover:bg-violet-500/25"
             >
               <FileText className="w-5 h-5" />
