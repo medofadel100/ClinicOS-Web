@@ -36,7 +36,7 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
     .eq('phone_number', from)
     .single()
 
-  let messages: any[] = stateData?.state?.messages || []
+  let messages: OpenAI.Chat.ChatCompletionMessageParam[] = (stateData?.state?.messages || []) as OpenAI.Chat.ChatCompletionMessageParam[]
 
   // If no history, we inject the dynamic system prompt
   if (messages.length === 0) {
@@ -119,10 +119,10 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
     // Handle tool calls
     if (message.tool_calls) {
       for (const toolCall of message.tool_calls) {
-        const name = (toolCall as any).function.name
-        const args = JSON.parse((toolCall as any).function.arguments)
+        const name = toolCall.function.name
+        const args = JSON.parse(toolCall.function.arguments) as Record<string, string>
         
-        let toolResult: any = {}
+        let toolResult: Record<string, unknown> = {}
 
         try {
           if (name === 'lookup_patient_info') {
@@ -134,8 +134,8 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
           } else if (name === 'cancel_appointment') {
             toolResult = await cancelAppointment(clinicId, patient.id, args.appointmentId)
           }
-        } catch (e: any) {
-          toolResult = { error: e.message }
+        } catch (e: unknown) {
+          toolResult = { error: e instanceof Error ? e.message : 'Unknown error' }
         }
 
         messages.push({

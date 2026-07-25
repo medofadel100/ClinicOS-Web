@@ -228,7 +228,7 @@ export default function LoginForm({ locale }: { locale: string }) {
       {/* Footer */}
       <div className="space-y-3">
         <p className="text-center text-sm text-slate-500">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link
             href={`/${locale}/register`}
             className="font-semibold transition-colors duration-200"

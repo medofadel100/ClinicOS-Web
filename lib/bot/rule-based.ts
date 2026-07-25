@@ -79,7 +79,7 @@ export async function handleIncomingMessage(clinicId: string, from: string, mess
         }
         let svcText = "Please reply with the number of the service you'd like to book:\n\n"
         services.forEach((s, idx) => {
-          svcText += `${idx + 1}. ${(s as any).name_en}\n`
+          svcText += `${idx + 1}. ${(s as { name_en?: string }).name_en}\n`
         })
         await sendMessage(clinicId, from, svcText)
         break
@@ -100,7 +100,7 @@ export async function handleIncomingMessage(clinicId: string, from: string, mess
         await updateState(clinicId, from, { step: 'cancel_select_appointment' })
         let cancelText = "Reply with the number of the appointment you'd like to cancel:\n\n"
         apps.forEach((a, idx) => {
-          cancelText += `${idx + 1}. ${(a.clinic_services as any)?.name_en} at ${new Date(a.scheduled_at).toLocaleString()}\n`
+          cancelText += `${idx + 1}. ${(a.clinic_services as { name_en?: string } | null)?.name_en} at ${new Date(a.scheduled_at).toLocaleString()}\n`
         })
         await sendMessage(clinicId, from, cancelText)
         break
@@ -213,7 +213,7 @@ async function sendMenu(clinicId: string, to: string, patientName: string) {
   await sendMessage(clinicId, to, text)
 }
 
-async function updateState(clinicId: string, from: string, state: any) {
+async function updateState(clinicId: string, from: string, state: Record<string, unknown>) {
   const supabase = createClient()
   await supabase.from('whatsapp_conversation_states').upsert({
     clinic_id: clinicId,

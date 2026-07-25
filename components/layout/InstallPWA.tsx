@@ -18,7 +18,8 @@ export default function InstallPWA({ variant = 'button' }: { variant?: 'button' 
     setIsAr(document.documentElement.lang === 'ar')
 
     // Check if already installed (standalone mode)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone
+    const navigator = window.navigator as Navigator & { standalone?: boolean }
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone
     if (isStandalone) {
       setIsInstalled(true)
       return

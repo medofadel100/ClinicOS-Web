@@ -106,7 +106,7 @@ export async function createWhatsAppCampaign(
   }
 
   // Build target patient query
-  let patientQuery = supabase.from('patients').select('id').eq('clinic_id', clinicId)
+  const patientQuery = supabase.from('patients').select('id').eq('clinic_id', clinicId)
 
   if (filterType === 'not_visited_months' && filterValue) {
     const months = parseInt(filterValue)

@@ -77,7 +77,7 @@ export default function RuleBasedSettings({
                       {isAr ? 'الإجراء: ' : 'Action: '}<span className="font-medium text-teal-400">{opt.response_type.replace('action_', '')}</span>
                     </p>
                     {opt.static_response && (
-                      <p className="text-sm italic mt-2 text-slate-500">"{opt.static_response}"</p>
+                      <p className="text-sm italic mt-2 text-slate-500">&quot;{opt.static_response}&quot;</p>
                     )}
                   </div>
                   {opt.response_type === 'static_text' && (

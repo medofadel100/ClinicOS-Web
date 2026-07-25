@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { uploadPatientFile } from '../actions'
 import {
   Upload, Camera, X, FileImage, FileText, Pill,
-  Trash2, Eye, Loader2, Image as ImageIcon, Folder, Download
+  Eye, Loader2, Image as ImageIcon, Folder, Download
 } from 'lucide-react'
 
 interface PatientFileData {
@@ -55,7 +55,6 @@ export default function PatientFiles({
   const [cameraMode, setCameraMode] = useState(false)
   const [previewFile, setPreviewFile] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)

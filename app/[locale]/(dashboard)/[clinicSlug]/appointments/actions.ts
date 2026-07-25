@@ -91,7 +91,7 @@ export async function getAvailableSlots(clinicId: string, doctorId: string, date
 
   const slots: string[] = []
 
-  let current = new Date(date)
+  const current = new Date(date)
   current.setHours(Math.floor(START_HOUR), 0, 0, 0)
   
   const endTime = new Date(date)

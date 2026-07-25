@@ -42,7 +42,7 @@ export default async function RegisterPage({ params: { locale } }: { params: { l
 
         <div className="relative z-10 mt-auto">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6 leading-tight">
-            Start your clinic's<br/>digital transformation.
+            Start your clinic&apos;s<br/>digital transformation.
           </h1>
           <p className="text-lg text-primary-foreground/80 max-w-md">
             Join thousands of clinics using ClinicOS to provide better care and grow their business.

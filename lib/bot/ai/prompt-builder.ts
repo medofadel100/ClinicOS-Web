@@ -47,7 +47,7 @@ Your goal is to help the patient book appointments, answer basic questions about
 
   prompt += `\n\n--- CLINIC DOCTORS ---\n`
   if (doctors && doctors.length > 0) {
-    doctors.forEach((d: any) => {
+    doctors.forEach((d: { id: string; staff_members?: { full_name?: string }; doctor_profiles?: Array<{ specialty_title?: string; bio_en?: string }> }) => {
       const name = d.staff_members?.full_name
       const spec = d.doctor_profiles?.[0]?.specialty_title || 'General'
       const bio = d.doctor_profiles?.[0]?.bio_en || 'No specific bio provided.'

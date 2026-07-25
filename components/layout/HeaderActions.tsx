@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { LogOut, Bell, ChevronDown, Globe } from 'lucide-react'
+import { LogOut, ChevronDown, Globe } from 'lucide-react'
+import NotificationBell from './NotificationBell'
 import { useState } from 'react'
 import Link from 'next/link'
 
@@ -49,20 +50,7 @@ export function HeaderActions({
       </Link>
 
       {/* Notification bell */}
-      <button
-        className="relative flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] transition-all duration-200"
-        aria-label="Notifications"
-        onClick={() => {}}
-      >
-        <Bell style={{ width: '18px', height: '18px' }} />
-        <span
-          className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-          style={{
-            background: 'hsl(168 100% 42%)',
-            boxShadow: '0 0 6px rgba(0,212,170,0.6)',
-          }}
-        />
-      </button>
+      <NotificationBell locale={locale} />
 
       {/* Divider */}
       <div className="w-px h-6 bg-white/[0.08] mx-1" />

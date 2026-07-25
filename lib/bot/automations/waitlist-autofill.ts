@@ -38,7 +38,7 @@ export async function processWaitlistCancellation(
 
   if (waiting && waiting.length > 0) {
     const waitlistEntry = waiting[0]
-    const patient: any = Array.isArray(waitlistEntry.patients) ? waitlistEntry.patients[0] : waitlistEntry.patients;
+    const patient = (Array.isArray(waitlistEntry.patients) ? waitlistEntry.patients[0] : waitlistEntry.patients) as { phone?: string; full_name?: string } | null;
     const patientPhone = patient?.phone;
     
     if (patientPhone) {
