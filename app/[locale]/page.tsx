@@ -5,7 +5,7 @@ import {
   Download, ChevronRight, Check, Smartphone, Monitor, Apple,
   Pill, Heart, Activity, ClipboardList,
   Database, MessageCircle,
-  Bed, Layers, Settings
+  Bed, Layers, Settings, ChevronDown, ChevronUp
 } from 'lucide-react'
 
 export default async function LandingPage({ params: { locale } }: { params: { locale: string } }) {
@@ -14,7 +14,7 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
   const altLabel = isAr ? 'EN' : 'عربي'
 
   const supabase = createClient()
-  const { data: _plans } = await supabase
+  const { data: plans } = await supabase
     .from('plans')
     .select(`
       id, name_en, name_ar, price_egp, billing_cycle, code,
@@ -23,6 +23,15 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
     `)
     .eq('is_active', true)
     .order('price_egp', { ascending: true })
+
+  const onlinePlans = (plans ?? []).filter(p => !p.code.startsWith('offline-'))
+  const offlinePlans = (plans ?? []).filter(p => p.code.startsWith('offline-'))
+
+  const { data: clinicTypes } = await supabase
+    .from('clinic_types')
+    .select('id, name_en, name_ar, code')
+    .eq('is_active', true)
+    .order('name_en', { ascending: true })
 
   /* ── Content dictionaries ── */
   const hero = {
@@ -157,13 +166,13 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
       </nav>
 
       {/* Hero */}
-      <section className="relative z-10 px-6 lg:px-12 py-20 lg:py-32 text-center max-w-5xl mx-auto" dir={isAr ? 'rtl' : 'ltr'}>
+      <section className="relative z-10 px-6 lg:px-12 pt-24 pb-20 lg:pt-36 lg:pb-32 text-center max-w-5xl mx-auto" dir={isAr ? 'rtl' : 'ltr'}>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-8" style={{ background: 'rgba(0,212,170,0.1)', border: '1px solid rgba(0,212,170,0.2)', color: 'hsl(168 100% 52%)' }}>
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'hsl(168 100% 42%)', boxShadow: '0 0 6px rgba(0,212,170,0.8)' }} />
           {hero.badge}
         </div>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-6">
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-8">
           {hero.title1}
           <br />
           <span style={{ background: 'linear-gradient(135deg, hsl(168 100% 52%), hsl(195 100% 65%) 50%, hsl(258 60% 70%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -173,7 +182,7 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
           {hero.title3}
         </h1>
 
-        <p className="text-lg text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed">
+        <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto mb-12 leading-relaxed">
           {hero.sub}
         </p>
 
@@ -189,7 +198,7 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-lg mx-auto mt-16">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-lg mx-auto mt-20">
           {[
             { value: hero.stat1val, label: hero.stat1 },
             { value: hero.stat2val, label: hero.stat2 },
@@ -229,6 +238,69 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
           </div>
         </div>
       </section>
+
+      {/* Specialties / Clinic Types from DB */}
+      {(clinicTypes ?? []).length > 0 && (
+        <section className="relative z-10 px-6 lg:px-12 py-20" dir={isAr ? 'rtl' : 'ltr'}>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                {isAr ? 'أكثر من ٢٠ تخصص طبي' : '20+ Medical Specialties'}
+              </h2>
+              <p className="text-slate-400 max-w-2xl mx-auto">
+                {isAr
+                  ? 'كل تخصص له وحدة مخصصة بأدوات وقوالب سريرية مناسبة.'
+                  : 'Each specialty has a dedicated module with tailored tools and clinical templates.'}
+              </p>
+            </div>
+            {(() => {
+              const SHOW_INITIAL = 8
+              const types = clinicTypes ?? []
+              const initial = types.slice(0, SHOW_INITIAL)
+              const rest = types.slice(SHOW_INITIAL)
+              const specialtyColors = [
+                { bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.2)', text: '#60a5fa' },
+                { bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)', text: '#34d399' },
+                { bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.2)', text: '#a78bfa' },
+                { bg: 'rgba(236,72,153,0.1)', border: 'rgba(236,72,153,0.2)', text: '#f472b6' },
+                { bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)', text: '#fbbf24' },
+                { bg: 'rgba(6,182,212,0.1)', border: 'rgba(6,182,212,0.2)', text: '#22d3ee' },
+                { bg: 'rgba(244,63,94,0.1)', border: 'rgba(244,63,94,0.2)', text: '#fb7185' },
+                { bg: 'rgba(20,184,166,0.1)', border: 'rgba(20,184,166,0.2)', text: '#2dd4bf' },
+              ]
+              const renderCard = (ct: any, idx: number) => {
+                const c = specialtyColors[idx % specialtyColors.length]
+                return (
+                  <div key={ct.id} className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/[0.04]" style={{ border: `1px solid ${c.border}` }}>
+                    <Stethoscope className="w-4 h-4 shrink-0" style={{ color: c.text }} />
+                    <span className="text-sm font-medium text-slate-200">{isAr ? ct.name_ar : ct.name_en}</span>
+                  </div>
+                )
+              }
+              return (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {initial.map((ct, i) => renderCard(ct, i))}
+                  </div>
+                  {rest.length > 0 && (
+                    <details className="group mt-4">
+                      <summary className="flex items-center justify-center gap-2 py-3 rounded-xl cursor-pointer text-sm font-medium text-teal-400 hover:bg-white/[0.04] transition-all" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <span className="group-open:hidden">{isAr ? `عرض جميع التخصصات (${types.length})` : `Show all specialties (${types.length})`}</span>
+                        <span className="hidden group-open:inline">{isAr ? 'عرض أقل' : 'Show less'}</span>
+                        <ChevronDown className="w-4 h-4 group-open:hidden" />
+                        <ChevronUp className="w-4 h-4 hidden group-open:inline" />
+                      </summary>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-3">
+                        {rest.map((ct, i) => renderCard(ct, i + SHOW_INITIAL))}
+                      </div>
+                    </details>
+                  )}
+                </>
+              )
+            })()}
+          </div>
+        </section>
+      )}
 
       {/* Tech Specs / Stats */}
       <section className="relative z-10 px-6 lg:px-12 py-16" dir={isAr ? 'rtl' : 'ltr'}>
@@ -275,80 +347,122 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className="relative z-10 px-6 lg:px-12 py-20" dir={isAr ? 'rtl' : 'ltr'}>
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-              {isAr ? 'خطط تناسب كل العيادات' : 'Plans for Every Clinic'}
-            </h2>
-            <p className="text-slate-400 max-w-xl mx-auto">
-              {isAr ? 'ابدأ مجاناً واترقِ حسب احتياجاتك. بدون بطاقة ائتمان.' : 'Start free and upgrade as you grow. No credit card required.'}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {/* Fallback plans always shown */}
-            {[
-              {
-                code: 'starter', popular: false,
-                name: isAr ? 'الأساسية' : 'Starter',
-                price: 'مجاني', priceSuffix: isAr ? ' للأبد' : 'forever',
-                doctors: isAr ? 'طبيب واحد' : '1 doctor',
-                patients: isAr ? '٥٠ مريض' : '50 patients',
-                features: isAr
-                  ? ['إدارة المرضى', 'جدولة المواعيد', 'الروشتات الإلكترونية', 'تقرير بسيط', 'دعم فني']
-                  : ['Patient management', 'Appointment scheduling', 'E-prescriptions', 'Basic reports', 'Support'],
-              },
-              {
-                code: 'professional', popular: true,
-                name: isAr ? 'الاحترافية' : 'Professional',
-                price: '999', priceSuffix: isAr ? 'EGP/شهرياً' : 'EGP/mo',
-                doctors: isAr ? 'حتى ٥ أطباء' : 'Up to 5 doctors',
-                patients: isAr ? '٥٠٠ مريض' : '500 patients',
-                features: isAr
-                  ? ['كل ميزات الأساسية', '٢٤ وحدة تخصص', 'المخزون والصيدلية', 'الموارد البشرية', 'التقارير المتقدمة', 'التسويق بالواتساب']
-                  : ['Everything in Starter', '24 specialty modules', 'Inventory & Pharmacy', 'HR & Payroll', 'Advanced reports', 'WhatsApp marketing'],
-              },
-              {
-                code: 'enterprise', popular: false,
-                name: isAr ? 'المؤسسات' : 'Enterprise',
-                price: '2,499', priceSuffix: isAr ? 'EGP/شهرياً' : 'EGP/mo',
-                doctors: isAr ? 'أطباء غير محدود' : 'Unlimited doctors',
-                patients: isAr ? '٥,٠٠٠+ مريض' : '5,000+ patients',
-                features: isAr
-                  ? ['كل ميزات الاحترافية', 'فروع متعددة', 'API مفتوح', 'تخصيص كامل', 'مدير حساب مخصص', 'SLA']
-                  : ['Everything in Professional', 'Multi-branch', 'Open API', 'Full customization', 'Dedicated account manager', 'SLA'],
-              },
-            ].map((plan) => (
-              <div key={plan.code} className={`relative p-6 rounded-2xl transition-all ${plan.popular ? 'ring-2 ring-cyan-500/40' : ''}`} style={{ background: plan.popular ? 'rgba(34,211,238,0.04)' : 'rgba(255,255,255,0.03)', border: `1px solid ${plan.popular ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.06)'}` }}>
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold bg-cyan-500 text-[#0a0f1e]">
-                    {isAr ? 'الأكثر شعبية' : 'MOST POPULAR'}
-                  </div>
-                )}
-                <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-3xl font-bold text-teal-400">{plan.price}</span>
-                  <span className="text-sm text-slate-500">{plan.priceSuffix}</span>
-                </div>
-                <p className="text-xs text-slate-500 mb-1">{plan.doctors}</p>
-                <p className="text-xs text-slate-500 mb-4">{plan.patients}</p>
-                <div className="space-y-2 mb-6">
-                  {plan.features.map((fname, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm text-slate-300">
-                      <Check className="w-4 h-4 text-teal-400 shrink-0" />
-                      {fname}
+      {/* Pricing — Online Plans */}
+      {onlinePlans.length > 0 && (
+        <section className="relative z-10 px-6 lg:px-12 py-20" dir={isAr ? 'rtl' : 'ltr'}>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                {isAr ? 'خطط السحابية' : 'Cloud Plans'}
+              </h2>
+              <p className="text-slate-400 max-w-xl mx-auto">
+                {isAr ? 'ابدأ مجاناً واترقِ حسب احتياجاتك. بدون بطاقة ائتمان.' : 'Start free and upgrade as you grow. No credit card required.'}
+              </p>
+            </div>
+            <div className={`grid gap-6 max-w-6xl mx-auto ${onlinePlans.length <= 3 ? 'grid-cols-1 md:grid-cols-3 max-w-4xl' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+              {onlinePlans.map((plan, idx) => {
+                const popular = idx === Math.floor(onlinePlans.length / 2)
+                const seats = plan.plan_limits?.find((l: any) => l.limit_type === 'provider_seats')?.max_value
+                const patients = plan.plan_limits?.find((l: any) => l.limit_type === 'patients')?.max_value
+                const featureNames = (plan.plan_features ?? [])
+                  .map((pf: any) => pf.features?.[isAr ? 'name_ar' : 'name_en'])
+                  .filter(Boolean)
+                const priceNum = Number(plan.price_egp)
+                const formattedPrice = priceNum === 0
+                  ? (isAr ? 'مجاني' : 'Free')
+                  : priceNum.toLocaleString()
+                const cycleLabel = plan.billing_cycle === 'monthly'
+                  ? (isAr ? '/شهرياً' : '/mo')
+                  : (isAr ? '/سنوياً' : '/yr')
+                return (
+                  <div key={plan.code} className={`relative p-6 rounded-2xl transition-all ${popular ? 'ring-2 ring-cyan-500/40' : ''}`} style={{ background: popular ? 'rgba(34,211,238,0.04)' : 'rgba(255,255,255,0.03)', border: `1px solid ${popular ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.06)'}` }}>
+                    {popular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold bg-cyan-500 text-[#0a0f1e]">
+                        {isAr ? 'الأكثر شعبية' : 'MOST POPULAR'}
+                      </div>
+                    )}
+                    <h3 className="text-xl font-bold text-white mb-1">{isAr ? plan.name_ar : plan.name_en}</h3>
+                    <div className="flex items-baseline gap-1 mb-4">
+                      <span className="text-3xl font-bold text-teal-400">{formattedPrice}</span>
+                      {priceNum > 0 && <span className="text-sm text-slate-500">EGP{cycleLabel}</span>}
+                      {priceNum === 0 && <span className="text-sm text-slate-500">{isAr ? ' للأبد' : 'forever'}</span>}
                     </div>
-                  ))}
-                </div>
-                <Link href={`/${locale}/register`} className="block w-full h-11 rounded-xl text-sm font-bold text-center transition-all" style={{ background: plan.popular ? 'linear-gradient(135deg, hsl(168 100% 42%), hsl(195 100% 50%))' : 'rgba(255,255,255,0.06)', color: plan.popular ? '#0a0f1e' : '#e2e8f0', border: plan.popular ? 'none' : '1px solid rgba(255,255,255,0.1)' }}>
-                  {isAr ? 'ابدأ الآن' : 'Get Started'}
-                </Link>
-              </div>
-            ))}
+                    {seats && <p className="text-xs text-slate-500 mb-1">{isAr ? `حتى ${seats} أطباء` : `Up to ${seats} doctors`}</p>}
+                    {patients && <p className="text-xs text-slate-500 mb-4">{isAr ? `حتى ${patients.toLocaleString()} مريض` : `Up to ${patients.toLocaleString()} patients`}</p>}
+                    <div className="space-y-2 mb-6">
+                      {featureNames.map((fname: string, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-sm text-slate-300">
+                          <Check className="w-4 h-4 text-teal-400 shrink-0" />
+                          {fname}
+                        </div>
+                      ))}
+                    </div>
+                    <Link href={`/${locale}/register`} className="block w-full h-11 rounded-xl text-sm font-bold text-center transition-all" style={{ background: popular ? 'linear-gradient(135deg, hsl(168 100% 42%), hsl(195 100% 50%))' : 'rgba(255,255,255,0.06)', color: popular ? '#0a0f1e' : '#e2e8f0', border: popular ? 'none' : '1px solid rgba(255,255,255,0.1)' }}>
+                      {isAr ? 'ابدأ الآن' : 'Get Started'}
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Pricing — Self-Hosted / Offline Plans */}
+      {offlinePlans.length > 0 && (
+        <section className="relative z-10 px-6 lg:px-12 py-20" dir={isAr ? 'rtl' : 'ltr'}>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                {isAr ? 'خطط التثبيت المحلي' : 'Self-Hosted Plans'}
+              </h2>
+              <p className="text-slate-400 max-w-xl mx-auto">
+                {isAr ? 'للعيادات التي تفضل تشغيل النظام على خوادمها الخاصة.' : 'For clinics that prefer to run the system on their own servers.'}
+              </p>
+            </div>
+            <div className={`grid gap-6 max-w-6xl mx-auto ${offlinePlans.length <= 3 ? 'grid-cols-1 md:grid-cols-3 max-w-4xl' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
+              {offlinePlans.map((plan) => {
+                const seats = plan.plan_limits?.find((l: any) => l.limit_type === 'provider_seats')?.max_value
+                const patients = plan.plan_limits?.find((l: any) => l.limit_type === 'patients')?.max_value
+                const staff = plan.plan_limits?.find((l: any) => l.limit_type === 'staff_accounts')?.max_value
+                const featureNames = (plan.plan_features ?? [])
+                  .map((pf: any) => pf.features?.[isAr ? 'name_ar' : 'name_en'])
+                  .filter(Boolean)
+                const priceNum = Number(plan.price_egp)
+                const formattedPrice = priceNum === 0
+                  ? (isAr ? 'مجاني' : 'Free')
+                  : priceNum.toLocaleString()
+                const cycleLabel = plan.billing_cycle === 'monthly'
+                  ? (isAr ? '/شهرياً' : '/mo')
+                  : (isAr ? '/سنوياً' : '/yr')
+                return (
+                  <div key={plan.code} className="relative p-6 rounded-2xl transition-all" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <h3 className="text-lg font-bold text-white mb-1">{isAr ? plan.name_ar : plan.name_en}</h3>
+                    <div className="flex items-baseline gap-1 mb-4">
+                      <span className="text-3xl font-bold text-teal-400">{formattedPrice}</span>
+                      {priceNum > 0 && <span className="text-sm text-slate-500">EGP{cycleLabel}</span>}
+                    </div>
+                    {seats && <p className="text-xs text-slate-500 mb-1">{isAr ? `${seats} أطباء` : `${seats} doctors`}</p>}
+                    {patients && <p className="text-xs text-slate-500 mb-1">{isAr ? `حتى ${patients.toLocaleString()} مريض` : `Up to ${patients.toLocaleString()} patients`}</p>}
+                    {staff && <p className="text-xs text-slate-500 mb-4">{isAr ? `${staff} موظفين` : `${staff} staff`}</p>}
+                    <div className="space-y-2 mb-6">
+                      {featureNames.map((fname: string, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-sm text-slate-300">
+                          <Check className="w-4 h-4 text-teal-400 shrink-0" />
+                          {fname}
+                        </div>
+                      ))}
+                    </div>
+                    <Link href={`/${locale}/register`} className="block w-full h-11 rounded-xl text-sm font-bold text-center transition-all" style={{ background: 'rgba(255,255,255,0.06)', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      {isAr ? 'تواصل معنا' : 'Contact Us'}
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Download CTA */}
       <section className="relative z-10 px-6 lg:px-12 py-20" dir={isAr ? 'rtl' : 'ltr'}>

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Monitor, Smartphone, Apple, Download, Check, ArrowLeft, HardDrive, FileBox } from 'lucide-react'
+import { Monitor, Smartphone, Apple, Download, Check, ArrowLeft, HardDrive, FileBox, Terminal } from 'lucide-react'
 
 const platforms = [
   {
@@ -23,7 +23,7 @@ const platforms = [
     id: 'linux',
     name_en: 'Linux',
     name_ar: 'لينكس',
-    icon: Monitor,
+    icon: Terminal,
     color: 'text-amber-400',
     bg: 'rgba(245,158,11,0.12)',
     border: 'rgba(245,158,11,0.2)',
@@ -42,10 +42,11 @@ const platforms = [
     color: 'text-slate-300',
     bg: 'rgba(148,163,184,0.12)',
     border: 'rgba(148,163,184,0.2)',
-    description_en: 'Universal binary for Intel and Apple Silicon Macs',
-    description_ar: 'ملف شامل لماك إنتل و Apple Silicon',
+    description_en: 'Universal binary — works on both Intel and Apple Silicon',
+    description_ar: 'ملف شامل — يعمل على إنتل و Apple Silicon',
     files: [
-      { name: 'ClinicOS-universal.dmg', arch: 'Universal', format: '.dmg', size: '~90 MB', icon: HardDrive },
+      { name: 'ClinicOS-Intel.dmg', arch: 'Intel', format: '.dmg', size: '~85 MB', icon: HardDrive },
+      { name: 'ClinicOS-AppleSilicon.dmg', arch: 'ARM64', format: '.dmg', size: '~80 MB', icon: HardDrive },
     ]
   },
   {
@@ -56,8 +57,9 @@ const platforms = [
     color: 'text-green-400',
     bg: 'rgba(34,197,94,0.12)',
     border: 'rgba(34,197,94,0.2)',
-    description_en: 'Mobile app for Android 8.0+ (APK)',
-    description_ar: 'تطبيق موبايل لأندرويد ٨.٠+ (APK)',
+    description_en: 'Mobile app for Android 8.0+ (APK direct download)',
+    description_ar: 'تطبيق موبايل لأندرويد ٨.٠+ (تحميل مباشر APK)',
+    storeUrl: 'https://play.google.com/store/apps/details?id=com.clinicos.app',
     files: [
       { name: 'ClinicOS-v1.0.0.apk', arch: 'ARM64/ARMv7', format: 'APK', size: '~45 MB', icon: Smartphone },
     ]
@@ -136,6 +138,18 @@ export default async function DownloadPage({ params: { locale } }: { params: { l
                   </div>
                 ))}
               </div>
+              {'storeUrl' in platform && platform.storeUrl && (
+                <a
+                  href={platform.storeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-white/[0.04]"
+                  style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', color: '#4ade80' }}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.6 3 21.09 3 20.5ZM16.81 15.12L6.05 21.34L14.54 12.85L16.81 15.12ZM20.16 10.81C20.5 11.08 20.75 11.5 20.75 12C20.75 12.5 20.5 12.92 20.16 13.19L17.89 14.5L15.39 12L17.89 9.5L20.16 10.81ZM6.05 2.66L16.81 8.88L14.54 11.15L6.05 2.66Z" /></svg>
+                  {isAr ? 'احصل عليه من Google Play' : 'Get it on Google Play'}
+                </a>
+              )}
             </div>
           ))}
         </div>
