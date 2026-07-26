@@ -7,13 +7,12 @@ export async function requestUpgrade(clinicId: string, featureCode: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  // Verify staff membership
   const { data: staffMember } = await supabase
     .from('staff_members')
     .select('id')
     .eq('auth_user_id', user.id)
     .single()
-    
+
   if (!staffMember) throw new Error('Unauthorized')
 
   const { data: membership } = await supabase
@@ -28,13 +27,20 @@ export async function requestUpgrade(clinicId: string, featureCode: string) {
     throw new Error('Forbidden')
   }
 
-  // Insert upgrade request
+  const { data: feature } = await supabase
+    .from('features')
+    .select('id')
+    .eq('code', featureCode)
+    .single()
+
   const { error } = await supabase
     .from('upgrade_requests')
     .insert({
       clinic_id: clinicId,
-      requested_feature: featureCode,
-      status: 'pending'
+      feature_id: feature?.id || null,
+      requested_by_name: user.email,
+      message: `Upgrade request for feature: ${featureCode}`,
+      status: 'open',
     })
 
   if (error) {

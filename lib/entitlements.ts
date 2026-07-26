@@ -9,37 +9,42 @@ const FALLBACK_ENTITLEMENTS: EntitlementsResponse = {
 }
 
 export async function checkEntitlements(clinicId: string): Promise<EntitlementsResponse> {
-  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL
-
-  if (!adminUrl) {
-    console.warn('[Entitlements] NEXT_PUBLIC_ADMIN_URL is not set, returning fallback entitlements.')
-    return FALLBACK_ENTITLEMENTS
-  }
-
   try {
-    const res = await fetch(`${adminUrl}/api/v1/entitlements/check?clinicId=${clinicId}`, {
-      next: { revalidate: 3600 },
-    })
+    const { createClient } = await import('@/lib/supabase/server')
+    const supabase = createClient()
 
-    if (!res.ok) {
-      console.warn(`[Entitlements] Admin API returned ${res.status}, defaulting to fallback entitlements.`)
-      return FALLBACK_ENTITLEMENTS
+    const { data: sub } = await supabase
+      .from('clinic_subscriptions')
+      .select('plan_id')
+      .eq('clinic_id', clinicId)
+      .in('status', ['active', 'trial'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (!sub) return FALLBACK_ENTITLEMENTS
+
+    const { data: plan } = await supabase
+      .from('plans')
+      .select('code')
+      .eq('id', sub.plan_id)
+      .single()
+
+    const { data: planFeatures } = await supabase
+      .from('plan_features')
+      .select('feature_id, features!inner(code)')
+      .eq('plan_id', sub.plan_id)
+
+    const featureCodes = (planFeatures ?? [])
+      .map((pf: any) => pf.features?.code)
+      .filter(Boolean) as string[]
+
+    return {
+      plan: plan?.code || 'free',
+      features: featureCodes,
     }
-
-    const data: unknown = await res.json()
-    if (
-      typeof data === 'object' &&
-      data !== null &&
-      'plan' in data &&
-      'features' in data
-    ) {
-      return data as EntitlementsResponse
-    }
-
-    console.warn('[Entitlements] Unexpected response shape from Admin API, using fallback.')
-    return FALLBACK_ENTITLEMENTS
   } catch (err) {
-    console.error('[Entitlements] Failed to connect to Admin API:', err)
+    console.error('[Entitlements] Failed to check entitlements:', err)
     return FALLBACK_ENTITLEMENTS
   }
 }
