@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS public.verify_serial_code(text);
+
 CREATE OR REPLACE FUNCTION public.verify_serial_code(p_serial_code text)
 RETURNS TABLE (
   id uuid,
