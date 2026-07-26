@@ -33,28 +33,32 @@ export default async function DashboardLayout({
     redirect(`/${locale}/clinic-switcher`)
   }
 
-  const { data: membership } = await supabase
-    .from('clinic_staff_memberships')
-    .select('role')
-    .eq('staff_member_id', staffMember.id)
-    .eq('clinic_id', clinicId)
-    .eq('is_active', true)
-    .single()
+  const [membershipResult, clinicResult] = await Promise.all([
+    supabase
+      .from('clinic_staff_memberships')
+      .select('role')
+      .eq('staff_member_id', staffMember.id)
+      .eq('clinic_id', clinicId)
+      .eq('is_active', true)
+      .single(),
+    supabase
+      .from('clinics')
+      .select(`
+        name,
+        slug,
+        clinic_type_id,
+        clinic_types ( code, name_ar, name_en )
+      `)
+      .eq('id', clinicId)
+      .single(),
+  ])
+
+  const membership = membershipResult.data
+  const clinic = clinicResult.data
 
   if (!membership) {
     redirect(`/${locale}/clinic-switcher`)
   }
-
-  const { data: clinic } = await supabase
-    .from('clinics')
-    .select(`
-      name,
-      slug,
-      clinic_type_id,
-      clinic_types ( code, name_ar, name_en )
-    `)
-    .eq('id', clinicId)
-    .single()
 
   if (clinic?.slug && clinicSlug !== clinic.slug) {
     redirect(`/${locale}/${clinic.slug}`)

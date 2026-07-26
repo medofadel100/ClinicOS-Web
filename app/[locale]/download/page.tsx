@@ -66,6 +66,16 @@ const platforms = [
   },
 ]
 
+export async function generateMetadata({ params: { locale } }: { params: { locale: string } }) {
+  const isAr = locale === 'ar'
+  return {
+    title: isAr ? 'تحميل ClinicOS' : 'Download ClinicOS',
+    description: isAr
+      ? 'حمّل ClinicOS على ويندوز، لينكس، ماك، وأندرويد — مجاناً.'
+      : 'Download ClinicOS for Windows, Linux, macOS, and Android — free.',
+  }
+}
+
 export default async function DownloadPage({ params: { locale } }: { params: { locale: string } }) {
   const isAr = locale === 'ar'
 
