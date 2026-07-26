@@ -6,19 +6,38 @@ import { revalidatePath } from 'next/cache'
 
 export async function verifySerial(serialCode: string) {
   const supabase = createClient()
-  
-  const { data, error } = await supabase
-    .rpc('verify_serial_code', { p_serial_code: serialCode })
-    
+
+  const { data, error } = await supabase.rpc('verify_serial_code', {
+    p_serial_code: serialCode.trim().toUpperCase(),
+  })
+
   if (error) {
     throw new Error(error.message)
   }
-  
+
   if (!data || data.length === 0) {
-    throw new Error('Invalid serial code or could not retrieve clinic info.')
+    throw new Error('Serial code not found or already used.')
   }
-  
-  return data[0]
+
+  const row = data[0] as Record<string, unknown>
+
+  if (row.status !== 'unused') {
+    throw new Error('This serial code has already been used or cancelled.')
+  }
+
+  return {
+    id: row.id,
+    code: row.code,
+    status: row.status,
+    plan_id: row.plan_id,
+    plans: {
+      id: row.plan_id,
+      name_en: row.plan_name_en,
+      name_ar: row.plan_name_ar,
+      price_egp: row.plan_price_egp,
+      billing_cycle: row.plan_billing_cycle,
+    },
+  }
 }
 
 export async function claimSerial(
@@ -28,69 +47,125 @@ export async function claimSerial(
   fullName: string,
   clinicName: string,
   clinicTypeId: string,
+  ownerPhone: string,
   locale: string
 ) {
   const supabase = createClient()
-  
-  // 1. Sign up the user (or log them in if they somehow already exist, though we assume new for this flow)
+
+  // 1. Verify serial is still unused (via RPC)
+  const { data: serialData } = await supabase.rpc('verify_serial_code', {
+    p_serial_code: serialCode.trim().toUpperCase(),
+  })
+
+  if (!serialData || serialData.length === 0) {
+    throw new Error('Serial code is no longer available.')
+  }
+
+  const serial = (serialData as Record<string, unknown>[])[0]
+
+  // 2. Create auth user
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: {
-        full_name: fullName,
-      }
-    }
+      data: { full_name: fullName },
+      emailRedirectTo: undefined,
+    },
   })
-  
+
   if (authError) {
     throw new Error(authError.message)
   }
-  
-  // Note: if email confirmation is enabled, signUp might return a user but no session yet.
-  // Assuming email confirmation is OFF for seamless flow, or user gets logged in immediately.
-  
-  // 2. Claim the clinic
-  const { data: claimData, error: claimError } = await supabase.rpc('claim_clinic_with_serial', {
-    p_serial_code: serialCode,
-    p_full_name: fullName
-  })
-  
-  if (claimError) {
-    throw new Error(claimError.message)
-  }
-  
-  const clinicId = claimData[0]?.clinic_id
-  if (!clinicId) {
-    throw new Error('Failed to retrieve claimed clinic ID.')
-  }
-  
-  // 3. Update the claimed clinic's name and type if the user changed them
-  const { error: updateError } = await supabase
-    .from('clinics')
-    .update({ 
-      name: clinicName,
-      type_id: clinicTypeId 
-    })
-    .eq('id', clinicId)
-    
-  if (updateError) {
-    console.error('Failed to update clinic details after claim:', updateError)
-    // We don't throw here, the claim was successful.
-  }
-  
-  // 4. Update the staff member's full name just in case trigger didn't catch it
-  if (authData.user) {
-    await supabase.from('staff_members')
-      .update({ full_name: fullName })
-      .eq('auth_user_id', authData.user.id)
+
+  if (!authData.user) {
+    throw new Error('Failed to create user account.')
   }
 
-  // Find the new clinic slug to redirect properly
-  const { data: slugData } = await supabase.from('clinics').select('slug').eq('id', clinicId).single()
-  
-  const targetSlug = slugData?.slug || clinicId
-  
+  // 3. Create clinic
+  const { data: clinic, error: clinicError } = await supabase
+    .from('clinics')
+    .insert({
+      name: clinicName,
+      clinic_type_id: clinicTypeId,
+      owner_full_name: fullName,
+      owner_email: email,
+      owner_phone: ownerPhone,
+      status: 'active',
+    })
+    .select('id')
+    .single()
+
+  if (clinicError || !clinic) {
+    await supabase.auth.admin.deleteUser(authData.user.id).catch(() => {})
+    throw new Error('Failed to create clinic.')
+  }
+
+  // 4. Create subscription
+  const now = new Date()
+  const periodEnd = new Date(now)
+  const billingCycle = serial.plan_billing_cycle as string
+
+  if (billingCycle === 'yearly') {
+    periodEnd.setFullYear(periodEnd.getFullYear() + 1)
+  } else {
+    periodEnd.setMonth(periodEnd.getMonth() + 1)
+  }
+
+  const { error: subError } = await supabase
+    .from('clinic_subscriptions')
+    .insert({
+      clinic_id: clinic.id,
+      plan_id: serial.plan_id,
+      status: 'active',
+      price_locked_egp: serial.plan_price_egp,
+      current_period_start: now.toISOString(),
+      current_period_end: periodEnd.toISOString(),
+    })
+
+  if (subError) {
+    console.error('Subscription creation error:', subError)
+  }
+
+  // 5. Mark serial as used
+  const { error: serialError } = await supabase
+    .from('clinic_serials')
+    .update({
+      status: 'used',
+      clinic_id: clinic.id,
+      used_at: now.toISOString(),
+    })
+    .eq('code', serialCode.trim().toUpperCase())
+
+  if (serialError) {
+    console.error('Serial update error:', serialError)
+  }
+
+  // 6. Link staff member if exists
+  if (authData.user) {
+    try {
+      await supabase
+        .from('staff_members')
+        .update({ full_name: fullName, clinic_id: clinic.id, role: 'owner' })
+        .eq('auth_user_id', authData.user.id)
+    } catch {
+      // staff_members update is optional
+    }
+  }
+
   revalidatePath('/')
-  redirect(`/${locale}/${targetSlug}`)
+
+  // Redirect to clinic dashboard
+  try {
+    const { data: slugData } = await supabase
+      .from('clinics')
+      .select('slug')
+      .eq('id', clinic.id)
+      .single()
+
+    const targetSlug = slugData?.slug || clinic.id
+    redirect(`/${locale}/${targetSlug}`)
+  } catch {
+    // If slug lookup fails, go to clinic-switcher
+    redirect(`/${locale}/clinic-switcher`)
+  }
 }
