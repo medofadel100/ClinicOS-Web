@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { smartSearchMedications, ensureClinicMedication, getMedicationAlternatives, savePrescription, savePrescriptionTemplate, getPrescriptionTemplates } from './actions'
 import { Search, Plus, Trash2, Pill, Check, BookmarkPlus, FolderDown } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import type { MedicationSearchResult, PrescriptionTemplate, PrescriptionTemplateItem } from '@/types'
 
 interface DraftItem {
   id: string; // temp id
@@ -26,20 +27,20 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
   }, [])
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<MedicationSearchResult[]>([])
   const [loadingSearch, setLoadingSearch] = useState(false)
   const [draftItems, setDraftItems] = useState<DraftItem[]>([])
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   
   // Templates
-  const [templates, setTemplates] = useState<any[]>([])
+  const [templates, setTemplates] = useState<PrescriptionTemplate[]>([])
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false)
   const [templateName, setTemplateName] = useState('')
 
   // Alternatives
   const [showAlternativesFor, setShowAlternativesFor] = useState<string | null>(null)
-  const [alternatives, setAlternatives] = useState<any[]>([])
+  const [alternatives, setAlternatives] = useState<{ id: string; brand_name_en: string; concentration: string; manufacturer: string; generic_name: string }[]>([])
   const [loadingAlternatives, setLoadingAlternatives] = useState(false)
 
   useEffect(() => {
@@ -65,11 +66,13 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
     }
   }
 
-  const handleAddMed = async (med: any) => {
+  const handleAddMed = async (med: MedicationSearchResult) => {
     let clinicMedId = med.clinic_medication_id
     if (med.type === 'new_global') {
       try {
-        clinicMedId = await ensureClinicMedication(clinicId, med.medication_global_id)
+        if (med.medication_global_id) {
+          clinicMedId = await ensureClinicMedication(clinicId, med.medication_global_id)
+        }
       } catch {
         toast.error(isAr ? 'فشل في إضافة الدواء للصيدلية' : 'Failed to add global medication to clinic pharmacy.')
         return
@@ -78,7 +81,7 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
 
     const newItem: DraftItem = {
       id: Math.random().toString(36).substr(2, 9),
-      clinic_medication_id: clinicMedId,
+      clinic_medication_id: clinicMedId || '',
       brandName: med.brandName || '',
       genericName: med.genericName || '',
       dosage: med.dosage || '',
@@ -106,18 +109,18 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
     }
   }
 
-  const loadTemplate = (template: any) => {
+  const loadTemplate = (template: PrescriptionTemplate) => {
     if (draftItems.length > 0) {
       if (!confirm('This will overwrite your current draft. Continue?')) return
     }
-    const loadedItems: DraftItem[] = template.prescription_template_items.map((item: any) => {
+    const loadedItems: DraftItem[] = template.prescription_template_items.map((item: PrescriptionTemplateItem) => {
       const med = item.clinic_medications
       const global = med?.medications_global
       return {
         id: Math.random().toString(36).substr(2, 9),
         clinic_medication_id: item.clinic_medication_id,
-        brandName: global?.brand_name_en || med?.custom_brand_name,
-        genericName: global?.generic_name || med?.custom_generic_name,
+        brandName: (global?.brand_name_en || med?.custom_brand_name) || '',
+        genericName: (global?.generic_name || med?.custom_generic_name) || '',
         dosage: item.dosage,
         frequency: item.frequency,
         timing: item.timing || '',
@@ -190,7 +193,7 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
                   Drug not found in clinic pharmacy. <br/>Go to the Pharmacy settings to add it.
                 </div>
               ) : (
-                searchResults.map((result: any, idx) => {
+                searchResults.map((result, idx) => {
                   return (
                     <div 
                       key={idx} 
@@ -407,10 +410,11 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
                     onClick={() => {
                       handleAddMed({
                         type: 'new_global',
+                        clinic_medication_id: null,
                         medication_global_id: alt.id,
                         brandName: alt.brand_name_en,
                         genericName: alt.generic_name,
-                        dosage: '', frequency: '', duration: '', original: alt
+                        dosage: '', frequency: '', duration: '', original: alt as unknown as Record<string, unknown>
                       })
                       setShowAlternativesFor(null)
                     }}

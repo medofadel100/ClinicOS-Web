@@ -42,7 +42,7 @@ export default function ChangeClinicTypeDialog({
         .catch(() => toast.error(isAr ? 'فشل في تحميل الأنواع' : 'Failed to load clinic types'))
         .finally(() => setFetching(false))
     }
-  }, [open, types.length, locale])
+  }, [open, types.length, locale, isAr])
 
   const handleSubmit = async () => {
     if (selectedTypeId === currentTypeId) {

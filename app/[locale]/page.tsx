@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Stethoscope, Calendar, Users, CreditCard, BarChart3, Shield, Globe,
   Download, ChevronRight, Check, Smartphone, Monitor, Apple,
@@ -148,7 +149,7 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
       <nav className="relative z-10 flex items-center justify-between px-6 lg:px-12 py-5 border-b border-white/[0.06]" dir={isAr ? 'rtl' : 'ltr'}>
         <Link href={`/${locale}`} className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(168 100% 42%), hsl(195 100% 50%))', boxShadow: '0 0 20px rgba(0,212,170,0.4)' }}>
-            <img src="/logo.png" alt="ClinicOS" className="w-full h-full object-contain p-1" />
+            <Image src="/logo.png" alt="ClinicOS" width={40} height={40} className="object-contain p-1" />
           </div>
           <span className="text-xl font-bold" style={{ background: 'linear-gradient(135deg, hsl(168 100% 52%), hsl(195 100% 70%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ClinicOS</span>
         </Link>
@@ -492,7 +493,7 @@ export default async function LandingPage({ params: { locale } }: { params: { lo
       <footer className="relative z-10 px-6 lg:px-12 py-10 border-t border-white/[0.06]" dir={isAr ? 'rtl' : 'ltr'}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="ClinicOS" className="w-6 h-6 object-contain" />
+            <Image src="/logo.png" alt="ClinicOS" width={24} height={24} className="object-contain" />
             <span className="text-sm font-semibold" style={{ background: 'linear-gradient(135deg, hsl(168 100% 52%), hsl(195 100% 70%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ClinicOS</span>
           </div>
           <p className="text-xs text-slate-600">&copy; 2026 ClinicOS. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>

@@ -19,6 +19,7 @@ export default function EditContextDialog({
   clinicId: string
   locale: string
   patientId: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData: any
 }) {
   const [open, setOpen] = useState(false)

@@ -30,8 +30,11 @@ export default function ClinicalWorkspaceTabs({
   patientId: string
   clinicId: string
   locale: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entitlements: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   clinicalData: any[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   freeNotesData: any[]
 }) {
   const [activeTab, setActiveTab] = useState<'module' | 'free'>('module')

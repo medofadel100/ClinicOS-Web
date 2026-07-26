@@ -41,6 +41,18 @@ export default async function PatientBillingPage({
 
   if (!patient) redirect(`/${locale}/${clinicSlug}/patients`)
 
+  const { data: clinic } = await supabase
+    .from('clinics')
+    .select('name, owner_full_name')
+    .eq('id', clinicId)
+    .single()
+
+  const { data: clinicSettings } = await supabase
+    .from('clinic_settings')
+    .select('address, contact_email, contact_phone')
+    .eq('clinic_id', clinicId)
+    .single()
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <PageHeader
@@ -56,7 +68,15 @@ export default async function PatientBillingPage({
           patientId={patient.id} 
           clinicId={clinicId} 
           locale={locale} 
-          plans={patient.treatment_plans || []} 
+          plans={patient.treatment_plans || []}
+          patientName={patient.full_name}
+          patientPhone={patient.phone}
+          patientDisplayId={patient.display_id}
+          clinicName={clinic?.name || ''}
+          clinicAddress={clinicSettings?.address ?? null}
+          clinicPhone={clinicSettings?.contact_phone ?? null}
+          clinicEmail={clinicSettings?.contact_email ?? null}
+          clinicOwnerName={clinic?.owner_full_name ?? null}
         />
       </PremiumCard>
     </div>

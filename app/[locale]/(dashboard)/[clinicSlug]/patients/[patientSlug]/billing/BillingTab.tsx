@@ -7,6 +7,8 @@ import { PremiumCard } from '@/components/layout/PageComponents'
 import CreatePlanDialog from './CreatePlanDialog'
 import RecordPaymentDialog from './RecordPaymentDialog'
 import { updateSessionStatus } from './actions'
+import { generateInvoicePDF } from '@/lib/invoice-pdf'
+import { Download } from 'lucide-react'
 
 type TreatmentPlan = {
   id: string
@@ -33,14 +35,31 @@ export default function BillingTab({
   locale,
   patientId,
   plans: initialPlans,
+  patientName,
+  patientPhone,
+  patientDisplayId,
+  clinicName,
+  clinicAddress,
+  clinicPhone,
+  clinicEmail,
+  clinicOwnerName,
 }: {
   clinicId: string
   locale: string
   patientId: string
   plans: TreatmentPlan[]
+  patientName: string
+  patientPhone: string | null
+  patientDisplayId: string | null
+  clinicName: string
+  clinicAddress: string | null
+  clinicPhone: string | null
+  clinicEmail: string | null
+  clinicOwnerName: string | null
 }) {
   const _params = useParams()
   const [plans, _setPlans] = useState(initialPlans)
+  const [downloadingPlanId, setDownloadingPlanId] = useState<string | null>(null)
   const isAr = locale === 'ar'
 
   const handleToggleSession = async (sessionId: string, currentStatus: string) => {
@@ -49,6 +68,37 @@ export default function BillingTab({
       await updateSessionStatus(clinicId, locale, patientId, sessionId, newStatus)
     } catch {
       toast.error(isAr ? 'فشل في تحديث حالة الجلسة' : 'Failed to update session status')
+    }
+  }
+
+  const handleDownloadInvoice = async (plan: TreatmentPlan) => {
+    setDownloadingPlanId(plan.id)
+    try {
+      const invoiceNumber = `INV-${plan.id.slice(0, 8).toUpperCase()}`
+      const doc = generateInvoicePDF({
+        patient: {
+          id: patientId,
+          full_name: patientName,
+          phone: patientPhone,
+          display_id: patientDisplayId,
+        },
+        clinic: {
+          name: clinicName,
+          address: clinicAddress,
+          contact_phone: clinicPhone,
+          contact_email: clinicEmail,
+          owner_full_name: clinicOwnerName,
+        },
+        plan,
+        invoiceNumber,
+        isAr,
+      })
+      doc.save(`${invoiceNumber}.pdf`)
+      toast.success(isAr ? 'تم تحميل الفاتورة' : 'Invoice downloaded')
+    } catch {
+      toast.error(isAr ? 'فشل في إنشاء الفاتورة' : 'Failed to generate invoice')
+    } finally {
+      setDownloadingPlanId(null)
     }
   }
 
@@ -85,10 +135,20 @@ export default function BillingTab({
                         {isAr ? 'تم الإنشاء في' : 'Created on'} {new Date(plan.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="mt-4 md:mt-0 text-left md:text-right bg-black/20 p-3 rounded-lg border border-white/5">
-                      <div className="text-xl font-bold text-slate-200">{plan.total_price_egp.toLocaleString()} EGP</div>
-                      <div className={`text-sm mt-1 px-2 py-0.5 rounded inline-flex ${remainingBalance > 0 ? 'bg-red-500/10 text-red-400' : 'bg-teal-500/10 text-teal-400'}`}>
-                        {remainingBalance > 0 ? `${remainingBalance.toLocaleString()} EGP ${isAr ? 'متبقي' : 'Remaining'}` : (isAr ? 'مدفوع بالكامل' : 'Fully Paid')}
+                    <div className="mt-4 md:mt-0 flex items-center gap-3">
+                      <button
+                        onClick={() => handleDownloadInvoice(plan)}
+                        disabled={downloadingPlanId === plan.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-colors disabled:opacity-50"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        {downloadingPlanId === plan.id ? (isAr ? 'جاري التحميل...' : 'Generating...') : (isAr ? 'تحميل الفاتورة' : 'Invoice')}
+                      </button>
+                      <div className="text-left md:text-right bg-black/20 p-3 rounded-lg border border-white/5">
+                        <div className="text-xl font-bold text-slate-200">{plan.total_price_egp.toLocaleString()} EGP</div>
+                        <div className={`text-sm mt-1 px-2 py-0.5 rounded inline-flex ${remainingBalance > 0 ? 'bg-red-500/10 text-red-400' : 'bg-teal-500/10 text-teal-400'}`}>
+                          {remainingBalance > 0 ? `${remainingBalance.toLocaleString()} EGP ${isAr ? 'متبقي' : 'Remaining'}` : (isAr ? 'مدفوع بالكامل' : 'Fully Paid')}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -100,7 +160,7 @@ export default function BillingTab({
                         <span className="w-4 h-px bg-slate-700"></span> {isAr ? 'الجلاسات' : 'Sessions'}
                       </h4>
                       <div className="grid gap-2">
-                        {plan.treatment_plan_sessions.sort((a,b) => a.sequence_number - b.sequence_number).map(session => (
+                        {[...plan.treatment_plan_sessions].sort((a,b) => a.sequence_number - b.sequence_number).map(session => (
                           <label key={session.id} className="flex justify-between items-center p-3 rounded-lg bg-black/20 border border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer group">
                             <div className="flex items-center gap-4">
                               <div className="relative flex items-center justify-center">
@@ -113,7 +173,7 @@ export default function BillingTab({
                                 <svg className="absolute w-3 h-3 pointer-events-none opacity-0 peer-checked:opacity-100 text-[#0a0f1e]" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                               </div>
                               <span className={`text-sm font-medium transition-colors ${session.status === 'completed' ? 'text-slate-500 line-through' : 'text-slate-300 group-hover:text-white'}`}>
-                                Session #{session.sequence_number}
+                                {isAr ? 'جلسة' : 'Session'} #{session.sequence_number}
                               </span>
                             </div>
                             <span className={`text-sm font-semibold ${session.status === 'completed' ? 'text-slate-500' : 'text-slate-300'}`}>
@@ -137,7 +197,7 @@ export default function BillingTab({
                             <div key={payment.id} className="flex justify-between items-center p-3 rounded-lg bg-black/20 border border-white/5">
                               <div>
                                 <div className="text-sm font-medium text-slate-300 capitalize flex items-center gap-2">
-                                  {payment.payment_type}
+                                  {payment.payment_type.replace('_', ' ')}
                                 </div>
                                 <div className="text-xs text-slate-500 mt-1">
                                   {new Date(payment.paid_at).toLocaleDateString()}

@@ -48,8 +48,9 @@ export default function RecordVitalsDialog({
       setHr('')
       setTemp('')
       setWeight('')
-    } catch (err: any) {
-      toast.error(err.message || (isAr ? 'فشل في تسجيل العلامات الحيوية' : 'Error recording vitals'))
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : undefined
+      toast.error(message || (isAr ? 'فشل في تسجيل العلامات الحيوية' : 'Error recording vitals'))
     } finally {
       setLoading(false)
     }

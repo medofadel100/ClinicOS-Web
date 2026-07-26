@@ -2,6 +2,7 @@ import { PremiumCard } from '@/components/layout/PageComponents'
 import { Activity, AlertTriangle, Pill, Stethoscope, FileText, Calendar, Wallet } from 'lucide-react'
 import Link from 'next/link'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export default function PatientSidebar({ patient, medicalHistory, locale, clinicSlug }: { patient: any, medicalHistory: any, locale: string, clinicSlug: string }) {
   const isAr = locale === 'ar'
   

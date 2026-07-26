@@ -1,6 +1,9 @@
 'use client'
 
-import { Printer, MessageCircle } from 'lucide-react'
+import { useState } from 'react'
+import { Printer, MessageCircle, Download } from 'lucide-react'
+import { toast } from 'sonner'
+import { generatePrescriptionPDF } from '@/lib/prescription-pdf'
 
 type PrescriptionItem = {
   id: string
@@ -45,6 +48,8 @@ export default function PrescriptionActions({
   clinicLogo?: string | null
   isAr: boolean
 }) {
+  const [downloading, setDownloading] = useState(false)
+
   const formatPrescriptionText = () => {
     const lines: string[] = []
     lines.push(`═══════════════════════════════`)
@@ -110,6 +115,26 @@ export default function PrescriptionActions({
     printWindow.print()
   }
 
+  const handleDownloadPDF = async () => {
+    setDownloading(true)
+    try {
+      const doc = generatePrescriptionPDF({
+        prescription,
+        patientName,
+        doctorName,
+        clinicName,
+        isAr,
+      })
+      const rxId = prescription.id.slice(0, 8).toUpperCase()
+      doc.save(`Rx-${rxId}.pdf`)
+      toast.success(isAr ? 'تم تحميل الروشتة' : 'Prescription downloaded')
+    } catch {
+      toast.error(isAr ? 'فشل في إنشاء الروشتة' : 'Failed to generate prescription')
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   const handleWhatsApp = () => {
     const text = formatPrescriptionText()
     const encoded = encodeURIComponent(text)
@@ -132,6 +157,15 @@ export default function PrescriptionActions({
       >
         <Printer className="w-3.5 h-3.5" />
         {isAr ? 'طباعة' : 'Print'}
+      </button>
+      <button
+        onClick={handleDownloadPDF}
+        disabled={downloading}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-violet-500/15 hover:bg-violet-500/25 text-violet-400 border border-violet-500/25 disabled:opacity-50"
+        title={isAr ? 'تحميل PDF' : 'Download PDF'}
+      >
+        <Download className="w-3.5 h-3.5" />
+        {downloading ? (isAr ? 'جاري...' : '...') : 'PDF'}
       </button>
       <button
         onClick={handleWhatsApp}

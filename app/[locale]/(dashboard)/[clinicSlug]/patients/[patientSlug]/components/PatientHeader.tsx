@@ -1,5 +1,6 @@
 import { Users, Phone, Calendar, Clock } from 'lucide-react'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function PatientHeader({ patient }: { patient: any }) {
   let age = null
   if (patient.date_of_birth) {

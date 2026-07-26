@@ -6,6 +6,7 @@ import { requireClinicId } from "@/lib/utils/clinic"
 import AttendanceTracker from './AttendanceTracker'
 import GeneratePayrollDialog from './GeneratePayrollDialog'
 import RequestLeaveDialog from './RequestLeaveDialog'
+import type { AttendanceRecord, PayrollRun } from '@/types'
 
 export default async function HRDashboard({
       params: { locale, clinicSlug }
@@ -18,8 +19,8 @@ export default async function HRDashboard({
   if (!user) redirect(`/${locale}/login`)
 
   let staffDirectory: any[] = []
-  let attendanceRecords: any[] = []
-  let payrollRuns: any[] = []
+  let attendanceRecords: AttendanceRecord[] = []
+  let payrollRuns: PayrollRun[] = []
 
   try {
     const { data: directoryData } = await supabase

@@ -141,6 +141,7 @@ export default function ConnectionManager({
               {isAr ? 'افتح واتساب على هاتفك، اذهب إلى الأجهزة المرتبطة، وامسح رمز QR هذا لربط رقم عيادتك.' : 'Open WhatsApp on your phone, go to Linked Devices, and scan this QR code to connect your clinic\'s number.'}
             </p>
             <div className="bg-white p-4 rounded-xl border shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64" />
             </div>
             <div className="flex items-center gap-2 text-sm text-emerald-400">

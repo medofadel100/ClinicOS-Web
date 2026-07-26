@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, X, Image, Loader2 } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import NextImage from 'next/image'
 import { saveClinicLogo } from './actions'
 
 export default function LogoUpload({
@@ -62,7 +63,7 @@ export default function LogoUpload({
       >
         {preview ? (
           <>
-            <img src={preview} alt="Clinic Logo" className="w-full h-full object-contain p-1" />
+            <NextImage src={preview} alt="Clinic Logo" width={80} height={80} unoptimized className="object-contain p-1" />
             <button
               onClick={handleRemove}
               className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center hover:bg-red-500/80 transition-colors"
@@ -71,7 +72,7 @@ export default function LogoUpload({
             </button>
           </>
         ) : (
-          <Image className="w-8 h-8 text-slate-600" />
+          <ImageIcon className="w-8 h-8 text-slate-600" />
         )}
       </div>
 

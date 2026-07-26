@@ -48,7 +48,9 @@ export default function DynamicClinicalModule({
   patientId: string, 
   clinicId: string,
   locale: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entitlements: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData: any[]
 }) {
 

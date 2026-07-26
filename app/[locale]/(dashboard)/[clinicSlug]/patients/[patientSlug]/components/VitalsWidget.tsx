@@ -3,6 +3,7 @@
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { Activity, Heart, Thermometer, Weight } from 'lucide-react'
 import RecordVitalsDialog from './RecordVitalsDialog'
+import type { VitalsRecord } from '@/types'
 
 export default function VitalsWidget({ 
   latestVitals,
@@ -10,14 +11,14 @@ export default function VitalsWidget({
   locale,
   patientId
 }: { 
-  latestVitals: any
+  latestVitals: VitalsRecord | null
   clinicId: string
   locale: string
   patientId: string
 }) {
   const content = latestVitals?.content || {}
 
-  const renderVital = (icon: any, label: string, value: string, color: string) => (
+  const renderVital = (icon: React.ReactNode, label: string, value: string, color: string) => (
     <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-white/5 bg-white/[0.02]">
       <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${color}`}>
         {icon}

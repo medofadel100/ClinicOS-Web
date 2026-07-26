@@ -111,7 +111,7 @@ export default function BookAppointmentDialog({
       }
     }
     fetchSlots()
-  }, [selectedDoctor, selectedService, selectedDate, clinicId, services])
+  }, [selectedDoctor, selectedService, selectedDate, clinicId, services, isAr])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
