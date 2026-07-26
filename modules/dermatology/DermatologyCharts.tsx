@@ -175,7 +175,7 @@ export default function DermatologyCharts({ data, isAr }: Props) {
             <h4 className="text-sm font-semibold text-slate-200 mb-4">{t.laserByType}</h4>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie data={laserByType} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
+                <Pie data={laserByType} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}>
                   {laserByType.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
@@ -190,7 +190,7 @@ export default function DermatologyCharts({ data, isAr }: Props) {
             <h4 className="text-sm font-semibold text-slate-200 mb-4">{t.injectablesByType}</h4>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie data={injectablesByType} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
+                <Pie data={injectablesByType} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}>
                   {injectablesByType.map((_, i) => <Cell key={i} fill={COLORS[(i + 2) % COLORS.length]} />)}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
@@ -259,7 +259,7 @@ export default function DermatologyCharts({ data, isAr }: Props) {
             <h4 className="text-sm font-semibold text-slate-200 mb-4">{isAr ? 'حالة العلاجات' : 'Treatment Status'}</h4>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie data={treatmentStatus} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
+                <Pie data={treatmentStatus} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}>
                   {treatmentStatus.map((_, i) => <Cell key={i} fill={COLORS[(i + 4) % COLORS.length]} />)}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />

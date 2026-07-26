@@ -49,7 +49,7 @@ export default function SerialRegistrationClient({
 
     try {
       const data = await verifySerial(serialCode)
-      setSerialInfo(data)
+      setSerialInfo(data as unknown as SerialInfo)
       setStep(2)
     } catch (err: any) {
       setError(err.message || 'Invalid serial code.')

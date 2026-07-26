@@ -119,8 +119,9 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
     // Handle tool calls
     if (message.tool_calls) {
       for (const toolCall of message.tool_calls) {
-        const name = toolCall.function.name
-        const args = JSON.parse(toolCall.function.arguments) as Record<string, string>
+        const func = (toolCall as OpenAI.Chat.Completions.ChatCompletionMessageToolCall & { function?: { name: string; arguments: string } }).function
+        const name = func?.name ?? ''
+        const args = JSON.parse(func?.arguments ?? '{}') as Record<string, string>
         
         let toolResult: Record<string, unknown> = {}
 

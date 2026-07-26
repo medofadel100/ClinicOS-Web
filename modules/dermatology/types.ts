@@ -75,7 +75,7 @@ export interface TreatmentRecord {
   id: string
   condition: string
   diagnosis_type: 'clinical' | 'dermoscopy' | 'biopsy' | 'visual'
-  treatment_type: 'cryotherapy' | 'topical' | 'systemic' | 'excision' | 'laser_surgical' | 'observation' | 'other'
+  treatment_type: 'cryotherapy' | 'topical' | 'systemic' | 'excision' | 'laser_surgical' | 'intralesional' | 'observation' | 'other'
   medication_name?: string
   medication_dosage?: string
   medication_frequency?: string
