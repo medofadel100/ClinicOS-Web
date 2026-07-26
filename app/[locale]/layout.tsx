@@ -26,28 +26,32 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata = {
   title: {
-    default: 'ClinicOS — إدارة العيادات المتكاملة',
+    default: 'ClinicOS — نظام إدارة العيادات المتكامل | Complete Clinic Management System',
     template: '%s | ClinicOS',
   },
-  description: 'نظام إدارة عيادات متكامل — إدارة المرضى، المواعيد، الروشتات الإلكترونية، الفواتير، المخزون، الموارد البشرية، والتسويق. مصمم للسوق المصري بدعم 24+ تخصص طبي.',
+  description: 'نظام إدارة عيادات متكامل مصمم للسوق المصري — إدارة المرضى، المواعيد، الروشتات الإلكترونية، الفواتير، المخزون، الموارد البشرية، والتسويق. 24+ تخصص طبي. مجاناً.',
+  metadataBase: new URL('https://clinicoseg.vercel.app'),
   manifest: '/manifest.json',
-  keywords: ['clinic management', 'healthcare', 'appointments', 'medical software', 'إدارة عيادات', 'نظام طبي', 'روشتات إلكترونية', ' Egyptians clinics'],
-  authors: [{ name: 'ClinicOS' }],
+  keywords: ['clinic management', 'healthcare', 'appointments', 'medical software', 'e-prescriptions', 'billing', 'inventory', 'إدارة عيادات', 'نظام طبي', 'روشتات إلكترونية', 'فواتير', 'Egyptian clinics', 'عيادات مصرية'],
+  authors: [{ name: 'ClinicOS', url: 'https://clinicoseg.vercel.app' }],
   creator: 'ClinicOS',
+  publisher: 'ClinicOS',
   openGraph: {
     type: 'website',
     locale: 'ar_EG',
     alternateLocale: 'en_US',
     siteName: 'ClinicOS',
-    title: 'ClinicOS — إدارة العيادات المتكاملة',
-    description: 'نظام إدارة عيادات متكامل — إدارة المرضى، المواعيد، الروشتات الإلكترونية، الفواتير، المخزون، الموارد البشرية، والتسويق.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ClinicOS' }],
+    title: 'ClinicOS — نظام إدارة العيادات المتكامل',
+    description: 'نظام إدارة عيادات متكامل — إدارة المرضى، المواعيد، الروشتات الإلكترونية، الفواتير، المخزون، الموارد البشرية، والتسويق. 24+ تخصص طبي.',
+    url: 'https://clinicoseg.vercel.app',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ClinicOS — Complete Clinic Management System' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ClinicOS — إدارة العيادات المتكاملة',
-    description: 'نظام إدارة عيادات متكامل — إدارة المرضى، المواعيد، الروشتات الإلكترونية، الفواتير.',
+    title: 'ClinicOS — نظام إدارة العيادات المتكامل',
+    description: 'نظام إدارة عيادات متكامل — إدارة المرضى، المواعيد، الروشتات الإلكترونية، الفواتير. 24+ تخصص طبي.',
     images: ['/og-image.png'],
+    creator: '@clinicos',
   },
   alternates: {
     canonical: 'https://clinicoseg.vercel.app',
@@ -55,12 +59,14 @@ export const metadata = {
   },
   icons: {
     icon: '/logo.png',
+    shortcut: '/logo.png',
     apple: '/icons/icon-192.png',
   },
+  verification: {},
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true },
+    googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large' },
   },
 }
 
