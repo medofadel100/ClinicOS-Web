@@ -2,9 +2,11 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardShell } from '@/components/layout/DashboardShell'
 import { HeaderActions } from '@/components/layout/HeaderActions'
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
+import dynamic from 'next/dynamic'
 import ToastProvider from '@/components/layout/ToastProvider'
 import { requireClinicId } from "@/lib/utils/clinic";
+
+const OnboardingTour = dynamic(() => import('@/components/onboarding/OnboardingTour').then(m => m.OnboardingTour), { ssr: false })
 
 export default async function DashboardLayout({
       children,

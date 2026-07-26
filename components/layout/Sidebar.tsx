@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import {
@@ -196,10 +197,13 @@ export function Sidebar({ locale, clinicId, role, specialty: _specialty, mobile,
       )}>
         <Link href={`/${locale}/${clinicId}`} onClick={onMobileClose} className="flex items-center gap-3 min-w-0">
           <div className="flex items-center justify-center w-14 h-14 shrink-0">
-            <img 
-              src="/logo.png" 
-              alt="ClinicOS Logo" 
-              className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(0,212,170,0.5)]" 
+            <Image
+              src="/logo.png"
+              alt="ClinicOS Logo"
+              width={56}
+              height={56}
+              className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(0,212,170,0.5)]"
+              priority
             />
           </div>
           {(!mobile || true) && (

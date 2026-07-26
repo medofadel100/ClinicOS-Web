@@ -1,8 +1,9 @@
 {
+  "id": "/?source=pwa",
   "name": "ClinicOS — إدارة العيادات",
   "short_name": "ClinicOS",
-  "description": "نظام إدارة العيادات المتكامل",
-  "start_url": "/ar",
+  "description": "نظام إدارة العيادات المتكامل — إدارة المرضى، المواعيد، الروشتات، الفواتير",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
@@ -11,23 +12,24 @@
   "lang": "ar",
   "dir": "auto",
   "categories": ["medical", "business"],
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icons/icon-192.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/icon-512.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/icon-512.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "maskable"
     }
   ]

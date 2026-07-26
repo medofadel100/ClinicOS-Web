@@ -1,6 +1,6 @@
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
-import { Outfit, Inter } from 'next/font/google'
+import { Outfit, Inter, JetBrains_Mono } from 'next/font/google'
 import '../globals.css'
 
 const outfit = Outfit({
@@ -17,15 +17,50 @@ const inter = Inter({
   weight: ['300', '400', '500', '600', '700'],
 })
 
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains',
+  display: 'swap',
+  weight: ['400', '500'],
+})
+
 export const metadata = {
-  title: 'ClinicOS',
-  description: 'نظام إدارة العيادات المتكامل — إدارة المرضى، المواعيد، الروشتات، الفواتير، المخزون، والموارد البشرية.',
+  title: {
+    default: 'ClinicOS — إدارة العيادات المتكاملة',
+    template: '%s | ClinicOS',
+  },
+  description: 'نظام إدارة عيادات متكامل — إدارة المرضى، المواعيد، الروشتات الإلكترونية، الفواتير، المخزون، الموارد البشرية، والتسويق. مصمم للسوق المصري بدعم 24+ تخصص طبي.',
   manifest: '/manifest.json',
-  keywords: ['clinic management', 'healthcare', 'appointments', 'medical software', 'إدارة عيادات'],
+  keywords: ['clinic management', 'healthcare', 'appointments', 'medical software', 'إدارة عيادات', 'نظام طبي', 'روشتات إلكترونية', ' Egyptians clinics'],
   authors: [{ name: 'ClinicOS' }],
+  creator: 'ClinicOS',
+  openGraph: {
+    type: 'website',
+    locale: 'ar_EG',
+    alternateLocale: 'en_US',
+    siteName: 'ClinicOS',
+    title: 'ClinicOS — إدارة العيادات المتكاملة',
+    description: 'نظام إدارة عيادات متكامل — إدارة المرضى، المواعيد، الروشتات الإلكترونية، الفواتير، المخزون، الموارد البشرية، والتسويق.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ClinicOS' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ClinicOS — إدارة العيادات المتكاملة',
+    description: 'نظام إدارة عيادات متكامل — إدارة المرضى، المواعيد، الروشتات الإلكترونية، الفواتير.',
+    images: ['/og-image.png'],
+  },
+  alternates: {
+    canonical: 'https://clinicoseg.vercel.app',
+    languages: { 'en': '/en', 'ar': '/ar' },
+  },
   icons: {
     icon: '/logo.png',
     apple: '/icons/icon-192.png',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
   },
 }
 
@@ -58,7 +93,7 @@ export default async function LocaleLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body
-        className={`${outfit.variable} ${inter.variable} font-sans antialiased`}
+        className={`${outfit.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         <NextIntlClientProvider messages={messages}>
