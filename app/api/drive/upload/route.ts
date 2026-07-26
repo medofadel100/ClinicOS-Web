@@ -3,12 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { uploadPatientFile } from '@/lib/google-drive'
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ALLOWED_TYPES = [
-  'image/jpeg', 'image/png', 'image/webp', 'image/heic',
-  'application/pdf',
-  'image/dicom', // medical imaging
-]
 
 export async function POST(request: NextRequest) {
   try {

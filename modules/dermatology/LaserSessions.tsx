@@ -300,7 +300,7 @@ export default function LaserSessions({ sessions, onUpdate, isAr, loading }: Pro
           </div>
         )}
 
-        {sessions.sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime()).map(s => {
+        {[...sessions].sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime()).map(s => {
           const lt = LASER_TYPES.find(l => l.value === s.laser_type)
           const isExpanded = expandedId === s.id
           return (

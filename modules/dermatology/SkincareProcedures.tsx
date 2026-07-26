@@ -259,7 +259,7 @@ export default function SkincareProcedures({ records, onUpdate, isAr, loading }:
           </div>
         )}
 
-        {records.sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime()).map(r => {
+        {[...records].sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime()).map(r => {
           const t = ti(r.type)
           const isExpanded = expandedId === r.id
           const statusIcon = r.status === 'completed' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> :

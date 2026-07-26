@@ -196,7 +196,7 @@ export default function Injectables({ records, onUpdate, isAr, loading }: Props)
             {/* Units (Botox) */}
             {(form.type === 'botox') && (
               <div>
-                <label className="text-[11px] text-slate-500 uppercase tracking-wider">{isAr ? 'الوحدات (유닛)' : 'Units'}</label>
+                <label className="text-[11px] text-slate-500 uppercase tracking-wider">{isAr ? 'الوحدات' : 'Units'}</label>
                 <input type="number" min="0" value={form.units || ''} onChange={e => setForm({ ...form, units: +e.target.value })}
                   placeholder="e.g. 20"
                   className="w-full h-10 px-3 mt-1 rounded-lg text-sm bg-black/30 border border-white/10 text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500/50" />
@@ -308,7 +308,7 @@ export default function Injectables({ records, onUpdate, isAr, loading }: Props)
           </div>
         )}
 
-        {records.sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime()).map(r => {
+        {[...records].sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime()).map(r => {
           const ti = typeInfo(r.type)
           const isExpanded = expandedId === r.id
           const statusIcon = r.status === 'completed' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> :

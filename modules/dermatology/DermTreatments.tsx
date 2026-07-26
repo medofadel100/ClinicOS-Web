@@ -12,12 +12,12 @@ const CONDITIONS = [
   { value: 'rosacea', label: 'Rosacea', labelAr: 'الحمراء' },
   { value: 'skin_tags', label: 'Skin Tags / Acrochordons', labelAr: 'الزوائد الجلدية' },
   { value: 'seborrheic_keratosis', label: 'Seborrheic Keratosis', labelAr: 'الثعلبة الدهنية' },
-  { value: 'keratosis_pilaris', label: 'Keratosis Pilaris', labelAr: 'التهاب الجريباتHair Follicles' },
+  { value: 'keratosis_pilaris', label: 'Keratosis Pilaris', labelAr: 'التهاب بصيلات الشعر' },
   { value: 'alopecia', label: 'Alopecia (Hair Loss)', labelAr: 'تساقط الشعر' },
   { value: 'fungal', label: 'Fungal Infections', labelAr: 'العدوى الفطرية' },
   { value: 'warts', label: 'Warts / Verrucae', labelAr: 'الثآليل' },
   { value: 'melasma', label: 'Melasma / Hyperpigmentation', labelAr: 'الكلف والتصبغات' },
-  { value: 'urticaria', label: 'Urticaria (Hives)', labelAr: 'الحكة القurfari' },
+  { value: 'urticaria', label: 'Urticaria (Hives)', labelAr: 'الشرى' },
   { value: 'herpes', label: 'Herpes Simplex', labelAr: 'الهربس' },
   { value: 'other', label: 'Other', labelAr: 'أخرى' },
 ]
@@ -166,7 +166,7 @@ export default function DermTreatments({ records, onUpdate, isAr, loading }: Pro
               <select value={form.diagnosis_type} onChange={e => setForm({ ...form, diagnosis_type: e.target.value as TreatmentRecord['diagnosis_type'] })}
                 className="w-full h-10 px-3 mt-1 rounded-lg text-sm bg-black/30 border border-white/10 text-white focus:outline-none focus:border-red-500/50">
                 <option value="clinical">{isAr ? 'سريري' : 'Clinical'}</option>
-                <option value="dermoscopy">{isAr ? 'เดอรموسكوبية' : 'Dermoscopy'}</option>
+                <option value="dermoscopy">{isAr ? 'تنظير جلدي' : 'Dermoscopy'}</option>
                 <option value="biopsy">{isAr ? 'خزعة' : 'Biopsy'}</option>
                 <option value="visual">{isAr ? 'بصري' : 'Visual'}</option>
               </select>
@@ -290,7 +290,7 @@ export default function DermTreatments({ records, onUpdate, isAr, loading }: Pro
           </div>
         )}
 
-        {records.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).map(r => {
+        {[...records].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).map(r => {
           const cond = CONDITIONS.find(c => c.value === r.condition)
           const tt = TREATMENT_TYPES.find(t => t.value === r.treatment_type)
           const st = STATUS_MAP[r.status]

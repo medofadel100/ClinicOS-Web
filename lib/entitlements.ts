@@ -4,8 +4,8 @@ export type EntitlementsResponse = {
 }
 
 const FALLBACK_ENTITLEMENTS: EntitlementsResponse = {
-  plan: 'Premium',
-  features: ['dental_module', 'whatsapp_ai', 'whatsapp_rule_based'],
+  plan: 'free',
+  features: [],
 }
 
 export async function checkEntitlements(clinicId: string): Promise<EntitlementsResponse> {

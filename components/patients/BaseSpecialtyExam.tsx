@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Activity, Trash2, Plus, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export type FieldConfig = {
   name: string
@@ -80,7 +81,7 @@ export default function BaseSpecialtyExam({
       setForm({})
     } catch (err) {
       console.error(err)
-      alert(isAr ? 'حدث خطأ أثناء الحفظ' : 'Failed to save')
+      toast.error(isAr ? 'حدث خطأ أثناء الحفظ' : 'Failed to save')
     } finally {
       setLoading(false)
     }
@@ -96,7 +97,7 @@ export default function BaseSpecialtyExam({
       setEntries(p => p.filter(x => x.id !== id))
     } catch (err) {
       console.error(err)
-      alert(isAr ? 'حدث خطأ أثناء الحذف' : 'Failed to delete')
+      toast.error(isAr ? 'حدث خطأ أثناء الحذف' : 'Failed to delete')
     } finally {
       setDeletingId(null)
     }

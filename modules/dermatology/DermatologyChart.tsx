@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { AlertCircle, Zap, Syringe, Sparkles, Stethoscope, MapPin, BarChart3 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { toast } from 'sonner'
 import { upsertDermatologyNote, upsertAestheticsData } from './actions'
 import LaserSessions from './LaserSessions'
 import Injectables from './Injectables'
@@ -15,13 +16,22 @@ interface PinEntry { note_type: string; content?: { pins?: Pin[] } }
 
 type TabId = 'body_map' | 'laser' | 'injectables' | 'skincare' | 'treatments' | 'charts'
 
-const TABS: { id: TabId; label: string; labelAr: string; icon: React.ReactNode; color: string }[] = [
-  { id: 'body_map', label: 'Body Map', labelAr: 'خريطة الجسم', icon: <MapPin className="w-4 h-4" />, color: 'indigo' },
-  { id: 'laser', label: 'Laser', labelAr: 'الليزر', icon: <Zap className="w-4 h-4" />, color: 'teal' },
-  { id: 'injectables', label: 'Injectables', labelAr: 'الحقن', icon: <Syringe className="w-4 h-4" />, color: 'purple' },
-  { id: 'skincare', label: 'Skincare', labelAr: 'البشرة', icon: <Sparkles className="w-4 h-4" />, color: 'amber' },
-  { id: 'treatments', label: 'Treatments', labelAr: 'العلاجات', icon: <Stethoscope className="w-4 h-4" />, color: 'red' },
-  { id: 'charts', label: 'Charts', labelAr: 'الرسوم', icon: <BarChart3 className="w-4 h-4" />, color: 'cyan' },
+const TAB_ACTIVE_CLASSES: Record<TabId, string> = {
+  body_map: 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shadow-lg',
+  laser: 'bg-teal-500/20 text-teal-400 border border-teal-500/30 shadow-lg',
+  injectables: 'bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-lg',
+  skincare: 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-lg',
+  treatments: 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-lg',
+  charts: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-lg',
+}
+
+const TABS: { id: TabId; label: string; labelAr: string; icon: React.ReactNode }[] = [
+  { id: 'body_map', label: 'Body Map', labelAr: 'خريطة الجسم', icon: <MapPin className="w-4 h-4" /> },
+  { id: 'laser', label: 'Laser', labelAr: 'الليزر', icon: <Zap className="w-4 h-4" /> },
+  { id: 'injectables', label: 'Injectables', labelAr: 'الحقن', icon: <Syringe className="w-4 h-4" /> },
+  { id: 'skincare', label: 'Skincare', labelAr: 'البشرة', icon: <Sparkles className="w-4 h-4" /> },
+  { id: 'treatments', label: 'Treatments', labelAr: 'العلاجات', icon: <Stethoscope className="w-4 h-4" /> },
+  { id: 'charts', label: 'Charts', labelAr: 'الرسوم', icon: <BarChart3 className="w-4 h-4" /> },
 ]
 
 export default function DermatologyChart({
@@ -110,6 +120,7 @@ export default function DermatologyChart({
       setSelectedPin(null)
     } catch (err) {
       console.error(err)
+      toast.error(isAr ? 'فشل حفظ العلامة' : 'Failed to save pin')
     } finally {
       setLoading(false)
     }
@@ -125,6 +136,7 @@ export default function DermatologyChart({
       setSelectedPin(null)
     } catch (err) {
       console.error(err)
+      toast.error(isAr ? 'فشل حذف العلامة' : 'Failed to delete pin')
     } finally {
       setLoading(false)
     }
@@ -143,6 +155,7 @@ export default function DermatologyChart({
       await upsertAestheticsData(clinicId, patientId, data)
     } catch (err) {
       console.error(err)
+      toast.error(isAr ? 'فشل حفظ البيانات' : 'Failed to save aesthetics data')
     } finally {
       setLoading(false)
     }
@@ -192,7 +205,7 @@ export default function DermatologyChart({
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               activeTab === tab.id
-                ? `bg-${tab.color}-500/20 text-${tab.color}-400 border border-${tab.color}-500/30 shadow-lg`
+                ? TAB_ACTIVE_CLASSES[tab.id]
                 : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 border border-transparent'
             }`}
           >
