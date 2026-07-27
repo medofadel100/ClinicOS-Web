@@ -14,6 +14,9 @@ function isPublicPath(pathname: string): boolean {
   if (/^\/(en|ar)\/?$/.test(pathname)) return true
   // Download page
   if (pathname.includes('/download')) return true
+  // Pricing and Contact
+  if (pathname.includes('/pricing')) return true
+  if (pathname.includes('/contact')) return true
   return false
 }
 

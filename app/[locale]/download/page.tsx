@@ -48,7 +48,7 @@ export default async function DownloadPage({ params: { locale } }: { params: { l
       reqs: isAr ? ['أوبونتو ٢٠ أو أحدث', 'RAM: ٤ جيجا', 'مساحة: ٢٠٠ ميجا', 'اتصال إنترنت'] : ['Ubuntu 20 or later', '4 GB RAM', '200 MB storage', 'Internet connection'],
       files: [
         { name: 'clinicos_1.0.0_amd64.deb', arch: 'amd64', format: '.deb', size: '~82 MB', primary: true },
-        { name: 'clinicos-1.0.0-x86_64.rpm', arch: 'x86_64', format: '.rpm', size: '~84 MB', primary: false },
+        { name: 'clinicos-1.0.0-linux-x64.tar.gz', arch: 'x64', format: '.tar.gz', size: '~80 MB', primary: false },
       ],
     },
     {

@@ -1,16 +1,27 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Check, HelpCircle, ChevronRight } from 'lucide-react'
+import { Check, ChevronRight, Shield, Lock, Star, Zap, ArrowRight, HelpCircle, Globe } from 'lucide-react'
 
 export async function generateMetadata({ params: { locale } }: { params: { locale: string } }) {
   const isAr = locale === 'ar'
   return {
-    title: isAr ? 'الأسعار والباقات' : 'Pricing & Plans',
+    title: isAr ? 'الأسعار والباقات — ClinicOS' : 'Pricing & Plans — ClinicOS',
     description: isAr
       ? 'اختر الباقة المناسبة لعيادتك — باقات سحابية وتثبيت محلي بأسعار مناسبة للسوق المصري.'
       : 'Choose the right plan for your clinic — cloud and self-hosted plans at prices tailored for the Egyptian market.',
   }
+}
+
+type Plan = {
+  id: string
+  name_en: string
+  name_ar: string
+  price_egp: number
+  billing_cycle: string
+  code: string
+  plan_features?: { features?: { name_en: string; name_ar: string } | null }[]
+  plan_limits?: { limit_type: string; max_value: number }[]
 }
 
 export default async function PricingPage({ params: { locale } }: { params: { locale: string } }) {
@@ -29,111 +40,261 @@ export default async function PricingPage({ params: { locale } }: { params: { lo
     .eq('is_active', true)
     .order('price_egp', { ascending: true })
 
-  const onlinePlans = (plans ?? []).filter(p => !p.code.startsWith('offline-'))
-  const offlinePlans = (plans ?? []).filter(p => p.code.startsWith('offline-'))
+  const onlinePlans: Plan[] = ((plans ?? []) as unknown as Plan[]).filter(p => !p.code.startsWith('offline-'))
+  const offlinePlans: Plan[] = ((plans ?? []) as unknown as Plan[]).filter(p => p.code.startsWith('offline-'))
 
   const faq = [
     {
       q: isAr ? 'هل يمكنني تغيير باقتي لاحقاً؟' : 'Can I change my plan later?',
-      a: isAr ? 'نعم، يمكنك الترقية أو تخفيض باقتك في أي من لوحة التحكم. الفروق تُحسب نسبياً.' : 'Yes, you can upgrade or downgrade your plan at any time from the dashboard. Differences are prorated.',
+      a: isAr ? 'نعم، يمكنك الترقية أو تخفيض باقتك في أي وقت من لوحة التحكم. الفروق تُحسب نسبياً.' : 'Yes, you can upgrade or downgrade your plan at any time from the dashboard. Differences are prorated.',
     },
     {
       q: isAr ? 'هل يوجد فترة تجريبية مجانية؟' : 'Is there a free trial?',
       a: isAr ? 'نعم! باقة Starter مجانية للأبد مع ميزات أساسية كافية للعيادات الصغيرة.' : 'Yes! The Starter plan is free forever with enough basic features for small clinics.',
     },
     {
-      q: isAr ? 'ما الفرق بين الباقات السحابية و المحلية؟' : 'What\'s the difference between cloud and self-hosted?',
-      a: isAr ? 'الباقات السحابية تعمل على خوادمنا (لا تحتاج سيرفر) — الباقات المحلية تتطلب تثبيت على سيرفر خاص بالعيادة.' : 'Cloud plans run on our servers (no server needed) — self-hosted plans require installation on your own clinic server.',
+      q: isAr ? 'ما الفرق بين الباقات السحابية والمحلية؟' : "What's the difference between cloud and self-hosted?",
+      a: isAr ? 'الباقات السحابية تعمل على خوادمنا (لا تحتاج سيرفر) — الباقات المحلية تتطلب تثبيت على سيرفر خاص.' : 'Cloud plans run on our servers (no server needed) — self-hosted plans require installation on your own server.',
     },
     {
       q: isAr ? 'هل البيانات آمنة؟' : 'Is my data secure?',
-      a: isAr ? 'نعم. نستخدم Supabase مع تشفير على مستوى قاعدة البيانات و SSL/TLS لكل الاتصالات. البيانات تُخزّن في مراكز بيانات آمنة.' : 'Yes. We use Supabase with database-level encryption and SSL/TLS for all connections. Data is stored in secure data centers.',
+      a: isAr ? 'نعم. نستخدم Supabase مع تشفير على مستوى قاعدة البيانات و SSL/TLS لكل الاتصالات.' : 'Yes. We use Supabase with database-level encryption and SSL/TLS for all connections.',
     },
     {
       q: isAr ? 'هل يمكنني الدفع بالجنيه المصري؟' : 'Can I pay in Egyptian Pounds?',
-      a: isAr ? 'نعم، جميع أسعارنا بالجنيه المصري (EGP) — لا نقبل خيارات دفع أخرى حالياً.' : 'Yes, all our prices are in Egyptian Pounds (EGP) — no other payment options currently.',
+      a: isAr ? 'نعم، جميع أسعارنا بالجنيه المصري (EGP).' : 'Yes, all our prices are in Egyptian Pounds (EGP).',
     },
   ]
 
+  const badges = [
+    { icon: Shield, label: isAr ? 'آمن بالكامل' : 'Fully Secure' },
+    { icon: Zap, label: isAr ? 'سريع الإعداد' : 'Quick Setup' },
+    { icon: Star, label: isAr ? 'دعم فني' : 'Tech Support' },
+    { icon: Globe, label: isAr ? 'متاح دائماً' : 'Always Online' },
+  ]
+
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/70 border-b border-white/[0.06]">
+    <div
+      className="min-h-screen text-white font-sans"
+      style={{ backgroundColor: '#060b14' }}
+      dir={isAr ? 'rtl' : 'ltr'}
+    >
+      {/* Ambient BG */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', top: '-20%', left: '-10%',
+          width: '60vw', height: '60vw', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)',
+          filter: 'blur(80px)',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '10%', right: '-15%',
+          width: '50vw', height: '50vw', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%)',
+          filter: 'blur(80px)',
+        }} />
+      </div>
+
+      {/* NAV */}
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        backdropFilter: 'blur(20px)',
+        backgroundColor: 'rgba(6,11,20,0.85)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+      }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 lg:px-12 py-4">
           <Link href={`/${locale}`} className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-lg shadow-emerald-500/30">
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
               <Image src="/logo.png" alt="ClinicOS" width={40} height={40} className="object-contain p-1" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">ClinicOS</span>
+            <span style={{
+              fontSize: 20, fontWeight: 800,
+              background: 'linear-gradient(135deg, #34d399, #22d3ee)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            }}>ClinicOS</span>
           </Link>
+          <div className="hidden md:flex items-center gap-1">
+            {[
+              { href: `/${locale}`, label: isAr ? 'الرئيسية' : 'Home' },
+              { href: `/${locale}/download`, label: isAr ? 'التحميل' : 'Download' },
+              { href: `/${locale}/contact`, label: isAr ? 'تواصل معنا' : 'Contact' },
+            ].map(nav => (
+              <Link key={nav.href} href={nav.href} style={{
+                padding: '8px 16px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: '#94a3b8',
+              }}>{nav.label}</Link>
+            ))}
+          </div>
           <div className="flex items-center gap-3">
-            <Link href={`/${altLocale}/pricing`} className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all border border-white/[0.08]">{altLabel}</Link>
-            <Link href={`/${locale}/login`} className="hidden sm:inline-flex px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/[0.05] transition-all">{isAr ? 'تسجيل الدخول' : 'Sign In'}</Link>
-            <Link href={`/${locale}/register`} className="px-5 py-2 rounded-lg text-sm font-bold text-slate-900 bg-gradient-to-r from-emerald-400 to-cyan-400 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all">{isAr ? 'ابدأ مجاناً' : 'Start Free'}</Link>
+            <Link href={`/${altLocale}/pricing`} style={{
+              padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+              color: '#64748b', border: '1px solid rgba(255,255,255,0.08)',
+            }}>{altLabel}</Link>
+            <Link href={`/${locale}/login`} className="hidden sm:inline-flex" style={{
+              padding: '8px 16px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: '#94a3b8',
+            }}>{isAr ? 'دخول' : 'Sign In'}</Link>
+            <Link href={`/${locale}/register`} style={{
+              padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+              color: '#030712', display: 'inline-block',
+              background: 'linear-gradient(135deg, #34d399, #22d3ee)',
+              boxShadow: '0 4px 15px rgba(16,185,129,0.35)',
+            }}>{isAr ? 'ابدأ مجاناً' : 'Start Free'}</Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative z-10 px-6 lg:px-12 pt-20 pb-16 text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+      {/* HERO */}
+      <section className="relative z-10 px-6 lg:px-12 pt-24 pb-20 text-center max-w-4xl mx-auto">
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '8px 16px', borderRadius: 50, fontSize: 12, fontWeight: 700, marginBottom: 24,
+          color: '#34d399', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)',
+        }}>
           <HelpCircle className="w-3.5 h-3.5" />
           {isAr ? 'أسعار مصممة للسوق المصري' : 'Prices Tailored for Egypt'}
         </div>
-        <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight">
+        <h1 style={{
+          fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 900,
+          lineHeight: 1.15, marginBottom: 20, letterSpacing: '-0.02em',
+          background: 'linear-gradient(180deg, #f1f5f9 0%, #94a3b8 100%)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+        }}>
           {isAr ? 'الأسعار والباقات' : 'Pricing & Plans'}
         </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
+        <p style={{ fontSize: 18, color: '#64748b', maxWidth: 560, margin: '0 auto 32px', lineHeight: 1.8 }}>
           {isAr
             ? 'ابدأ مجاناً واترقِ حسب احتياجات عيادتك. بدون بطاقة ائتمان، بدون عقود.'
             : 'Start free and upgrade as your clinic grows. No credit card, no contracts.'}
         </p>
-        <div className="flex items-center justify-center gap-6 text-sm text-slate-500">
-          <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" />{isAr ? 'تجربة مجانية' : 'Free trial'}</div>
-          <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" />{isAr ? 'بدون بطاقة ائتمان' : 'No credit card'}</div>
-          <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" />{isAr ? 'إلغاء في أي وقت' : 'Cancel anytime'}</div>
+        <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
+          {[
+            { icon: Check, label: isAr ? 'تجربة مجانية' : 'Free trial' },
+            { icon: Check, label: isAr ? 'بدون بطاقة ائتمان' : 'No credit card' },
+            { icon: Check, label: isAr ? 'إلغاء في أي وقت' : 'Cancel anytime' },
+          ].map((b, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#64748b', fontWeight: 500 }}>
+              <b.icon style={{ width: 16, height: 16, color: '#34d399' }} />
+              {b.label}
+            </div>
+          ))}
+        </div>
+        {/* Trust badges */}
+        <div className="flex flex-wrap justify-center gap-3">
+          {badges.map((b, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, color: '#64748b',
+              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+            }}>
+              <b.icon style={{ width: 15, height: 15, color: '#34d399' }} />
+              {b.label}
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Cloud Plans */}
+      {/* CLOUD PLANS */}
       {onlinePlans.length > 0 && (
-        <section className="relative z-10 px-6 lg:px-12 py-16">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-3">{isAr ? 'الباقات السحابية' : 'Cloud Plans'}</h2>
-              <p className="text-slate-400 max-w-xl mx-auto">{isAr ? 'استضافة كاملة على خوادمنا — لا تحتاج سيرفر.' : 'Fully hosted on our servers — no server needed.'}</p>
+        <section className="relative z-10 px-6 lg:px-12 py-20">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-14">
+              <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 900, color: '#fff', marginBottom: 12, letterSpacing: '-0.02em' }}>
+                {isAr ? 'الباقات السحابية' : 'Cloud Plans'}
+              </h2>
+              <p style={{ fontSize: 15, color: '#64748b', maxWidth: 440, margin: '0 auto' }}>
+                {isAr ? 'استضافة كاملة على خوادمنا — لا تحتاج سيرفر.' : 'Fully hosted on our servers — no server needed.'}
+              </p>
             </div>
-            <div className={`grid gap-6 ${onlinePlans.length <= 3 ? 'grid-cols-1 md:grid-cols-3 max-w-4xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto'}`}>
+            <div className={`grid gap-6 ${onlinePlans.length <= 3 ? 'grid-cols-1 md:grid-cols-3 max-w-5xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
               {onlinePlans.map((plan, idx) => {
                 const popular = idx === Math.floor(onlinePlans.length / 2)
-                const seats = plan.plan_limits?.find((l: any) => l.limit_type === 'provider_seats')?.max_value
-                const patients = plan.plan_limits?.find((l: any) => l.limit_type === 'patients')?.max_value
-                const storage = plan.plan_limits?.find((l: any) => l.limit_type === 'storage_mb')?.max_value
-                const featureNames = (plan.plan_features ?? []).map((pf: any) => pf.features?.[isAr ? 'name_ar' : 'name_en']).filter(Boolean)
+                const seats = plan.plan_limits?.find(l => l.limit_type === 'provider_seats')?.max_value
+                const patients = plan.plan_limits?.find(l => l.limit_type === 'patients')?.max_value
+                const storage = plan.plan_limits?.find(l => l.limit_type === 'storage_mb')?.max_value
+                const featureNames = (plan.plan_features ?? []).map(pf => pf.features?.[isAr ? 'name_ar' : 'name_en']).filter(Boolean) as string[]
                 const priceNum = Number(plan.price_egp)
                 const formattedPrice = priceNum === 0 ? (isAr ? 'مجاني' : 'Free') : priceNum.toLocaleString()
-                const cycleLabel = plan.billing_cycle === 'monthly' ? (isAr ? '/شهرياً' : '/mo') : (isAr ? '/سنوياً' : '/yr')
+                const cycleLabel = plan.billing_cycle === 'monthly' ? (isAr ? '/شهر' : '/mo') : (isAr ? '/سنة' : '/yr')
                 return (
-                  <div key={plan.code} className={`relative p-6 rounded-2xl transition-all ${popular ? 'ring-2 ring-emerald-500/40 bg-emerald-500/[0.04]' : 'bg-white/[0.02]'}`} style={{ border: `1px solid ${popular ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.06)'}` }}>
-                    {popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-900">{isAr ? 'الأكثر شعبية' : 'MOST POPULAR'}</div>}
-                    <h3 className="text-xl font-bold text-white mb-1">{isAr ? plan.name_ar : plan.name_en}</h3>
-                    <div className="flex items-baseline gap-1 mb-5">
-                      <span className="text-4xl font-bold text-emerald-400">{formattedPrice}</span>
-                      {priceNum > 0 && <span className="text-sm text-slate-500">EGP{cycleLabel}</span>}
-                      {priceNum === 0 && <span className="text-sm text-slate-500">{isAr ? ' للأبد' : ' forever'}</span>}
+                  <div key={plan.code} style={{
+                    padding: 28, borderRadius: 20, display: 'flex', flexDirection: 'column',
+                    position: 'relative', overflow: 'hidden',
+                    background: popular
+                      ? 'linear-gradient(160deg, rgba(16,185,129,0.1) 0%, rgba(6,182,212,0.05) 100%)'
+                      : 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${popular ? 'rgba(16,185,129,0.4)' : 'rgba(255,255,255,0.07)'}`,
+                    boxShadow: popular ? '0 0 50px rgba(16,185,129,0.1), 0 1px 0 rgba(16,185,129,0.3) inset' : 'none',
+                    transform: popular ? 'scale(1.03)' : 'scale(1)',
+                  }}>
+                    {popular && (
+                      <div style={{
+                        position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)',
+                        padding: '6px 20px', borderRadius: '0 0 12px 12px', fontSize: 11, fontWeight: 800,
+                        background: 'linear-gradient(135deg, #34d399, #22d3ee)',
+                        color: '#030712', letterSpacing: '0.08em', whiteSpace: 'nowrap',
+                      }}>{isAr ? '⭐ الأكثر شعبية' : '⭐ MOST POPULAR'}</div>
+                    )}
+                    <div style={{ marginTop: popular ? 24 : 0, marginBottom: 6 }}>
+                      <h3 style={{ fontSize: 20, fontWeight: 800, color: '#f1f5f9' }}>{isAr ? plan.name_ar : plan.name_en}</h3>
                     </div>
-                    <div className="space-y-2 mb-6">
-                      {seats && <p className="text-sm text-slate-300">{isAr ? `حتى ${seats} أطباء` : `Up to ${seats} doctors`}</p>}
-                      {patients && <p className="text-sm text-slate-300">{isAr ? `حتى ${patients.toLocaleString()} مريض` : `Up to ${patients.toLocaleString()} patients`}</p>}
-                      {storage && <p className="text-sm text-slate-300">{isAr ? `${(storage / 1024).toFixed(1)} جيجا مخزون` : `${(storage / 1024).toFixed(1)} GB storage`}</p>}
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 20 }}>
+                      <span style={{
+                        fontSize: 44, fontWeight: 900,
+                        background: 'linear-gradient(135deg, #34d399, #22d3ee)',
+                        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                      }}>{formattedPrice}</span>
+                      {priceNum > 0 && <span style={{ fontSize: 13, color: '#475569' }}>EGP{cycleLabel}</span>}
+                      {priceNum === 0 && <span style={{ fontSize: 13, color: '#475569' }}>{isAr ? ' للأبد' : ' forever'}</span>}
                     </div>
-                    <div className="border-t border-white/[0.06] pt-4 mb-6">
-                      {featureNames.map((fname: string, i: number) => (
-                        <div key={i} className="flex items-center gap-2 text-sm text-slate-300 py-1.5"><Check className="w-4 h-4 text-emerald-400 shrink-0" />{fname}</div>
+
+                    {/* Limits */}
+                    <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      {seats && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#94a3b8', marginBottom: 6 }}>
+                          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399' }} />
+                          {isAr ? `حتى ${seats} أطباء` : `Up to ${seats} doctors`}
+                        </div>
+                      )}
+                      {patients && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#94a3b8', marginBottom: 6 }}>
+                          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22d3ee' }} />
+                          {isAr ? `حتى ${patients.toLocaleString()} مريض` : `Up to ${patients.toLocaleString()} patients`}
+                        </div>
+                      )}
+                      {storage && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#94a3b8' }}>
+                          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8' }} />
+                          {isAr ? `${(storage / 1024).toFixed(1)} جيجا مخزون` : `${(storage / 1024).toFixed(1)} GB storage`}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Features */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+                      {featureNames.map((fname, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: '#94a3b8' }}>
+                          <Check style={{ width: 16, height: 16, color: '#34d399', flexShrink: 0, marginTop: 1 }} />
+                          <span style={{ lineHeight: 1.5 }}>{fname}</span>
+                        </div>
                       ))}
                     </div>
-                    <Link href={`/${locale}/register`} className={`block w-full h-12 rounded-xl text-sm font-bold text-center transition-all ${popular ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-900 shadow-lg shadow-emerald-500/20' : 'bg-white/[0.06] text-slate-200 border border-white/10 hover:bg-white/[0.1]'}`}>
-                      {priceNum === 0 ? (isAr ? 'ابدأ الآن مجاناً' : 'Start Free Now') : (isAr ? 'ابدأ الآن' : 'Get Started')}
+
+                    <Link href={`/${locale}/register`} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      height: 50, borderRadius: 12, fontSize: 15, fontWeight: 700, width: '100%',
+                      ...(popular ? {
+                        background: 'linear-gradient(135deg, #34d399, #22d3ee)',
+                        color: '#030712', boxShadow: '0 4px 20px rgba(16,185,129,0.35)',
+                      } : {
+                        background: 'rgba(255,255,255,0.05)',
+                        color: '#cbd5e1', border: '1px solid rgba(255,255,255,0.1)',
+                      }),
+                    }}>
+                      {priceNum === 0 ? (isAr ? 'ابدأ مجاناً' : 'Start Free') : (isAr ? 'ابدأ الآن' : 'Get Started')}
+                      <ArrowRight className={`w-4 h-4 ${isAr ? 'rotate-180' : ''}`} />
                     </Link>
                   </div>
                 )
@@ -143,41 +304,67 @@ export default async function PricingPage({ params: { locale } }: { params: { lo
         </section>
       )}
 
-      {/* Self-Hosted Plans */}
+      {/* SELF-HOSTED PLANS */}
       {offlinePlans.length > 0 && (
-        <section className="relative z-10 px-6 lg:px-12 py-16">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-3">{isAr ? 'خطط التثبيت المحلي' : 'Self-Hosted Plans'}</h2>
-              <p className="text-slate-400 max-w-xl mx-auto">{isAr ? 'للعيادات التي تفضل تشغيل النظام على خوادمها الخاصة — تثبيت مرة واحدة وتشغيل مستمر.' : 'For clinics that prefer to run the system on their own servers — one-time install, continuous operation.'}</p>
+        <section className="relative z-10 px-6 lg:px-12 py-20" style={{ background: 'rgba(255,255,255,0.01)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-14">
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '6px 16px', borderRadius: 50, fontSize: 12, fontWeight: 700, marginBottom: 16,
+                color: '#94a3b8', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+              }}>
+                <Lock className="w-3 h-3" />
+                {isAr ? 'خوادمك الخاصة' : 'Your Own Servers'}
+              </div>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 900, color: '#fff', marginBottom: 12, letterSpacing: '-0.02em' }}>
+                {isAr ? 'خطط التثبيت المحلي' : 'Self-Hosted Plans'}
+              </h2>
+              <p style={{ fontSize: 15, color: '#64748b', maxWidth: 480, margin: '0 auto' }}>
+                {isAr
+                  ? 'للعيادات التي تفضل تشغيل النظام على خوادمها الخاصة — خصوصية تامة وتحكم كامل.'
+                  : 'For clinics preferring to run on their own servers — full privacy and control.'}
+              </p>
             </div>
-            <div className={`grid gap-6 ${offlinePlans.length <= 3 ? 'grid-cols-1 md:grid-cols-3 max-w-4xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto'}`}>
+            <div className={`grid gap-5 ${offlinePlans.length <= 3 ? 'grid-cols-1 md:grid-cols-3 max-w-5xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
               {offlinePlans.map((plan) => {
-                const seats = plan.plan_limits?.find((l: any) => l.limit_type === 'provider_seats')?.max_value
-                const patients = plan.plan_limits?.find((l: any) => l.limit_type === 'patients')?.max_value
-                const staff = plan.plan_limits?.find((l: any) => l.limit_type === 'staff_accounts')?.max_value
-                const featureNames = (plan.plan_features ?? []).map((pf: any) => pf.features?.[isAr ? 'name_ar' : 'name_en']).filter(Boolean)
+                const seats = plan.plan_limits?.find(l => l.limit_type === 'provider_seats')?.max_value
+                const patients = plan.plan_limits?.find(l => l.limit_type === 'patients')?.max_value
+                const staff = plan.plan_limits?.find(l => l.limit_type === 'staff_accounts')?.max_value
+                const featureNames = (plan.plan_features ?? []).map(pf => pf.features?.[isAr ? 'name_ar' : 'name_en']).filter(Boolean) as string[]
                 const priceNum = Number(plan.price_egp)
                 const formattedPrice = priceNum === 0 ? (isAr ? 'مجاني' : 'Free') : priceNum.toLocaleString()
-                const cycleLabel = plan.billing_cycle === 'monthly' ? (isAr ? '/شهرياً' : '/mo') : (isAr ? '/سنوياً' : '/yr')
+                const cycleLabel = plan.billing_cycle === 'monthly' ? (isAr ? '/شهر' : '/mo') : (isAr ? '/سنة' : '/yr')
                 return (
-                  <div key={plan.code} className="relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                    <h3 className="text-lg font-bold text-white mb-1">{isAr ? plan.name_ar : plan.name_en}</h3>
-                    <div className="flex items-baseline gap-1 mb-5">
-                      <span className="text-3xl font-bold text-emerald-400">{formattedPrice}</span>
-                      {priceNum > 0 && <span className="text-sm text-slate-500">EGP{cycleLabel}</span>}
+                  <div key={plan.code} style={{
+                    padding: 24, borderRadius: 18, display: 'flex', flexDirection: 'column',
+                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
+                  }}>
+                    <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>{isAr ? plan.name_ar : plan.name_en}</h3>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 16 }}>
+                      <span style={{ fontSize: 32, fontWeight: 800, color: '#34d399' }}>{formattedPrice}</span>
+                      {priceNum > 0 && <span style={{ fontSize: 12, color: '#475569' }}>EGP{cycleLabel}</span>}
                     </div>
-                    <div className="space-y-1 mb-4">
-                      {seats && <p className="text-sm text-slate-300">{isAr ? `${seats} أطباء` : `${seats} doctors`}</p>}
-                      {patients && <p className="text-sm text-slate-300">{isAr ? `حتى ${patients.toLocaleString()} مريض` : `Up to ${patients.toLocaleString()} patients`}</p>}
-                      {staff && <p className="text-sm text-slate-300">{isAr ? `${staff} موظفين` : `${staff} staff`}</p>}
+                    <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      {seats && <p style={{ fontSize: 13, color: '#64748b', marginBottom: 4 }}>{isAr ? `${seats} أطباء` : `${seats} doctors`}</p>}
+                      {patients && <p style={{ fontSize: 13, color: '#64748b', marginBottom: 4 }}>{isAr ? `حتى ${patients.toLocaleString()} مريض` : `Up to ${patients.toLocaleString()} patients`}</p>}
+                      {staff && <p style={{ fontSize: 13, color: '#64748b' }}>{isAr ? `${staff} موظفين` : `${staff} staff`}</p>}
                     </div>
-                    <div className="border-t border-white/[0.06] pt-4 mb-6">
-                      {featureNames.map((fname: string, i: number) => (
-                        <div key={i} className="flex items-center gap-2 text-sm text-slate-300 py-1.5"><Check className="w-4 h-4 text-emerald-400 shrink-0" />{fname}</div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+                      {featureNames.map((fname, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#64748b' }}>
+                          <Check style={{ width: 14, height: 14, color: '#34d399', flexShrink: 0, marginTop: 2 }} />
+                          <span style={{ lineHeight: 1.5 }}>{fname}</span>
+                        </div>
                       ))}
                     </div>
-                    <Link href={`/${locale}/contact`} className="block w-full h-11 rounded-xl text-sm font-bold text-center bg-white/[0.06] text-slate-200 border border-white/10 hover:bg-white/[0.1] transition-all">{isAr ? 'تواصل معنا' : 'Contact Us'}</Link>
+                    <Link href={`/${locale}/contact`} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      height: 44, borderRadius: 10, fontSize: 13, fontWeight: 700,
+                      color: '#94a3b8', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                    }}>
+                      {isAr ? 'تواصل معنا' : 'Contact Us'}
+                    </Link>
                   </div>
                 )
               })}
@@ -186,73 +373,104 @@ export default async function PricingPage({ params: { locale } }: { params: { lo
         </section>
       )}
 
-      {/* Comparison Table */}
-      <section className="relative z-10 px-6 lg:px-12 py-16">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">{isAr ? 'مقارنة الباقات السحابية' : 'Cloud Plans Comparison'}</h2>
-          <div className="rounded-2xl border border-white/[0.06] overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-white/[0.04]">
-                  <th className={`p-4 text-left font-semibold text-slate-300 ${isAr ? 'text-right' : 'text-left'}`}>{isAr ? 'الميزة' : 'Feature'}</th>
-                  {onlinePlans.map(plan => (
-                    <th key={plan.code} className="p-4 text-center font-semibold text-slate-300">{isAr ? plan.name_ar : plan.name_en}</th>
+      {/* COMPARISON TABLE (Cloud Plans) */}
+      {onlinePlans.length > 1 && (
+        <section className="relative z-10 px-6 lg:px-12 py-20">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-14">
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 900, color: '#fff', marginBottom: 12 }}>
+                {isAr ? 'مقارنة الباقات السحابية' : 'Cloud Plans Comparison'}
+              </h2>
+            </div>
+            <div style={{ borderRadius: 20, border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', fontSize: 14, borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255,255,255,0.04)' }}>
+                    <th style={{ padding: '16px 20px', textAlign: isAr ? 'right' : 'left', fontWeight: 700, color: '#94a3b8', fontSize: 13 }}>
+                      {isAr ? 'المعيار' : 'Feature'}
+                    </th>
+                    {onlinePlans.map(plan => (
+                      <th key={plan.code} style={{ padding: '16px 20px', textAlign: 'center', fontWeight: 700, color: '#f1f5f9', fontSize: 13 }}>
+                        {isAr ? plan.name_ar : plan.name_en}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    {
+                      label: isAr ? 'السعر' : 'Price',
+                      getValue: (plan: Plan) => {
+                        const n = Number(plan.price_egp)
+                        return n === 0 ? (isAr ? 'مجاني' : 'Free') : `${n.toLocaleString()} EGP`
+                      },
+                      highlight: true,
+                    },
+                    {
+                      label: isAr ? 'الأطباء' : 'Doctors',
+                      getValue: (plan: Plan) => String(plan.plan_limits?.find(l => l.limit_type === 'provider_seats')?.max_value ?? '—'),
+                    },
+                    {
+                      label: isAr ? 'المرضى' : 'Patients',
+                      getValue: (plan: Plan) => {
+                        const v = plan.plan_limits?.find(l => l.limit_type === 'patients')?.max_value
+                        return v ? v.toLocaleString() : '—'
+                      },
+                    },
+                    {
+                      label: isAr ? 'التخزين' : 'Storage',
+                      getValue: (plan: Plan) => {
+                        const v = plan.plan_limits?.find(l => l.limit_type === 'storage_mb')?.max_value
+                        return v ? `${(v / 1024).toFixed(1)} GB` : '—'
+                      },
+                    },
+                    {
+                      label: isAr ? 'عدد الميزات' : 'Features Count',
+                      getValue: (plan: Plan) => String((plan.plan_features ?? []).length),
+                    },
+                  ].map((row, rowIdx) => (
+                    <tr key={rowIdx} style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: rowIdx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
+                      <td style={{ padding: '14px 20px', color: '#64748b', fontWeight: 500, textAlign: isAr ? 'right' : 'left' }}>
+                        {row.label}
+                      </td>
+                      {onlinePlans.map(plan => (
+                        <td key={plan.code} style={{
+                          padding: '14px 20px', textAlign: 'center',
+                          color: row.highlight ? '#34d399' : '#94a3b8',
+                          fontWeight: row.highlight ? 700 : 400,
+                        }}>
+                          {row.getValue(plan)}
+                        </td>
+                      ))}
+                    </tr>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t border-white/[0.04]">
-                  <td className={`p-4 text-slate-400 ${isAr ? 'text-right' : 'text-left'}`}>{isAr ? 'السعر' : 'Price'}</td>
-                  {onlinePlans.map(plan => {
-                    const priceNum = Number(plan.price_egp)
-                    return <td key={plan.code} className="p-4 text-center font-bold text-emerald-400">{priceNum === 0 ? (isAr ? 'مجاني' : 'Free') : `${priceNum.toLocaleString()} EGP`}</td>
-                  })}
-                </tr>
-                <tr className="border-t border-white/[0.04] bg-white/[0.01]">
-                  <td className={`p-4 text-slate-400 ${isAr ? 'text-right' : 'text-left'}`}>{isAr ? 'الأطباء' : 'Doctors'}</td>
-                  {onlinePlans.map(plan => {
-                    const seats = plan.plan_limits?.find((l: any) => l.limit_type === 'provider_seats')?.max_value
-                    return <td key={plan.code} className="p-4 text-center text-slate-300">{seats ?? '—'}</td>
-                  })}
-                </tr>
-                <tr className="border-t border-white/[0.04]">
-                  <td className={`p-4 text-slate-400 ${isAr ? 'text-right' : 'text-left'}`}>{isAr ? 'المرضى' : 'Patients'}</td>
-                  {onlinePlans.map(plan => {
-                    const patients = plan.plan_limits?.find((l: any) => l.limit_type === 'patients')?.max_value
-                    return <td key={plan.code} className="p-4 text-center text-slate-300">{patients?.toLocaleString() ?? '—'}</td>
-                  })}
-                </tr>
-                <tr className="border-t border-white/[0.04] bg-white/[0.01]">
-                  <td className={`p-4 text-slate-400 ${isAr ? 'text-right' : 'text-left'}`}>{isAr ? 'المخزون' : 'Storage'}</td>
-                  {onlinePlans.map(plan => {
-                    const storage = plan.plan_limits?.find((l: any) => l.limit_type === 'storage_mb')?.max_value
-                    return <td key={plan.code} className="p-4 text-center text-slate-300">{storage ? `${(storage / 1024).toFixed(1)} GB` : '—'}</td>
-                  })}
-                </tr>
-                <tr className="border-t border-white/[0.04]">
-                  <td className={`p-4 text-slate-400 ${isAr ? 'text-right' : 'text-left'}`}>{isAr ? 'الميزات' : 'Features'}</td>
-                  {onlinePlans.map(plan => (
-                    <td key={plan.code} className="p-4 text-center text-slate-300">{(plan.plan_features ?? []).length}</td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* FAQ */}
-      <section className="relative z-10 px-6 lg:px-12 py-16">
+      <section className="relative z-10 px-6 lg:px-12 py-20" style={{ background: 'rgba(255,255,255,0.01)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">{isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}</h2>
-          <div className="space-y-4">
+          <div className="text-center mb-14">
+            <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 900, color: '#fff', marginBottom: 12 }}>
+              {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
+            </h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {faq.map((item, i) => (
-              <details key={i} className="group rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-                <summary className="flex items-center justify-between px-6 py-5 cursor-pointer text-slate-200 font-medium list-none">
+              <details key={i} style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', overflow: 'hidden' }}>
+                <summary style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '20px 24px', cursor: 'pointer',
+                  fontSize: 15, fontWeight: 600, color: '#e2e8f0', listStyle: 'none',
+                }}>
                   {item.q}
-                  <ChevronRight className="w-5 h-5 text-slate-500 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronRight style={{ width: 18, height: 18, color: '#64748b', flexShrink: 0, transform: 'rotate(0deg)' }} />
                 </summary>
-                <div className="px-6 pb-5 text-sm text-slate-400 leading-relaxed">{item.a}</div>
+                <div style={{ padding: '0 24px 20px', fontSize: 14, color: '#64748b', lineHeight: 1.8 }}>{item.a}</div>
               </details>
             ))}
           </div>
@@ -260,55 +478,89 @@ export default async function PricingPage({ params: { locale } }: { params: { lo
       </section>
 
       {/* CTA */}
-      <section className="relative z-10 px-6 lg:px-12 py-20">
-        <div className="max-w-4xl mx-auto text-center p-12 rounded-3xl bg-white/[0.02] border border-emerald-500/20 shadow-[0_0_60px_rgba(16,185,129,0.06)]">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">{isAr ? 'جاهز للبدء؟' : 'Ready to Get Started?'}</h2>
-          <p className="text-slate-400 mb-8 max-w-xl mx-auto">{isAr ? 'ابدأ مجاناً اليوم — لا حاجة لبطاقة ائتمان.' : 'Start free today — no credit card needed.'}</p>
-          <Link href={`/${locale}/register`} className="inline-flex items-center gap-2 h-13 px-8 rounded-xl text-base font-bold text-slate-900 bg-gradient-to-r from-emerald-400 to-cyan-400 shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all">
-            {isAr ? 'سجّل عيادتك الآن' : 'Register Your Clinic Now'}<ChevronRight className="w-5 h-5" />
-          </Link>
+      <section className="relative z-10 px-6 lg:px-12 py-24">
+        <div className="max-w-4xl mx-auto" style={{
+          textAlign: 'center', padding: '64px 48px', borderRadius: 28,
+          background: 'linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(6,182,212,0.04) 100%)',
+          border: '1px solid rgba(16,185,129,0.15)',
+          boxShadow: '0 0 80px rgba(16,185,129,0.07)',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.2), transparent)', filter: 'blur(40px)' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 900, color: '#fff', marginBottom: 16, letterSpacing: '-0.02em' }}>
+              {isAr ? 'جاهز للبدء اليوم؟' : 'Ready to Get Started?'}
+            </h2>
+            <p style={{ fontSize: 16, color: '#64748b', maxWidth: 440, margin: '0 auto 32px', lineHeight: 1.8 }}>
+              {isAr ? 'سجّل عيادتك مجاناً الآن — لا حاجة لبطاقة ائتمان.' : 'Register your clinic for free today — no credit card needed.'}
+            </p>
+            <Link href={`/${locale}/register`} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+              height: 56, padding: '0 40px', borderRadius: 14, fontSize: 16, fontWeight: 700,
+              color: '#030712', background: 'linear-gradient(135deg, #34d399, #22d3ee)',
+              boxShadow: '0 8px 30px rgba(16,185,129,0.35)',
+            }}>
+              {isAr ? 'سجّل عيادتك الآن' : 'Register Your Clinic Now'}
+              <ArrowRight className={`w-5 h-5 ${isAr ? 'rotate-180' : ''}`} />
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 px-6 lg:px-12 py-12 border-t border-white/[0.06]" dir={isAr ? 'rtl' : 'ltr'}>
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
-            <div className="md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <Image src="/logo.png" alt="ClinicOS" width={28} height={28} className="object-contain" />
-                <span className="text-lg font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">ClinicOS</span>
+      {/* FOOTER */}
+      <footer className="relative z-10 px-6 lg:px-12 py-14" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(3,7,12,0.8)' }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-3 mb-5">
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #10b981, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Image src="/logo.png" alt="ClinicOS" width={36} height={36} className="object-contain p-1" />
+                </div>
+                <span style={{ fontSize: 22, fontWeight: 800, background: 'linear-gradient(135deg, #34d399, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ClinicOS</span>
               </div>
-              <p className="text-sm text-slate-500 leading-relaxed">{isAr ? 'نظام إدارة العيادات المتكامل — مصمم للسوق المصري.' : 'The complete clinic management system — built for Egypt.'}</p>
+              <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.9, maxWidth: 300 }}>
+                {isAr ? 'نظام إدارة العيادات المتكامل — مصمم خصيصاً للسوق الطبي المصري.' : 'The complete clinic management system — built for the Egyptian medical market.'}
+              </p>
             </div>
-            <div>
-              <h4 className="text-sm font-semibold text-slate-300 mb-4">{isAr ? 'المنتج' : 'Product'}</h4>
-              <ul className="space-y-2.5">
-                <li><Link href={`/${locale}/pricing`} className="text-sm text-slate-500 hover:text-emerald-400 transition-colors">{isAr ? 'الأسعار' : 'Pricing'}</Link></li>
-                <li><Link href={`/${locale}/download`} className="text-sm text-slate-500 hover:text-emerald-400 transition-colors">{isAr ? 'التحميل' : 'Download'}</Link></li>
-                <li><Link href={`/${locale}/contact`} className="text-sm text-slate-500 hover:text-emerald-400 transition-colors">{isAr ? 'تواصل معنا' : 'Contact'}</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-slate-300 mb-4">{isAr ? 'القانوني' : 'Legal'}</h4>
-              <ul className="space-y-2.5">
-                <li><Link href={`/${locale}/terms`} className="text-sm text-slate-500 hover:text-emerald-400 transition-colors">{isAr ? 'شروط الاستخدام' : 'Terms of Service'}</Link></li>
-                <li><Link href={`/${locale}/terms`} className="text-sm text-slate-500 hover:text-emerald-400 transition-colors">{isAr ? 'سياسة الخصوصية' : 'Privacy Policy'}</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-slate-300 mb-4">{isAr ? 'حسابك' : 'Your Account'}</h4>
-              <ul className="space-y-2.5">
-                <li><Link href={`/${locale}/login`} className="text-sm text-slate-500 hover:text-emerald-400 transition-colors">{isAr ? 'تسجيل الدخول' : 'Sign In'}</Link></li>
-                <li><Link href={`/${locale}/register`} className="text-sm text-slate-500 hover:text-emerald-400 transition-colors">{isAr ? 'إنشاء حساب' : 'Create Account'}</Link></li>
-              </ul>
-            </div>
+            {[
+              {
+                title: isAr ? 'المنتج' : 'Product',
+                links: [
+                  { href: `/${locale}/pricing`, label: isAr ? 'الأسعار' : 'Pricing' },
+                  { href: `/${locale}/download`, label: isAr ? 'التحميل' : 'Download' },
+                  { href: `/${locale}/contact`, label: isAr ? 'تواصل معنا' : 'Contact' },
+                ]
+              },
+              {
+                title: isAr ? 'القانوني' : 'Legal',
+                links: [
+                  { href: `/${locale}/terms`, label: isAr ? 'شروط الاستخدام' : 'Terms' },
+                  { href: `/${locale}/privacy`, label: isAr ? 'سياسة الخصوصية' : 'Privacy' },
+                ]
+              },
+              {
+                title: isAr ? 'الحساب' : 'Account',
+                links: [
+                  { href: `/${locale}/login`, label: isAr ? 'تسجيل الدخول' : 'Sign In' },
+                  { href: `/${locale}/register`, label: isAr ? 'إنشاء حساب' : 'Create Account' },
+                ]
+              }
+            ].map(col => (
+              <div key={col.title}>
+                <h4 style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9', marginBottom: 18, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{col.title}</h4>
+                <ul style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {col.links.map(link => (
+                    <li key={link.label}>
+                      <Link href={link.href} style={{ fontSize: 14, fontWeight: 500, color: '#475569' }}>{link.label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-          <div className="border-t border-white/[0.06] pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-slate-600">&copy; 2026 ClinicOS. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
-            <div className="flex items-center gap-4">
-              <Link href={`/${altLocale}/pricing`} className="text-xs text-slate-500 hover:text-slate-300 transition-colors">{isAr ? 'English' : 'عربي'}</Link>
-            </div>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <p style={{ fontSize: 13, color: '#334155' }}>© {new Date().getFullYear()} ClinicOS. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
+            <Link href={`/${altLocale}/pricing`} style={{ fontSize: 13, color: '#475569', fontWeight: 600 }}>{isAr ? 'English' : 'عربي'}</Link>
           </div>
         </div>
       </footer>
