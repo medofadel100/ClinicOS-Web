@@ -1,4 +1,4 @@
-const WHATSAPP_SERVICE_URL = process.env.NEXT_PUBLIC_WHATSAPP_SERVICE_URL || 'http://localhost:3002'
+const WHATSAPP_SERVICE_URL = (process.env.NEXT_PUBLIC_WHATSAPP_SERVICE_URL || 'http://localhost:3002').replace(/\/+$/, '')
 const WHATSAPP_API_KEY = process.env.WHATSAPP_API_KEY || ''
 
 function authHeaders(): Record<string, string> {
