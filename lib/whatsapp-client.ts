@@ -1,4 +1,12 @@
 const WHATSAPP_SERVICE_URL = process.env.NEXT_PUBLIC_WHATSAPP_SERVICE_URL || 'http://localhost:3002'
+const WHATSAPP_API_KEY = process.env.WHATSAPP_API_KEY || ''
+
+function authHeaders(): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    ...(WHATSAPP_API_KEY ? { 'x-api-key': WHATSAPP_API_KEY } : {}),
+  }
+}
 
 export type WhatsAppSessionStatus = {
   connected: boolean
@@ -17,9 +25,7 @@ export type WhatsAppInitResponse = {
 export async function initSession(clinicId: string): Promise<WhatsAppInitResponse> {
   const res = await fetch(`${WHATSAPP_SERVICE_URL}/sessions/${clinicId}/init`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: authHeaders()
   })
   
   if (!res.ok) {
@@ -35,9 +41,7 @@ export async function initSession(clinicId: string): Promise<WhatsAppInitRespons
 export async function getSessionStatus(clinicId: string): Promise<WhatsAppSessionStatus> {
   const res = await fetch(`${WHATSAPP_SERVICE_URL}/sessions/${clinicId}/status`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: authHeaders()
   })
 
   if (!res.ok) {
@@ -56,6 +60,7 @@ export async function getSessionStatus(clinicId: string): Promise<WhatsAppSessio
 export async function disconnectSession(clinicId: string): Promise<void> {
   const res = await fetch(`${WHATSAPP_SERVICE_URL}/sessions/${clinicId}`, {
     method: 'DELETE',
+    headers: authHeaders()
   })
 
   if (!res.ok) {
@@ -66,15 +71,14 @@ export async function disconnectSession(clinicId: string): Promise<void> {
 /**
  * Send a message via the Baileys service
  */
-export async function sendMessage(clinicId: string, to: string, text: string): Promise<void> {
+export async function sendMessage(clinicId: string, to: string, text: string, mediaUrl?: string): Promise<void> {
   const res = await fetch(`${WHATSAPP_SERVICE_URL}/sessions/${clinicId}/send`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: authHeaders(),
     body: JSON.stringify({
-      to,
-      text
+      recipient: to,
+      message: text,
+      mediaUrl
     })
   })
 

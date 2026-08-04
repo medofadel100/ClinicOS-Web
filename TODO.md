@@ -71,11 +71,19 @@
 
 ## ⏳ بانتظار التنفيذ
 
-- [ ] **إعادة تشغيل ملفين SQL في SQL Editor** (بعد تعديلات جولة 2.6):
-  - `20260726000000_verify_serial_function.sql` (search_path + STABLE)
-  - `20260726000001_fix_rls_security.sql` (claim function — email من auth.users)
-- [ ] **تحديث Baileys service** (repo منفصل): إرسال `x-webhook-secret: <WHATSAPP_WEBHOOK_SECRET>` على كل POST إلى `/api/whatsapp/inbound`
-- [ ] **Commit + push جولة 2.6** (الكود لسه في العمل)
+- [x] **تحديث Baileys service** (repo منفصل): إرسال `x-webhook-secret: <WHATSAPP_WEBHOOK_SECRET>` على كل POST إلى `/api/whatsapp/inbound` — تم ✅ (الخدمة مبنية من الصفر في `ClinicOS WhatsApp Service`)
+- [x] **إعادة تشغيل ملفين SQL** في SQL Editor (بعد تعديلات جولة 2.6) — تم ✅
+- [x] **Commit + push جولة 2.6** → `03801f0` ✅
+
+## 🚀 WhatsApp Service — اكتمل الربط (2026-08-04)
+
+- [x] الخدمة المبنية في `ClinicOS WhatsApp Service` (Baileys، API key، rate limit، webhook relay، جلسات دائمة)
+- [x] منشورة على السيرفر `DESKTOP-I8QM0ET` (Proxmox VM) كـ Scheduled Task + Cloudflare Tunnel
+- [x] `https://whatsapp.smartx.business` يعمل (`/health` + auth 401) من الإنترنت
+- [x] `lib/whatsapp-client.ts`: كل الـ requests بتبعث `x-api-key: WHATSAPP_API_KEY` + إصلاح `sendMessage` (يستخدم `recipient`/`message` بدل `to`/`text`)
+- [x] `.env.example` + `.env.local`: أُضيف `WHATSAPP_API_KEY=wapp-svc-fadel-2026` و`NEXT_PUBLIC_WHATSAPP_SERVICE_URL=https://whatsapp.smartx.business`
+- [x] حذف النسخة المناسخة `ClinicOS-WhatsApp-Service/` من Web repo (كانت بتكسر typecheck)
+- [ ] Vercel: أضف `WHATSAPP_API_KEY=wapp-svc-fadel-2026` + غيّر `NEXT_PUBLIC_WHATSAPP_SERVICE_URL` → `https://whatsapp.smartx.business` (يدويًا في dashboard)
 
 ---
 
