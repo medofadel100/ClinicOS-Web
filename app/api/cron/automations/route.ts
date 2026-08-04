@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendMessage } from '@/lib/whatsapp-client'
 
 export async function GET(req: Request) {
-  // Validate standard Vercel CRON secret if deployed
+  // Validate CRON secret (required — fail closed)
   const authHeader = req.headers.get('authorization')
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const supabase = createClient() // uses service role internally
+  const supabase = createAdminClient()
 
   try {
     // 1. Fetch all active clinics with any automations enabled

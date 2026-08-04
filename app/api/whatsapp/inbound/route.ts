@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server'
 import { handleIncomingMessage } from '@/lib/bot/rule-based'
 import { handleAIMessage } from '@/lib/bot/ai/engine'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(req: Request) {
   try {
+    // Validate shared webhook secret (must match WHATSAPP_WEBHOOK_SECRET)
+    const secret = process.env.WHATSAPP_WEBHOOK_SECRET
+    const authHeader = req.headers.get('authorization')
+    const xWebhookSecret = req.headers.get('x-webhook-secret')
+    if (
+      !secret ||
+      (authHeader !== `Bearer ${secret}` && xWebhookSecret !== secret)
+    ) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const payload = await req.json()
     const { clinicId, from, message, mediaBase64, _mimeType } = payload
 
@@ -17,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     // Check clinic config to see if bot is active
-    const supabase = createClient() // uses service role if configured for backend
+    const supabase = createAdminClient()
     const { data: config } = await supabase
       .from('whatsapp_bot_config')
       .select('mode')

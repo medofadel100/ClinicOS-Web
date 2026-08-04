@@ -17,6 +17,8 @@ function isPublicPath(pathname: string): boolean {
   // Pricing and Contact
   if (pathname.includes('/pricing')) return true
   if (pathname.includes('/contact')) return true
+  // Terms of service
+  if (pathname.includes('/terms')) return true
   return false
 }
 

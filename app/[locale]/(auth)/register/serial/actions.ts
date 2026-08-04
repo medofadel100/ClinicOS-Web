@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
@@ -61,8 +62,6 @@ export async function claimSerial(
     throw new Error('Serial code is no longer available.')
   }
 
-  const serial = (serialData as Record<string, unknown>[])[0]
-
   // 2. Create auth user
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
@@ -81,75 +80,23 @@ export async function claimSerial(
     throw new Error('Failed to create user account.')
   }
 
-  // 3. Create clinic
-  const { data: clinic, error: clinicError } = await supabase
-    .from('clinics')
-    .insert({
-      name: clinicName,
-      clinic_type_id: clinicTypeId,
-      owner_full_name: fullName,
-      owner_email: email,
-      owner_phone: ownerPhone,
-      status: 'active',
-    })
-    .select('id')
-    .single()
-
-  if (clinicError || !clinic) {
-    await supabase.auth.admin.deleteUser(authData.user.id).catch(() => {})
-    throw new Error('Failed to create clinic.')
-  }
-
-  // 4. Create subscription
-  const now = new Date()
-  const periodEnd = new Date(now)
-  const billingCycle = serial.plan_billing_cycle as string
-
-  if (billingCycle === 'yearly') {
-    periodEnd.setFullYear(periodEnd.getFullYear() + 1)
-  } else {
-    periodEnd.setMonth(periodEnd.getMonth() + 1)
-  }
-
-  const { error: subError } = await supabase
-    .from('clinic_subscriptions')
-    .insert({
-      clinic_id: clinic.id,
-      plan_id: serial.plan_id,
-      status: 'active',
-      price_locked_egp: serial.plan_price_egp,
-      current_period_start: now.toISOString(),
-      current_period_end: periodEnd.toISOString(),
-    })
-
-  if (subError) {
-    console.error('Subscription creation error:', subError)
-  }
-
-  // 5. Mark serial as used
-  const { error: serialError } = await supabase
-    .from('clinic_serials')
-    .update({
-      status: 'used',
-      clinic_id: clinic.id,
-      used_at: now.toISOString(),
-    })
-    .eq('code', serialCode.trim().toUpperCase())
-
-  if (serialError) {
-    console.error('Serial update error:', serialError)
-  }
-
-  // 6. Link staff member if exists
-  if (authData.user) {
-    try {
-      await supabase
-        .from('staff_members')
-        .update({ full_name: fullName, clinic_id: clinic.id, role: 'owner' })
-        .eq('auth_user_id', authData.user.id)
-    } catch {
-      // staff_members update is optional
+  // 3. Atomically create clinic + subscription + staff member + membership,
+  //    and mark the serial as used (SECURITY DEFINER, race-safe)
+  const { data: clinicId, error: claimError } = await supabase.rpc(
+    'claim_clinic_with_serial',
+    {
+      p_serial_code: serialCode.trim().toUpperCase(),
+      p_clinic_name: clinicName,
+      p_clinic_type_id: clinicTypeId,
+      p_owner_full_name: fullName,
+      p_owner_phone: ownerPhone,
     }
+  )
+
+  if (claimError || !clinicId) {
+    const admin = createAdminClient()
+    await admin.auth.admin.deleteUser(authData.user.id).catch(() => {})
+    throw new Error(claimError?.message || 'Failed to create clinic.')
   }
 
   revalidatePath('/')
@@ -159,10 +106,10 @@ export async function claimSerial(
     const { data: slugData } = await supabase
       .from('clinics')
       .select('slug')
-      .eq('id', clinic.id)
+      .eq('id', clinicId)
       .single()
 
-    const targetSlug = slugData?.slug || clinic.id
+    const targetSlug = slugData?.slug || clinicId
     redirect(`/${locale}/${targetSlug}`)
   } catch {
     // If slug lookup fails, go to clinic-switcher

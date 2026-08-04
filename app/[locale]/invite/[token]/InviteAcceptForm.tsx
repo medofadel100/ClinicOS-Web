@@ -71,7 +71,7 @@ export default function InviteAcceptForm({
   return (
     <div className="bg-card text-card-foreground rounded-xl border shadow-lg p-6 space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">Join {invite.clinics?.name}</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Join {invite.clinic_name}</h2>
         <p className="text-muted-foreground text-sm">
           You have been invited to join as a <span className="font-semibold capitalize">{invite.invited_role}</span>.
         </p>

@@ -8,17 +8,9 @@ export default async function InvitePage({
 }) {
   const supabase = createClient()
 
-  const { data: invite } = await supabase
-    .from('staff_invites')
-    .select(`
-      *,
-      clinics (
-        id,
-        name
-      )
-    `)
-    .eq('invite_token', token)
-    .single()
+  const { data: invite } = await supabase.rpc('get_invite_by_token', {
+    p_token: token
+  })
 
   if (!invite) {
     return (
