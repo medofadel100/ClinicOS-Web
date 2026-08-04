@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendMessage } from '@/lib/whatsapp-client'
 
 /**
@@ -12,7 +12,7 @@ export async function processWaitlistCancellation(
     scheduled_at: string
   }
 ) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
 
   // 1. Check if autofill is enabled
   const { data: config } = await supabase

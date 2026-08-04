@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendMessage } from '@/lib/whatsapp-client'
 import { buildSystemPrompt } from './prompt-builder'
 import { lookupPatientInfo, getAvailableSlots, bookAppointment, cancelAppointment } from './tools'
@@ -9,7 +9,7 @@ const openai = new OpenAI({
 })
 
 export async function handleAIMessage(clinicId: string, from: string, messageBody: string) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   
   // 1. Lookup Patient
   const { data: patient } = await supabase

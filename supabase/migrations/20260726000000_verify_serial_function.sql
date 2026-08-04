@@ -27,6 +27,8 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 SECURITY DEFINER
+SET search_path = public
+STABLE
 AS $$
   SELECT
     cs.id,

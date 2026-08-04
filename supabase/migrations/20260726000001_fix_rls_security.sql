@@ -150,11 +150,15 @@ DECLARE
   v_now timestamptz;
   v_period_end timestamptz;
   v_billing_cycle text;
+  v_owner_email text;
 BEGIN
   v_auth_uid := auth.uid();
   IF v_auth_uid IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
+
+  -- Fetch the owner email from auth.users (auth.email() is unreliable in SECURITY DEFINER)
+  SELECT email INTO v_owner_email FROM auth.users WHERE id = v_auth_uid;
 
   -- Lock + verify the serial (race-safe)
   SELECT cs.id, cs.plan_id, cs.code, p.billing_cycle, p.price_egp
@@ -175,7 +179,7 @@ BEGIN
   INSERT INTO public.clinics (
     name, clinic_type_id, owner_full_name, owner_email, owner_phone, status
   ) VALUES (
-    p_clinic_name, p_clinic_type_id, p_owner_full_name, auth.email(), p_owner_phone, 'active'
+    p_clinic_name, p_clinic_type_id, p_owner_full_name, v_owner_email, p_owner_phone, 'active'
   )
   RETURNING id INTO v_clinic_id;
 

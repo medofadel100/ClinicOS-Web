@@ -1,8 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
 import { sendMessage } from '@/lib/whatsapp-client'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
-export async function handleIncomingMedia(clinicId: string, from: string, mediaBase64: string, mimeType: string) {
-  const supabase = createClient()
+export async function handleIncomingMedia(clinicId: string, from: string, mediaBase64: string, mimeType: string, supabase: SupabaseClient) {
 
   // 1. Check if patient upload intake is enabled
   const { data: config } = await supabase

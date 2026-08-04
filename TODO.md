@@ -59,8 +59,23 @@
 ## ⏳ بانتظار التنفيذ
 
 - [ ] **تحديث Baileys service** (repo منفصل): إرسال `x-webhook-secret: <WHATSAPP_WEBHOOK_SECRET>` على كل POST إلى `/api/whatsapp/inbound`
-- [ ] **النشر (deploy)**: `git push` → Vercel (الـ env vars اتعملت فعلًا)
-- [ ] **(اختياري)** تشغيل الـ verify query للتأكد إن hardening SQL عدّى صح
+
+## ✅ تم إنجازه (أحدث الإضافات)
+
+- [x] Commit + push → `main` (`738e100`) → Vercel build تلقائي
+- [x] `tsc --noEmit` + `next lint` نظيفان (تحذيرات `any` مسبقة)
+- [x] **جولة 2.6 — إصلاح طبقة الـ bot كلها**: `rule-based.ts`, `ai/engine.ts`, `ai/tools.ts`, `prompt-builder.ts`, `waitlist-autofill.ts` + `media-handler.ts` تحوّلوا من `createClient()` (anon) إلى **service role client** — كانت كلها بتتستدعى من الـ webhook من غير session وكانت هتتسكر مع RLS
+- [x] `inbound/route.ts`: تعديل الـ admin client للـ media-handler + إصلاح تناقض `mimeType`/`_mimeType`
+- [x] SQL: `claim_clinic_with_serial` يجيب الإيميل من `auth.users` بدل `auth.email()` (موثوق في SECURITY DEFINER)
+- [x] SQL: `verify_serial_code` أضيف `SET search_path = public` + `STABLE`
+
+## ⏳ بانتظار التنفيذ
+
+- [ ] **إعادة تشغيل ملفين SQL في SQL Editor** (بعد تعديلات جولة 2.6):
+  - `20260726000000_verify_serial_function.sql` (search_path + STABLE)
+  - `20260726000001_fix_rls_security.sql` (claim function — email من auth.users)
+- [ ] **تحديث Baileys service** (repo منفصل): إرسال `x-webhook-secret: <WHATSAPP_WEBHOOK_SECRET>` على كل POST إلى `/api/whatsapp/inbound`
+- [ ] **Commit + push جولة 2.6** (الكود لسه في العمل)
 
 ---
 

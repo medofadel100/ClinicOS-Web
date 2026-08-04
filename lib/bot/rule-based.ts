@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendMessage } from '@/lib/whatsapp-client'
 
 export async function handleIncomingMessage(clinicId: string, from: string, messageBody: string) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   // Ensure the supabase client has the service role key for backend webhooks
   // Alternatively, use a service role client to bypass RLS for bot actions
   
@@ -187,7 +187,7 @@ export async function handleIncomingMessage(clinicId: string, from: string, mess
 }
 
 async function sendMenu(clinicId: string, to: string, patientName: string) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   const { data: options } = await supabase
     .from('whatsapp_menu_options')
     .select('*')
@@ -214,7 +214,7 @@ async function sendMenu(clinicId: string, to: string, patientName: string) {
 }
 
 async function updateState(clinicId: string, from: string, state: Record<string, unknown>) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   await supabase.from('whatsapp_conversation_states').upsert({
     clinic_id: clinicId,
     phone_number: from,

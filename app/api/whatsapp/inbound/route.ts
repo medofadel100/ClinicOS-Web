@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     }
 
     const payload = await req.json()
-    const { clinicId, from, message, mediaBase64, _mimeType } = payload
+    const { clinicId, from, message, mediaBase64 } = payload
 
     if (!clinicId || !from) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -41,9 +41,10 @@ export async function POST(req: Request) {
     }
 
     // Handle Media Messages
-    if (payload.mediaBase64 && payload.mimeType) {
+    const mimeType = payload.mimeType || payload._mimeType
+    if (payload.mediaBase64 && mimeType) {
       const { handleIncomingMedia } = await import('@/lib/bot/automations/media-handler')
-      await handleIncomingMedia(clinicId, from, payload.mediaBase64, payload.mimeType)
+      await handleIncomingMedia(clinicId, from, payload.mediaBase64, mimeType, supabase)
       return NextResponse.json({ success: true })
     }
 

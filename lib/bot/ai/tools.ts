@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function lookupPatientInfo(clinicId: string, patientId: string) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   const { data: apps } = await supabase
     .from('appointments')
     .select('id, scheduled_at, status, clinic_services(name_en), clinic_staff_memberships(staff_members(full_name))')
@@ -44,7 +44,7 @@ export async function getAvailableSlots(clinicId: string, doctorId: string, date
 }
 
 export async function bookAppointment(clinicId: string, patientId: string, doctorId: string, serviceId: string, datetimeStr: string) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   
   const { data, error } = await supabase.from('appointments').insert({
     clinic_id: clinicId,
@@ -66,7 +66,7 @@ export async function bookAppointment(clinicId: string, patientId: string, docto
 }
 
 export async function cancelAppointment(clinicId: string, patientId: string, appointmentId: string) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   
   // Need to fetch details first for the autofill trigger
   const { data: appToCancel } = await supabase.from('appointments')

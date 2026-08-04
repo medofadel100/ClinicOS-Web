@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function buildSystemPrompt(clinicId: string, patientName: string) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
 
   // 1. Fetch clinic bot config
   const { data: config } = await supabase
