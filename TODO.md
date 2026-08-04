@@ -58,7 +58,7 @@
 
 ## ⏳ بانتظار التنفيذ
 
-- [ ] **تحديث Baileys service** (repo منفصل): إرسال `x-webhook-secret: <WHATSAPP_WEBHOOK_SECRET>` على كل POST إلى `/api/whatsapp/inbound`
+- [x] **تحديث Baileys service** (repo منفصل): إرسال `x-webhook-secret: <WHATSAPP_WEBHOOK_SECRET>` على كل POST إلى `/api/whatsapp/inbound` — تم ✅ (انظر قسم WhatsApp Service أدناه)
 
 ## ✅ تم إنجازه (أحدث الإضافات)
 
@@ -83,7 +83,19 @@
 - [x] `lib/whatsapp-client.ts`: كل الـ requests بتبعث `x-api-key: WHATSAPP_API_KEY` + إصلاح `sendMessage` (يستخدم `recipient`/`message` بدل `to`/`text`)
 - [x] `.env.example` + `.env.local`: أُضيف `WHATSAPP_API_KEY=wapp-svc-fadel-2026` و`NEXT_PUBLIC_WHATSAPP_SERVICE_URL=https://whatsapp.smartx.business`
 - [x] حذف النسخة المناسخة `ClinicOS-WhatsApp-Service/` من Web repo (كانت بتكسر typecheck)
-- [ ] Vercel: أضف `WHATSAPP_API_KEY=wapp-svc-fadel-2026` + غيّر `NEXT_PUBLIC_WHATSAPP_SERVICE_URL` → `https://whatsapp.smartx.business` (يدويًا في dashboard)
+- [x] Vercel: أضيف `NEXT_PUBLIC_WHATSAPP_API_KEY=wapp-svc-fadel-2026` + `NEXT_PUBLIC_WHATSAPP_SERVICE_URL=https://whatsapp.smartx.business` + redeploy (عبر API) — ✅
+- [x] **إصلاح CORS** على الخدمة: middleware في `src/index.ts` + `CORS_ORIGINS=https://clinicoseg.vercel.app` في `.env` بالسيرفر → مسح الـ QR اشتغل ✅
+
+## 🐛 أخطاء اكتُشفت واتصلحت أثناء تشغيل QR
+
+| الخطأ | السبب | الإصلاح |
+|---|---|---|
+| CORS: No 'Access-Control-Allow-Origin' | الخدمة من غير middleware CORS | middleware + `CORS_ORIGINS` |
+| `//sessions` (double slash) في URL | trailing slash في الـ URL | `.replace(/\/+$/, '')` في `whatsapp-client.ts` |
+| `401 Unauthorized` من المتصفح | `WHATSAPP_API_KEY` مش `NEXT_PUBLIC_` فمش بتتخبز في الـ client bundle | `NEXT_PUBLIC_WHATSAPP_API_KEY` (اسم env + كود fallback) |
+| الـ Web بيشغل build قديم | PWA service worker cache | hard refresh / unregister SW |
+
+
 
 ---
 
