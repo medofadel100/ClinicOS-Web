@@ -5,8 +5,8 @@ import { handleAIMessage } from '@/lib/bot/ai/engine'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
-const BATCH_SIZE = Number(process.env.AI_CRON_BATCH_SIZE || 2)
-const SPACING_MS = Number(process.env.AI_CRON_SPACING_MS || 20000)
+const BATCH_SIZE = Math.max(1, Number(process.env.AI_CRON_BATCH_SIZE) || 2)
+const SPACING_MS = Math.max(0, Number(process.env.AI_CRON_SPACING_MS) || 20000)
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
