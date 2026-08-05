@@ -81,6 +81,7 @@ export async function updateAIConfig(
   clinicId: string,
   locale: string,
   updates: {
+    bot_name?: string
     personality?: 'friendly' | 'formal' | 'playful'
     custom_instructions?: string
   }
@@ -204,5 +205,69 @@ export async function updateAutomationSettings(
     throw new Error('Failed to update automation settings')
   }
 
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/whatsapp', 'page')
+}
+
+export async function getFollowupRules(clinicId: string) {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('service_followup_rules')
+    .select('*, clinic_services(name)')
+    .eq('clinic_id', clinicId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw new Error('Failed to load follow-up rules')
+  return data || []
+}
+
+export async function addFollowupRule(
+  clinicId: string,
+  locale: string,
+  serviceId: string,
+  followupAfterValue: number,
+  followupAfterUnit: 'hours' | 'days' | 'months',
+  messageTemplate: string
+) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('service_followup_rules')
+    .insert({
+      clinic_id: clinicId,
+      service_id: serviceId,
+      followup_after_value: followupAfterValue,
+      followup_after_unit: followupAfterUnit,
+      message_template: messageTemplate,
+      is_active: true
+    })
+
+  if (error) {
+    console.error(error)
+    throw new Error('Failed to add follow-up rule')
+  }
+
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/whatsapp', 'page')
+}
+
+export async function toggleFollowupRule(clinicId: string, locale: string, ruleId: string, isActive: boolean) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('service_followup_rules')
+    .update({ is_active: isActive })
+    .eq('id', ruleId)
+    .eq('clinic_id', clinicId)
+
+  if (error) throw new Error('Failed to update follow-up rule')
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/whatsapp', 'page')
+}
+
+export async function deleteFollowupRule(clinicId: string, locale: string, ruleId: string) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('service_followup_rules')
+    .delete()
+    .eq('id', ruleId)
+    .eq('clinic_id', clinicId)
+
+  if (error) throw new Error('Failed to delete follow-up rule')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/whatsapp', 'page')
 }

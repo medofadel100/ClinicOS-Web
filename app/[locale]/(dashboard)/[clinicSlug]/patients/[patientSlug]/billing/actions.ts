@@ -37,7 +37,13 @@ export async function createTreatmentPlan(
   patientId: string,
   title: string,
   totalPrice: number,
-  sessionCount: number
+  sessionCount: number,
+  services?: {
+    service_id: string
+    service_name?: string
+    quantity: number
+    unit_price_egp: number
+  }[]
 ) {
   const { supabase, staffMember } = await verifyAccess(clinicId)
 
@@ -56,6 +62,21 @@ export async function createTreatmentPlan(
     .single()
 
   if (planError) throw new Error('Failed to create plan')
+
+  // Insert the linked services breakdown (multi-service plans)
+  if (services && services.length > 0) {
+    const { error: servicesError } = await supabase
+      .from('treatment_plan_services')
+      .insert(services.map(s => ({
+        treatment_plan_id: plan.id,
+        service_id: s.service_id || null,
+        service_name: s.service_name || null,
+        quantity: s.quantity || 1,
+        unit_price_egp: s.unit_price_egp || 0
+      })))
+
+    if (servicesError) throw new Error('Failed to link services to plan')
+  }
 
   // Calculate session price (simple division for MVP)
   const sessionPrice = Number((totalPrice / sessionCount).toFixed(2))

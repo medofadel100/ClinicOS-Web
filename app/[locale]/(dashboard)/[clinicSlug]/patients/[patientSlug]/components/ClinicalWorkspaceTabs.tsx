@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import FreeTextReport from '@/modules/general/FreeTextReport'
+import VisitServicesPanel from './VisitServicesPanel'
 
 const DynamicClinicalModule = dynamic(() => import('./DynamicClinicalModule'), {
   ssr: false,
@@ -12,6 +13,17 @@ const DynamicClinicalModule = dynamic(() => import('./DynamicClinicalModule'), {
     </div>
   )
 })
+
+export type ServicesContext = {
+  patientName: string
+  patientPhone?: string | null
+  patientDisplayId?: string | null
+  clinicName: string
+  clinicAddress?: string | null
+  clinicPhone?: string | null
+  clinicEmail?: string | null
+  clinicOwnerName?: string | null
+}
 
 export default function ClinicalWorkspaceTabs({
   clinicTypeCode,
@@ -23,7 +35,8 @@ export default function ClinicalWorkspaceTabs({
   entitlements,
   clinicalData,
   clinicalHistory,
-  freeNotesData
+  freeNotesData,
+  servicesContext
 }: {
   clinicTypeCode: string
   clinicTypeName: string
@@ -39,8 +52,9 @@ export default function ClinicalWorkspaceTabs({
   clinicalHistory?: any[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   freeNotesData: any[]
+  servicesContext?: ServicesContext
 }) {
-  const [activeTab, setActiveTab] = useState<'module' | 'free'>('module')
+  const [activeTab, setActiveTab] = useState<'module' | 'free' | 'services'>('module')
 
   return (
     <div className="flex flex-col h-full">
@@ -69,6 +83,16 @@ export default function ClinicalWorkspaceTabs({
           >
             {isAr ? 'تقرير حر' : 'Free Notes'}
           </button>
+          <button
+            onClick={() => setActiveTab('services')}
+            className={`px-3 py-2.5 text-sm font-medium transition-colors rounded-t-lg ${
+              activeTab === 'services'
+                ? 'text-teal-300 border-b-2 border-teal-400'
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            {isAr ? 'الخدمات والفواتير' : 'Services & Invoices'}
+          </button>
         </div>
       </div>
 
@@ -83,6 +107,23 @@ export default function ClinicalWorkspaceTabs({
               entitlements={entitlements}
               initialData={clinicalData}
               initialHistory={clinicalHistory}
+            />
+          </div>
+        ) : activeTab === 'services' ? (
+          <div className="h-full w-full overflow-y-auto">
+            <VisitServicesPanel
+              clinicId={clinicId}
+              patientId={patientId}
+              locale={locale}
+              isAr={isAr}
+              patientName={servicesContext?.patientName || ''}
+              patientPhone={servicesContext?.patientPhone}
+              patientDisplayId={servicesContext?.patientDisplayId}
+              clinicName={servicesContext?.clinicName || ''}
+              clinicAddress={servicesContext?.clinicAddress}
+              clinicPhone={servicesContext?.clinicPhone}
+              clinicEmail={servicesContext?.clinicEmail}
+              clinicOwnerName={servicesContext?.clinicOwnerName}
             />
           </div>
         ) : (

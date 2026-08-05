@@ -4,6 +4,7 @@ import { Settings } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import StaffSettingsTab from './StaffSettingsTab'
 import ServicesTab from './ServicesTab'
+import DoctorsTab from './DoctorsTab'
 import EditClinicDialog from './EditClinicDialog'
 import UpdateEmailDialog from './UpdateEmailDialog'
 import ChangeClinicTypeDialog from './ChangeClinicTypeDialog'
@@ -79,6 +80,16 @@ export default async function SettingsPage({
     .eq('clinic_id', clinicId)
     .order('created_at', { ascending: false })
 
+  // Fetch doctors (doctor profiles) + all staff for the "add doctor" picker
+  const { data: doctorProfiles } = await supabase
+    .from('doctor_profiles')
+    .select('id, specialty, bio, staff_members ( id, full_name )')
+    .eq('clinic_id', clinicId)
+
+  const { data: allStaff } = await supabase
+    .from('staff_members')
+    .select('id, full_name')
+
   // Fetch service categories with services
   const { data: serviceCategories } = await supabase
     .from('service_categories')
@@ -91,6 +102,8 @@ export default async function SettingsPage({
   const typedStaff = (staffMemberships || []) as any[]
   const typedInvites = (staffInvites || []) as any[]
   const typedCategories = (serviceCategories || []) as any[]
+  const typedDoctors = (doctorProfiles || []) as any[]
+  const typedAvailableStaff = (allStaff || []) as any[]
 
   // Fetch clinic logo
   const { data: logoSetting } = await supabase
@@ -168,6 +181,7 @@ export default async function SettingsPage({
         {[
           { id: 'general', label: t.general, dot: 'bg-teal-400' },
           { id: 'staff', label: t.staff, dot: 'bg-violet-400' },
+          { id: 'doctors', label: isAr ? 'الأطباء' : 'Doctors', dot: 'bg-amber-400' },
           { id: 'services', label: t.services, dot: 'bg-blue-400' },
           { id: 'billing', label: t.billing, dot: 'bg-green-400' },
           { id: 'paper', label: isAr ? 'شكل الورقة' : 'Paper', dot: 'bg-indigo-400' },
@@ -200,6 +214,7 @@ export default async function SettingsPage({
           {[
             { id: 'general', label: t.general, dot: 'bg-teal-400' },
             { id: 'staff', label: t.staff, dot: 'bg-violet-400' },
+            { id: 'doctors', label: isAr ? 'الأطباء' : 'Doctors', dot: 'bg-amber-400' },
             { id: 'services', label: t.services, dot: 'bg-blue-400' },
             { id: 'billing', label: t.billing, dot: 'bg-green-400' },
             { id: 'paper', label: isAr ? 'شكل الورقة' : 'Paper Format', dot: 'bg-indigo-400' },
@@ -331,6 +346,15 @@ export default async function SettingsPage({
                 locale={locale}
               />
             </PremiumCard>
+          </div>
+
+          {/* Doctors Section */}
+          <div id="doctors">
+            <DoctorsTab
+              clinicId={clinicId}
+              initialData={typedDoctors}
+              availableStaff={typedAvailableStaff}
+            />
           </div>
 
           {/* Services Section */}

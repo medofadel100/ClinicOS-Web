@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sendMessage } from '@/lib/whatsapp-client'
 
 async function verifyAccess(clinicId: string) {
   const supabase = createClient()
@@ -281,4 +282,77 @@ export async function getPrescriptionTemplates(clinicId: string) {
 
   if (error) throw error
   return data
+}
+
+/**
+ * Sends a prescription to the patient's WhatsApp through the clinic's
+ * connected WhatsApp session (the real send API, not just a wa.me deep link).
+ */
+export async function sendPrescriptionWhatsApp(clinicId: string, locale: string, prescriptionId: string) {
+  const { supabase } = await verifyAccess(clinicId)
+  const isAr = locale === 'ar'
+
+  const { data: rx, error: rxError } = await supabase
+    .from('patient_prescriptions')
+    .select(`
+      id, created_at, notes,
+      patients ( id, full_name, phone ),
+      staff_members ( full_name ),
+      patient_prescription_items (
+        dosage, frequency, timing, duration, instructions,
+        clinic_medications (
+          custom_brand_name,
+          custom_generic_name,
+          medications_global ( brand_name_ar, brand_name_en, generic_name )
+        )
+      )
+    `)
+    .eq('id', prescriptionId)
+    .eq('clinic_id', clinicId)
+    .single()
+
+  if (rxError || !rx) throw new Error('Prescription not found')
+
+  const patient: any = Array.isArray(rx.patients) ? rx.patients[0] : rx.patients
+  const phone = patient?.phone?.replace(/[^0-9+]/g, '') || ''
+  if (!phone) throw new Error(isAr ? 'لا يوجد رقم هاتف مسجل لهذا المريض' : 'No phone number on file for this patient')
+
+  const normalizePhone = (p: string): string => {
+    if (p.startsWith('+')) return p
+    if (p.startsWith('0020')) return `+${p.slice(2)}`
+    if (p.startsWith('0')) return `+20${p.slice(1)}`
+    return `+20${p}`
+  }
+
+  const doctorName = (Array.isArray(rx.staff_members) ? rx.staff_members[0] : rx.staff_members)?.full_name
+
+  const lines: string[] = []
+  lines.push('┌──────────────────────────┐')
+  lines.push('   Rosheta')
+  lines.push('└──────────────────────────┘')
+  lines.push('')
+  lines.push(isAr ? `المريض: ${patient?.full_name}` : `Patient: ${patient?.full_name}`)
+  lines.push(isAr ? `التاريخ: ${new Date(rx.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}` : `Date: ${new Date(rx.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}`)
+  if (doctorName) lines.push(isAr ? `الطبيب: ${doctorName}` : `Doctor: ${doctorName}`)
+  lines.push('')
+
+  rx.patient_prescription_items.forEach((item: any, i: number) => {
+    const med = item.clinic_medications
+    const global = med?.medications_global
+    const name = isAr ? (global?.brand_name_ar || global?.brand_name_en || med?.custom_brand_name || '') : (global?.brand_name_en || med?.custom_brand_name || '')
+    const generic = global?.generic_name || med?.custom_generic_name || ''
+    lines.push(`${i + 1}. ${name}${generic ? ` (${generic})` : ''}`)
+    if (item.dosage) lines.push(`   ${isAr ? 'الجرعة' : 'Dose'}: ${item.dosage}`)
+    if (item.frequency) lines.push(`   ${isAr ? 'التكرار' : 'Freq'}: ${item.frequency}`)
+    if (item.timing) lines.push(`   ${isAr ? 'التوقيت' : 'Timing'}: ${item.timing}`)
+    if (item.duration) lines.push(`   ${isAr ? 'المدة' : 'Duration'}: ${item.duration}`)
+    if (item.instructions) lines.push(`   ${isAr ? 'ملاحظة' : 'Note'}: ${item.instructions}`)
+    lines.push('')
+  })
+
+  if (rx.notes) lines.push(`${isAr ? 'ملاحظات: ' : 'Notes: '}${rx.notes}`)
+
+  await sendMessage(clinicId, normalizePhone(phone), lines.join('\n'))
+
+  return { success: true }
 }

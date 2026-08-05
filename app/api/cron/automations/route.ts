@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendMessage } from '@/lib/whatsapp-client'
+import { runServiceFollowups } from '@/lib/bot/automations/run-followups'
+
+export const dynamic = 'force-dynamic'
+export const maxDuration = 300
 
 export async function GET(req: Request) {
   // Validate CRON secret (required — fail closed)
@@ -112,7 +116,10 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, processed: configs.length })
+    // D. Service follow-up reminders (reuses the dedicated follow-ups logic)
+    const followupsResult = await runServiceFollowups()
+
+    return NextResponse.json({ success: true, processed: configs.length, followups: followupsResult })
   } catch (error) {
     console.error('Cron error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

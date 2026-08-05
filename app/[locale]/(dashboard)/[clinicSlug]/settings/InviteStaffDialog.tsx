@@ -116,7 +116,7 @@ export default function InviteStaffDialog({ clinicId, locale = 'en' }: { clinicI
     }, 200)
   }
 
-  const isPayrollRole = role === 'cleaner' || role === 'cafeteria' || role === 'other'
+  const isPayrollRole = role === 'other'
 
   return (
     <Dialog open={open} onOpenChange={(val) => val ? setOpen(val) : handleClose()}>
@@ -219,8 +219,8 @@ export default function InviteStaffDialog({ clinicId, locale = 'en' }: { clinicI
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cleaner">{t.cleaner}</SelectItem>
-                  <SelectItem value="cafeteria">{t.cafeteria}</SelectItem>
+                  <SelectItem value="other">{t.cleaner}</SelectItem>
+                  <SelectItem value="other">{t.cafeteria}</SelectItem>
                   <SelectItem value="other">{t.other}</SelectItem>
                 </SelectContent>
               </Select>

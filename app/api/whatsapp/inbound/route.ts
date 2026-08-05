@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { handleIncomingMessage } from '@/lib/bot/rule-based'
-import { handleAIMessage } from '@/lib/bot/ai/engine'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(req: Request) {
@@ -53,7 +52,15 @@ export async function POST(req: Request) {
       // but for Vercel serverless we generally must await otherwise the function exits.
       await handleIncomingMessage(clinicId, from, message)
     } else if (config.mode === 'ai') {
-      await handleAIMessage(clinicId, from, message)
+      // AI replies are queued and answered by the /api/cron/ai-replies scheduler.
+      // This keeps Gemini traffic paced under free-tier rate limits and avoids
+      // Vercel function timeouts on slow LLM calls.
+      await supabase.from('ai_reply_queue').insert({
+        clinic_id: clinicId,
+        phone_number: from,
+        message_body: message || null,
+        status: 'pending'
+      })
     }
 
     return NextResponse.json({ success: true })

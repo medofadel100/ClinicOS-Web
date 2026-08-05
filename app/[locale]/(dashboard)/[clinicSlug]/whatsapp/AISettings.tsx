@@ -20,8 +20,9 @@ export default function AISettings({
 }: {
   clinicId: string
   locale: string
-  initialConfig?: { personality: string | null; custom_instructions: string | null } | null
+  initialConfig?: { bot_name: string | null; personality: string | null; custom_instructions: string | null } | null
 }) {
+  const [botName, setBotName] = useState<string>(initialConfig?.bot_name || '')
   const [personality, setPersonality] = useState<string>(initialConfig?.personality || 'friendly')
   const [instructions, setInstructions] = useState<string>(initialConfig?.custom_instructions || '')
   const [saving, setSaving] = useState(false)
@@ -30,7 +31,7 @@ export default function AISettings({
   const handleSave = async () => {
     setSaving(true)
     try {
-      await updateAIConfig(clinicId, locale, { personality: personality as any, custom_instructions: instructions })
+      await updateAIConfig(clinicId, locale, { bot_name: botName, personality: personality as any, custom_instructions: instructions })
       toast.success(isAr ? 'تم حفظ إعدادات الذكاء الاصطناعي' : 'AI settings saved.')
     } catch {
       toast.error(isAr ? 'فشل في حفظ إعدادات الذكاء الاصطناعي' : 'Failed to save AI settings.')
@@ -46,6 +47,17 @@ export default function AISettings({
         <p className="text-sm text-slate-500 mt-0.5">{isAr ? 'خصص شخصية المساعد والتعليمات التي يتبعها.' : 'Customize the assistant\'s personality and the instructions it follows.'}</p>
       </div>
       <div className="space-y-5">
+        <div className="space-y-2">
+          <Label className="text-slate-200">{isAr ? 'اسم البوت' : 'Bot Name'}</Label>
+          <input
+            value={botName}
+            onChange={(e) => setBotName(e.target.value)}
+            placeholder={isAr ? 'مثال: مساعد عيادة د. أحمد' : 'e.g. Dr. Ahmed Clinic Assistant'}
+            className="w-full p-3 rounded-xl text-sm bg-black/20 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
+          />
+          <p className="text-xs text-slate-500">{isAr ? 'الاسم الذي يقدم به البوت نفسه للمرضى.' : 'The name the bot introduces itself with.'}</p>
+        </div>
+
         <div className="space-y-2">
           <Label className="text-slate-200">{isAr ? 'الشخصية' : 'Personality'}</Label>
           <div className="flex gap-3 flex-wrap">
@@ -74,7 +86,7 @@ export default function AISettings({
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
             placeholder={isAr ? 'مثال: تحويل المرضى لفرع المعادي، ساعات العمل من 10 صباحاً حتى 9 مساءً...' : 'e.g. Direct patients to the downtown branch, working hours 10am-9pm...'}
-            className="w-full p-3 rounded-xl text-sm bg-black/20 border border-white/10 text-white placeholder:text-slate-600 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all resize-none"
+            className="w-full p-3 rounded-xl text-sm bg-black/20 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all resize-none"
           />
         </div>
 

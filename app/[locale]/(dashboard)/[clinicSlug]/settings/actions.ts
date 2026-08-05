@@ -156,6 +156,19 @@ export async function upsertWorkingHours(clinicId: string, doctorProfileId: stri
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
+export async function getDoctorWorkingHours(clinicId: string, doctorProfileId: string) {
+  const supabase = await verifyOwner(clinicId)
+
+  const { data, error } = await supabase
+    .from('doctor_working_hours')
+    .select('id, day_of_week, start_time, end_time, is_active')
+    .eq('doctor_profile_id', doctorProfileId)
+    .order('day_of_week', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
 export async function createServiceCategory(clinicId: string, formData: FormData) {
   const supabase = await verifyOwner(clinicId)
   const name = formData.get('name') as string

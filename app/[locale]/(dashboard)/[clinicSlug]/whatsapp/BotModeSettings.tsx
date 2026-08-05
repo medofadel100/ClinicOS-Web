@@ -20,7 +20,7 @@ export default function BotModeSettings({
   locale: string
   hasAIBot: boolean
   initialMode: 'none' | 'rule_based' | 'ai'
-  initialAIConfig?: { personality: string | null; custom_instructions: string | null } | null
+  initialAIConfig?: { bot_name: string | null; personality: string | null; custom_instructions: string | null } | null
 }) {
   const [mode, setMode] = useState<'none' | 'rule_based' | 'ai'>(initialMode)
 

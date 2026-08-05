@@ -1,16 +1,53 @@
-import OpenAI from 'openai'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendMessage } from '@/lib/whatsapp-client'
 import { buildSystemPrompt } from './prompt-builder'
-import { lookupPatientInfo, getAvailableSlots, bookAppointment, cancelAppointment } from './tools'
+import { generateContent, type GeminiMessage } from './gemini-client'
+import {
+  lookupPatientInfo,
+  lookupMedicalHistory,
+  getAvailableSlots,
+  bookAppointment,
+  cancelAppointment,
+} from './tools'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'dummy_key_to_bypass_build_error'
-})
+const TOOL_PREFIX = 'TOOL_CALL:'
+const MAX_TOOL_ROUNDS = 3
+
+type ConversationState = {
+  systemPrompt?: string
+  messages: { role: 'user' | 'assistant' | 'system'; content: string }[]
+}
+
+const TOOL_FUNCTIONS: Record<string, (args: any, ctx: { clinicId: string; patientId: string }) => Promise<Record<string, unknown>>> = {
+  lookup_patient_info: async (_args, ctx) => lookupPatientInfo(ctx.clinicId, ctx.patientId),
+  lookup_medical_history: async (_args, ctx) => lookupMedicalHistory(ctx.clinicId, ctx.patientId),
+  get_available_slots: async (args, ctx) => getAvailableSlots(ctx.clinicId, args.doctorId, args.date),
+  book_appointment: async (args, ctx) => bookAppointment(ctx.clinicId, ctx.patientId, args.doctorId, args.serviceId, args.datetimeStr),
+  cancel_appointment: async (args, ctx) => cancelAppointment(ctx.clinicId, ctx.patientId, args.appointmentId),
+}
+
+function parseToolCall(text: string): { tool: string; args: any } | null {
+  const lines = text.split('\n')
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (trimmed.startsWith(TOOL_PREFIX)) {
+      const jsonStr = trimmed.slice(TOOL_PREFIX.length).trim()
+      try {
+        const parsed = JSON.parse(jsonStr)
+        if (parsed && typeof parsed.tool === 'string') {
+          return { tool: parsed.tool, args: parsed.args || {} }
+        }
+      } catch {
+        return null
+      }
+    }
+  }
+  return null
+}
 
 export async function handleAIMessage(clinicId: string, from: string, messageBody: string) {
   const supabase = createAdminClient()
-  
+
   // 1. Lookup Patient
   const { data: patient } = await supabase
     .from('patients')
@@ -21,8 +58,8 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
 
   if (!patient) {
     await sendMessage(
-      clinicId, 
-      from, 
+      clinicId,
+      from,
       "Welcome to the clinic! We don't have your number registered. Please call the clinic to register your file before using the automated assistant."
     )
     return
@@ -36,146 +73,77 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
     .eq('phone_number', from)
     .single()
 
-  let messages: OpenAI.Chat.ChatCompletionMessageParam[] = (stateData?.state?.messages || []) as OpenAI.Chat.ChatCompletionMessageParam[]
+  const state: ConversationState = (stateData?.state || { messages: [] }) as ConversationState
 
-  // If no history, we inject the dynamic system prompt
-  if (messages.length === 0) {
-    const systemPrompt = await buildSystemPrompt(clinicId, patient.full_name)
-    messages.push({ role: 'system', content: systemPrompt })
+  // If no history, build and cache the system prompt
+  if (!state.systemPrompt || state.messages.length === 0) {
+    state.systemPrompt = await buildSystemPrompt(clinicId, patient.full_name)
+    state.messages = []
   }
 
-  // Add user message
-  messages.push({ role: 'user', content: messageBody.trim() })
+  // 3. Add the incoming user message
+  state.messages.push({ role: 'user', content: messageBody.trim() })
 
-  // Define tools
-  const tools: OpenAI.Chat.ChatCompletionTool[] = [
-    {
-      type: 'function',
-      function: {
-        name: 'lookup_patient_info',
-        description: 'Get the upcoming appointments for the current patient.',
-        parameters: { type: 'object', properties: {} }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'get_available_slots',
-        description: 'Check available time slots for a specific doctor on a specific date.',
-        parameters: {
-          type: 'object',
-          properties: {
-            doctorId: { type: 'string', description: 'The UUID of the doctor' },
-            date: { type: 'string', description: 'The date to check in YYYY-MM-DD format' }
-          },
-          required: ['doctorId', 'date']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'book_appointment',
-        description: 'Book an appointment for the patient.',
-        parameters: {
-          type: 'object',
-          properties: {
-            doctorId: { type: 'string' },
-            serviceId: { type: 'string' },
-            datetimeStr: { type: 'string', description: 'The ISO datetime string for the appointment (e.g. 2026-07-15T10:00:00Z)' }
-          },
-          required: ['doctorId', 'serviceId', 'datetimeStr']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'cancel_appointment',
-        description: 'Cancel an upcoming appointment.',
-        parameters: {
-          type: 'object',
-          properties: {
-            appointmentId: { type: 'string', description: 'The UUID of the appointment to cancel' }
-          },
-          required: ['appointmentId']
-        }
-      }
-    }
-  ]
+  let finalReply: string | null = null
 
-  // 3. Call LLM
   try {
-    let response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages,
-      tools,
-      tool_choice: 'auto'
-    })
+    // 4. Run the conversation loop with tool calls
+    for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
+      const messages: GeminiMessage[] = state.messages.map(m => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content,
+      }))
 
-    let message = response.choices[0].message
-    messages.push(message)
+      const reply = await generateContent({
+        systemPrompt: state.systemPrompt,
+        messages,
+        allowWait: false,
+      })
 
-    // Handle tool calls
-    if (message.tool_calls) {
-      for (const toolCall of message.tool_calls) {
-        const func = (toolCall as OpenAI.Chat.Completions.ChatCompletionMessageToolCall & { function?: { name: string; arguments: string } }).function
-        const name = func?.name ?? ''
-        const args = JSON.parse(func?.arguments ?? '{}') as Record<string, string>
-        
-        let toolResult: Record<string, unknown> = {}
+      const toolCall = parseToolCall(reply)
 
+      if (toolCall && toolCall.tool in TOOL_FUNCTIONS) {
+        let result: Record<string, unknown>
         try {
-          if (name === 'lookup_patient_info') {
-            toolResult = await lookupPatientInfo(clinicId, patient.id)
-          } else if (name === 'get_available_slots') {
-            toolResult = await getAvailableSlots(clinicId, args.doctorId, args.date)
-          } else if (name === 'book_appointment') {
-            toolResult = await bookAppointment(clinicId, patient.id, args.doctorId, args.serviceId, args.datetimeStr)
-          } else if (name === 'cancel_appointment') {
-            toolResult = await cancelAppointment(clinicId, patient.id, args.appointmentId)
-          }
+          result = await TOOL_FUNCTIONS[toolCall.tool](toolCall.args, { clinicId, patientId: patient.id })
         } catch (e: unknown) {
-          toolResult = { error: e instanceof Error ? e.message : 'Unknown error' }
+          result = { error: e instanceof Error ? e.message : 'Unknown error' }
         }
 
-        messages.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(toolResult)
+        state.messages.push({ role: 'assistant', content: reply })
+        state.messages.push({
+          role: 'user',
+          content: `[Tool result for ${toolCall.tool}]: ${JSON.stringify(result)}`,
         })
+        continue
       }
 
-      // Call LLM again to get natural language response based on tool output
-      response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages
-      })
-      
-      message = response.choices[0].message
-      messages.push(message)
+      // No tool call - this is the final reply
+      finalReply = reply
+      state.messages.push({ role: 'assistant', content: reply })
+      break
     }
-
-    // 4. Send the final response to WhatsApp
-    if (message.content) {
-      await sendMessage(clinicId, from, message.content)
-    }
-
-    // Keep only the last 20 messages to avoid context bloat
-    if (messages.length > 20) {
-      messages = [messages[0], ...messages.slice(messages.length - 19)]
-    }
-
-    // 5. Save State
-    await supabase.from('whatsapp_conversation_states').upsert({
-      clinic_id: clinicId,
-      phone_number: from,
-      state: { messages },
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'clinic_id, phone_number' })
-
   } catch (err) {
-    console.error('LLM Error:', err)
-    await sendMessage(clinicId, from, "Sorry, I'm having trouble thinking right now. Please try again later or call the clinic.")
+    console.error('Gemini Error:', err)
+    finalReply =
+      "Sorry, I'm having trouble thinking right now. Please try again later or call the clinic."
   }
+
+  // 5. Send the final response to WhatsApp
+  if (finalReply) {
+    await sendMessage(clinicId, from, finalReply)
+  }
+
+  // Keep only the last 24 messages to avoid context bloat
+  if (state.messages.length > 24) {
+    state.messages = state.messages.slice(state.messages.length - 24)
+  }
+
+  // 6. Save State
+  await supabase.from('whatsapp_conversation_states').upsert({
+    clinic_id: clinicId,
+    phone_number: from,
+    state,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'clinic_id, phone_number' })
 }

@@ -104,6 +104,7 @@ export default async function PatientPrescriptionsPage({
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-slate-400">Dr. {rx.staff_members?.full_name}</span>
                       <PrescriptionActions
+                        clinicId={clinicId}
                         prescription={rx}
                         patientName={patientFull?.full_name || patient.full_name}
                         patientPhone={patientFull?.phone}

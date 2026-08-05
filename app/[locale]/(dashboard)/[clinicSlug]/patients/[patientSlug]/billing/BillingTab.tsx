@@ -52,6 +52,7 @@ export default function BillingTab({
   clinicPhone,
   clinicEmail,
   clinicOwnerName,
+  services,
 }: {
   clinicId: string
   locale: string
@@ -65,6 +66,7 @@ export default function BillingTab({
   clinicPhone: string | null
   clinicEmail: string | null
   clinicOwnerName: string | null
+  services: { id: string; name: string; price: number }[]
 }) {
   const _params = useParams()
   const [plans, _setPlans] = useState(initialPlans)
@@ -147,7 +149,7 @@ export default function BillingTab({
           </div>
           <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <RecordPaymentDialog clinicId={clinicId} locale={locale} patientId={patientId} />
-            <CreatePlanDialog clinicId={clinicId} locale={locale} patientId={patientId} />
+            <CreatePlanDialog clinicId={clinicId} locale={locale} patientId={patientId} services={services} />
           </div>
         </div>
 

@@ -53,6 +53,12 @@ export default async function PatientBillingPage({
     .eq('clinic_id', clinicId)
     .single()
 
+  const { data: clinicServices } = await supabase
+    .from('clinic_services')
+    .select('id, name, price')
+    .eq('clinic_id', clinicId)
+    .order('name', { ascending: true })
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <PageHeader
@@ -77,6 +83,7 @@ export default async function PatientBillingPage({
           clinicPhone={clinicSettings?.contact_phone ?? null}
           clinicEmail={clinicSettings?.contact_email ?? null}
           clinicOwnerName={clinic?.owner_full_name ?? null}
+          services={clinicServices || []}
         />
       </PremiumCard>
     </div>

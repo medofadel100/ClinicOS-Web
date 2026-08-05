@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Printer, MessageCircle, Download } from 'lucide-react'
+import { Printer, MessageCircle, Download, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { generatePrescriptionPDF } from '@/lib/prescription-pdf'
+import { buildPrescriptionDocumentHtml, generatePrescriptionPDF } from '@/lib/prescription-pdf'
+import { sendPrescriptionWhatsApp } from './actions'
 
 type PrescriptionItem = {
   id: string
@@ -32,6 +33,7 @@ type Prescription = {
 }
 
 export default function PrescriptionActions({
+  clinicId,
   prescription,
   patientName,
   patientPhone,
@@ -41,6 +43,7 @@ export default function PrescriptionActions({
   clinicLogo,
   isAr
 }: {
+  clinicId: string
   prescription: Prescription
   patientName: string
   patientPhone?: string
@@ -50,105 +53,59 @@ export default function PrescriptionActions({
   clinicLogo?: string | null
   isAr: boolean
 }) {
-  const [downloading, setDownloading] = useState(false)
+  const [busy, setBusy] = useState<'pdf' | 'whatsapp' | null>(null)
 
-  const formatPrescriptionText = () => {
-    const lines: string[] = []
-    lines.push(`═══════════════════════════════`)
-    lines.push(`${clinicName || 'Clinic'}`)
-    lines.push(`═══════════════════════════════`)
-    lines.push(``)
-    lines.push(`${isAr ? 'المريض' : 'Patient'}: ${patientName}${patientAge ? ` (${isAr ? 'العمر' : 'Age'}: ${patientAge})` : ''}`)
-    lines.push(`${isAr ? 'التاريخ' : 'Date'}: ${new Date(prescription.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}`)
-    if (doctorName) lines.push(`${isAr ? 'الطبيب' : 'Doctor'}: ${doctorName}`)
-    lines.push(``)
-    lines.push(`───────────────────────────────`)
-    lines.push(`${isAr ? 'الروشتة' : 'Prescription (Rx)'}`)
-    lines.push(`───────────────────────────────`)
-    lines.push(``)
-
-    prescription.patient_prescription_items.forEach((item, i) => {
-      const med = item.clinic_medications
-      const global = med?.medications_global
-      const name = global?.brand_name_en || med?.custom_brand_name || 'Medication'
-      const generic = global?.generic_name || med?.custom_generic_name || ''
-      lines.push(`${i + 1}. ${name}${generic ? ` (${generic})` : ''}`)
-      if (item.dosage) lines.push(`   ${isAr ? 'الجرعة' : 'Dose'}: ${item.dosage}`)
-      if (item.frequency) lines.push(`   ${isAr ? 'التكرار' : 'Freq'}: ${item.frequency}`)
-      if (item.timing) lines.push(`   ${isAr ? 'التوقيت' : 'Timing'}: ${item.timing}`)
-      if (item.duration) lines.push(`   ${isAr ? 'المدة' : 'Duration'}: ${item.duration}`)
-      if (item.instructions) lines.push(`   ${isAr ? 'ملاحظة' : 'Note'}: ${item.instructions}`)
-      lines.push(``)
-    })
-
-    if (prescription.notes) {
-      lines.push(`───────────────────────────────`)
-      lines.push(`${isAr ? 'ملاحظات' : 'Notes'}: ${prescription.notes}`)
-    }
-
-    lines.push(``)
-    lines.push(`═══════════════════════════════`)
-    return lines.join('\n')
+  const printParams = {
+    prescription,
+    patientName,
+    patientAge,
+    doctorName,
+    clinicName,
+    clinicLogo,
+    isAr,
   }
 
   const handlePrint = () => {
-    const text = formatPrescriptionText()
     const printWindow = window.open('', '_blank')
     if (!printWindow) return
-
-    printWindow.document.write(`
-      <html>
-      <head>
-        <title>${isAr ? 'روشتة' : 'Prescription'} - ${patientName}</title>
-        <style>
-          body { font-family: 'Courier New', monospace; padding: 40px; font-size: 14px; line-height: 1.6; color: #000; }
-          pre { white-space: pre-wrap; margin: 0; }
-          .logo { text-align: center; margin-bottom: 16px; }
-          .logo img { max-height: 80px; max-width: 200px; object-fit: contain; }
-        </style>
-      </head>
-      <body>
-        ${clinicLogo ? `<div class="logo"><img src="${clinicLogo}" alt="Logo" /></div>` : ''}
-        <pre>${text}</pre>
-      </body>
-      </html>
-    `)
+    printWindow.document.write(buildPrescriptionDocumentHtml(printParams))
     printWindow.document.close()
+    printWindow.focus()
     printWindow.print()
   }
 
   const handleDownloadPDF = async () => {
-    setDownloading(true)
+    setBusy('pdf')
     try {
-      const doc = generatePrescriptionPDF({
-        prescription,
-        patientName,
-        patientAge,
-        doctorName,
-        clinicName,
-        isAr,
-      })
+      const doc = await generatePrescriptionPDF(printParams)
       const rxId = prescription.id.slice(0, 8).toUpperCase()
       doc.save(`Rx-${rxId}.pdf`)
       toast.success(isAr ? 'تم تحميل الروشتة' : 'Prescription downloaded')
     } catch {
       toast.error(isAr ? 'فشل في إنشاء الروشتة' : 'Failed to generate prescription')
     } finally {
-      setDownloading(false)
+      setBusy(null)
     }
   }
 
-  const handleWhatsApp = () => {
-    const text = formatPrescriptionText()
-    const encoded = encodeURIComponent(text)
-    let phone = patientPhone?.replace(/[^0-9+]/g, '') || ''
-    if (phone && !phone.startsWith('+')) {
-      phone = `+20${phone}`
+  const handleWhatsApp = async () => {
+    if (!patientPhone) {
+      toast.error(isAr ? 'لا يوجد رقم هاتف مسجل لهذا المريض' : 'No phone number on file for this patient')
+      return
     }
-    const url = phone
-      ? `https://wa.me/${phone.replace('+', '')}?text=${encoded}`
-      : `https://wa.me/?text=${encoded}`
-    window.open(url, '_blank')
+    setBusy('whatsapp')
+    try {
+      await sendPrescriptionWhatsApp(
+        clinicId,
+        isAr ? 'ar' : 'en',
+        prescription.id
+      )
+      toast.success(isAr ? 'تم إرسال الروشتة عبر واتساب' : 'Prescription sent via WhatsApp')
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل في إرسال الروشتة' : 'Failed to send prescription'))
+    } finally {
+      setBusy(null)
+    }
   }
 
   return (
@@ -163,19 +120,20 @@ export default function PrescriptionActions({
       </button>
       <button
         onClick={handleDownloadPDF}
-        disabled={downloading}
+        disabled={busy === 'pdf'}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-violet-500/15 hover:bg-violet-500/25 text-violet-400 border border-violet-500/25 disabled:opacity-50"
         title={isAr ? 'تحميل PDF' : 'Download PDF'}
       >
-        <Download className="w-3.5 h-3.5" />
-        {downloading ? (isAr ? 'جاري...' : '...') : 'PDF'}
+        {busy === 'pdf' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+        {busy === 'pdf' ? (isAr ? 'جاري...' : '...') : 'PDF'}
       </button>
       <button
         onClick={handleWhatsApp}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-green-500/15 hover:bg-green-500/25 text-green-400 border border-green-500/25"
-        title={isAr ? 'إرسال واتساب' : 'Send via WhatsApp'}
+        disabled={busy === 'whatsapp'}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-green-500/15 hover:bg-green-500/25 text-green-400 border border-green-500/25 disabled:opacity-50"
+        title={isAr ? 'إرسال عبر الواتساب' : 'Send via WhatsApp'}
       >
-        <MessageCircle className="w-3.5 h-3.5" />
+        {busy === 'whatsapp' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageCircle className="w-3.5 h-3.5" />}
         WhatsApp
       </button>
     </div>

@@ -3,7 +3,8 @@ import { sendMessage } from '@/lib/whatsapp-client'
 
 /**
  * Triggered when an appointment is cancelled.
- * Looks for patients on the waitlist for this doctor and date, and offers them the slot.
+ * Looks for patients on the waitlist (patient_waitlist) for this doctor and date,
+ * and offers them the freed slot.
  */
 export async function processWaitlistCancellation(
   clinicId: string,
@@ -25,14 +26,15 @@ export async function processWaitlistCancellation(
 
   const dateStr = cancelledAppointment.scheduled_at.split('T')[0] // YYYY-MM-DD
 
-  // 2. Find waiting patients
+  // 2. Find waiting patients whose desired date range covers the freed slot
   const { data: waiting } = await supabase
-    .from('appointments_waitlist')
+    .from('patient_waitlist')
     .select('id, patients(id, phone, full_name)')
     .eq('clinic_id', clinicId)
     .eq('membership_id', cancelledAppointment.membership_id)
-    .eq('preferred_date', dateStr)
     .eq('status', 'waiting')
+    .lte('desired_from', dateStr)
+    .gte('desired_to', dateStr)
     .order('created_at', { ascending: true }) // First come, first served
     .limit(1)
 
@@ -40,10 +42,10 @@ export async function processWaitlistCancellation(
     const waitlistEntry = waiting[0]
     const patient = (Array.isArray(waitlistEntry.patients) ? waitlistEntry.patients[0] : waitlistEntry.patients) as { phone?: string; full_name?: string } | null;
     const patientPhone = patient?.phone;
-    
+
     if (patientPhone) {
       const timeStr = new Date(cancelledAppointment.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      
+
       // Send offer
       await sendMessage(
         clinicId,
@@ -53,12 +55,9 @@ export async function processWaitlistCancellation(
 
       // Update waitlist status to notified to prevent double-offering
       await supabase
-        .from('appointments_waitlist')
+        .from('patient_waitlist')
         .update({ status: 'notified' })
         .eq('id', waitlistEntry.id)
-        
-      // We would theoretically also update conversation state here to expect a YES/NO, 
-      // but for Checkpoint 14 we just prove the outgoing automation triggers.
     }
   }
 }

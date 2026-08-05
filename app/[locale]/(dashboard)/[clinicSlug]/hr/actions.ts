@@ -3,6 +3,124 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
+async function requireOwnerOrAdmin(clinicId: string) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: staffMember } = await supabase
+    .from('staff_members')
+    .select('id')
+    .eq('auth_user_id', user.id)
+    .single()
+
+  if (!staffMember) throw new Error('Unauthorized')
+
+  const { data: membership } = await supabase
+    .from('clinic_staff_memberships')
+    .select('role')
+    .eq('staff_member_id', staffMember.id)
+    .eq('clinic_id', clinicId)
+    .eq('is_active', true)
+    .single()
+
+  if (!membership || (membership.role !== 'owner' && membership.role !== 'admin')) {
+    throw new Error('Forbidden: Requires Owner or Admin access')
+  }
+
+  return supabase
+}
+
+export async function getClinicTeams(clinicId: string) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: staffMember } = await supabase
+    .from('staff_members')
+    .select('id')
+    .eq('auth_user_id', user.id)
+    .single()
+
+  if (!staffMember) throw new Error('Unauthorized')
+
+  const { data: membership } = await supabase
+    .from('clinic_staff_memberships')
+    .select('id')
+    .eq('staff_member_id', staffMember.id)
+    .eq('clinic_id', clinicId)
+    .eq('is_active', true)
+    .single()
+
+  if (!membership) throw new Error('Forbidden')
+
+  const { data: teams, error } = await supabase
+    .from('staff_teams')
+    .select(`
+      id, name, description, created_at,
+      team_members (
+        id,
+        staff_member_id,
+        staff_members ( id, full_name )
+      )
+    `)
+    .eq('clinic_id', clinicId)
+    .order('name')
+
+  if (error) throw error
+  return teams || []
+}
+
+export async function createTeam(clinicId: string, name: string, description?: string) {
+  const supabase = await requireOwnerOrAdmin(clinicId)
+  const { error } = await supabase
+    .from('staff_teams')
+    .insert({ clinic_id: clinicId, name, description: description || null })
+
+  if (error) throw error
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/hr', 'page')
+}
+
+export async function deleteTeam(clinicId: string, teamId: string) {
+  const supabase = await requireOwnerOrAdmin(clinicId)
+  const { error } = await supabase
+    .from('staff_teams')
+    .delete()
+    .eq('id', teamId)
+    .eq('clinic_id', clinicId)
+
+  if (error) throw error
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/hr', 'page')
+}
+
+export async function setTeamMembers(clinicId: string, teamId: string, staffMemberIds: string[]) {
+  const supabase = await requireOwnerOrAdmin(clinicId)
+
+  const { data: team, error: teamErr } = await supabase
+    .from('staff_teams')
+    .select('id')
+    .eq('id', teamId)
+    .eq('clinic_id', clinicId)
+    .single()
+  if (teamErr || !team) throw new Error('Team not found')
+
+  const { error: delErr } = await supabase
+    .from('team_members')
+    .delete()
+    .eq('team_id', teamId)
+  if (delErr) throw delErr
+
+  if (staffMemberIds.length > 0) {
+    const rows = staffMemberIds.map(staff_member_id => ({ team_id: teamId, staff_member_id }))
+    const { error: insErr } = await supabase
+      .from('team_members')
+      .insert(rows)
+    if (insErr) throw insErr
+  }
+
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/hr', 'page')
+}
+
 export async function recordAttendance(clinicId: string, locale: string, action: 'check_in' | 'check_out') {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()

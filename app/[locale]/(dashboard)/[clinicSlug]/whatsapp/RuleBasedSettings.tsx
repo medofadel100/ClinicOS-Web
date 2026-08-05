@@ -105,7 +105,7 @@ export default function RuleBasedSettings({
                     onChange={e => setNewEn(e.target.value)}
                     placeholder="e.g. Directions"
                     required
-                    className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white placeholder:text-slate-600 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
+                    className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
@@ -115,7 +115,7 @@ export default function RuleBasedSettings({
                     onChange={e => setNewAr(e.target.value)}
                     placeholder="e.g. العنوان"
                     required
-                    className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white placeholder:text-slate-600 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
+                    className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
                   />
                 </div>
               </div>
@@ -126,7 +126,7 @@ export default function RuleBasedSettings({
                   onChange={e => setNewResponse(e.target.value)}
                   placeholder={isAr ? 'الرسالة المرسلة عند اختيار هذا الخيار' : 'The message sent when they choose this option'}
                   required
-                  className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white placeholder:text-slate-600 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
+                  className="w-full h-10 px-3 rounded-lg text-sm bg-black/20 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
                 />
               </div>
               <button

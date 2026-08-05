@@ -7,6 +7,7 @@ import AttendanceTracker from './AttendanceTracker'
 import GeneratePayrollDialog from './GeneratePayrollDialog'
 import RequestLeaveDialog from './RequestLeaveDialog'
 import MarkPayrollPaidButton from './MarkPayrollPaidButton'
+import TeamsManager from './TeamsManager'
 import type { AttendanceRecord, PayrollRun } from '@/types'
 
 export default async function HRDashboard({
@@ -22,6 +23,7 @@ export default async function HRDashboard({
   let staffDirectory: any[] = []
   let attendanceRecords: AttendanceRecord[] = []
   let payrollRuns: PayrollRun[] = []
+  let staffTeams: any[] = []
 
   try {
     const { data: directoryData } = await supabase
@@ -30,6 +32,21 @@ export default async function HRDashboard({
       .eq('clinic_id', clinicId)
 
     if (directoryData) staffDirectory = directoryData
+
+    const { data: teamsData } = await supabase
+      .from('staff_teams')
+      .select(`
+        id, name, description, created_at,
+        team_members (
+          id,
+          staff_member_id,
+          staff_members ( id, full_name )
+        )
+      `)
+      .eq('clinic_id', clinicId)
+      .order('name')
+
+    if (teamsData) staffTeams = teamsData
 
     const { data: attendanceData } = await supabase
       .from('staff_attendance')
@@ -167,13 +184,24 @@ export default async function HRDashboard({
               ) : staffDirectory.map((staff, i) => (
                 <tr key={staff.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < staffDirectory.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <td className="px-5 py-4 text-sm font-semibold text-slate-200 max-w-[200px] truncate">{staff.staff_members?.full_name || 'Unknown'}</td>
-                  <td className="px-5 py-4 text-sm text-slate-400 capitalize">{staff.role === 'owner' ? (isAr ? 'المالك' : 'Owner') : staff.role === 'admin' ? (isAr ? 'مدير' : 'Admin') : staff.role === 'doctor' ? (isAr ? 'طبيب' : 'Doctor') : staff.role === 'receptionist' ? (isAr ? 'موظفة استقبال' : 'Receptionist') : staff.role}</td>
+                  <td className="px-5 py-4 text-sm text-slate-400 capitalize">{staff.role === 'owner' ? (isAr ? 'المالك' : 'Owner') : staff.role === 'admin' ? (isAr ? 'مدير' : 'Admin') : staff.role === 'doctor' ? (isAr ? 'طبيب' : 'Doctor') : staff.role === 'reception' ? (isAr ? 'استقبال' : 'Reception') : staff.role === 'nurse' ? (isAr ? 'ممرض/ة' : 'Nurse') : staff.role === 'accountant' ? (isAr ? 'محاسب' : 'Accountant') : staff.role}</td>
                   <td className="px-5 py-4"><StatusBadge status={staff.is_active ? 'active' : 'inactive'} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </PremiumTableWrapper>
+      </div>
+
+      {/* Teams */}
+      <div className="space-y-3">
+        <TeamsManager
+          clinicId={clinicId}
+          isAr={isAr}
+          canManage={isFinanceAdmin}
+          staff={staffDirectory.map(d => ({ id: d.staff_members?.id, full_name: d.staff_members?.full_name })).filter(s => s.id)}
+          initialTeams={staffTeams}
+        />
       </div>
 
       {/* Attendance */}

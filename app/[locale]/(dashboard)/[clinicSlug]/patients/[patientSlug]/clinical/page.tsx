@@ -36,7 +36,7 @@ export default async function PatientClinicalPage({
 
   const { data: clinicData } = await supabase
     .from('clinics')
-    .select('clinic_types(code, name_en)')
+    .select('name, address, contact_phone, contact_email, owner_full_name, clinic_types(code, name_en)')
     .eq('id', clinicId)
     .single()
   
@@ -73,10 +73,12 @@ export default async function PatientClinicalPage({
       .eq('clinic_id', clinicId)
     clinicalData = data || []
   } else if (clinicTypeCode === 'ophthalmology') {
-    const { data } = await supabase.from('eye_examinations')
+    const { data } = await supabase.from('patient_clinical_notes')
       .select('*')
       .eq('patient_id', patient.id)
       .eq('clinic_id', clinicId)
+      .eq('note_type', 'ophthalmology_tracker')
+      .order('created_at', { ascending: false })
     clinicalData = data || []
   } else if (clinicTypeCode === 'obstetrics_gynecology') {
     const { data } = await supabase.from('obgyn_examinations')
@@ -85,11 +87,12 @@ export default async function PatientClinicalPage({
       .eq('clinic_id', clinicId)
     clinicalData = data || []
 
-  } else if (clinicTypeCode === 'general_medicine') {
-    const { data } = await supabase.from('general_medical_examinations')
+  } else if (clinicTypeCode === 'general_medicine' || clinicTypeCode === 'general_practice') {
+    const { data } = await supabase.from('patient_clinical_notes')
       .select('*')
       .eq('patient_id', patient.id)
       .eq('clinic_id', clinicId)
+      .eq('note_type', 'family_medicine_notes')
       .order('created_at', { ascending: false })
     clinicalData = data || []
   } else {
@@ -116,6 +119,8 @@ export default async function PatientClinicalPage({
       'physical_therapy': 'physical_therapy_notes',
       'gastroenterology': 'gastroenterology_notes',
       'psychology': 'psychology_session',
+      'general_practice': 'family_medicine_notes',
+      'medical_center': 'internal_medicine_notes',
     }
     const targetNoteType = noteTypeMap[clinicTypeCode || '']
 
@@ -161,6 +166,16 @@ export default async function PatientClinicalPage({
         clinicalData={clinicalData}
         clinicalHistory={clinicalHistory}
         freeNotesData={formattedFreeNotes}
+        servicesContext={{
+          patientName: patient.full_name,
+          patientPhone: patient.phone,
+          patientDisplayId: patient.display_id,
+          clinicName: clinicData?.name || '',
+          clinicAddress: clinicData?.address,
+          clinicPhone: clinicData?.contact_phone,
+          clinicEmail: clinicData?.contact_email,
+          clinicOwnerName: clinicData?.owner_full_name,
+        }}
       />
     </PremiumCard>
   )

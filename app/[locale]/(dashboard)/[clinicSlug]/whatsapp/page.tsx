@@ -7,6 +7,7 @@ import ConnectionManager from './ConnectionManager'
 import BotModeSettings from './BotModeSettings'
 import RuleBasedSettings from './RuleBasedSettings'
 import AutomationsSettings from './AutomationsSettings'
+import ServiceFollowupRules from './ServiceFollowupRules'
 import { requireClinicId } from "@/lib/utils/clinic";
 
 export default async function WhatsAppSettingsPage({
@@ -41,6 +42,12 @@ export default async function WhatsAppSettingsPage({
     .eq('clinic_id', clinicId)
     .single()
 
+  const { data: clinicServices } = await supabase
+    .from('clinic_services')
+    .select('id, name')
+    .eq('clinic_id', clinicId)
+    .order('name', { ascending: true })
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
       <PageHeader
@@ -63,7 +70,7 @@ export default async function WhatsAppSettingsPage({
         locale={locale}
         hasAIBot={hasAIBot}
         initialMode={config?.mode || 'none'}
-        initialAIConfig={config ? { personality: config.personality, custom_instructions: config.custom_instructions } : null}
+        initialAIConfig={config ? { bot_name: config.bot_name, personality: config.personality, custom_instructions: config.custom_instructions } : null}
       />
 
       {config?.mode === 'rule_based' && (
@@ -78,6 +85,12 @@ export default async function WhatsAppSettingsPage({
         clinicId={clinicId}
         locale={locale}
         initialSettings={automations}
+      />
+
+      <ServiceFollowupRules
+        clinicId={clinicId}
+        locale={locale}
+        services={clinicServices || []}
       />
     </div>
   )
