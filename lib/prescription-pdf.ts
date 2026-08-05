@@ -29,11 +29,12 @@ type PrescriptionData = {
 export function generatePrescriptionPDF(params: {
   prescription: PrescriptionData
   patientName: string
+  patientAge?: string | null
   doctorName?: string
   clinicName?: string
   isAr: boolean
 }): jsPDF {
-  const { prescription, patientName, doctorName, clinicName, isAr } = params
+  const { prescription, patientName, patientAge, doctorName, clinicName, isAr } = params
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
 
@@ -80,6 +81,13 @@ export function generatePrescriptionPDF(params: {
   doc.setTextColor(30, 41, 59)
   doc.setFont('helvetica', 'bold')
   doc.text(patientName, 15, y)
+  if (patientAge) {
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(120, 120, 140)
+    doc.text(`  (${isAr ? 'العمر' : 'Age'}: ${patientAge})`, 15 + doc.getTextWidth(patientName), y)
+    doc.setTextColor(30, 41, 59)
+    doc.setFont('helvetica', 'bold')
+  }
 
   if (doctorName) {
     doc.setFont('helvetica', 'normal')

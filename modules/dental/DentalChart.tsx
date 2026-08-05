@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { updateToothCondition, updateToothNotes } from './actions'
 import { Clock, StickyNote, X, Save, History } from 'lucide-react'
@@ -131,6 +131,24 @@ export default function DentalChart({
   const [notesDraft, setNotesDraft] = useState('')
   const [saving, setSaving] = useState(false)
   const isAr = locale === 'ar'
+
+  // Scale the whole arch to the available container width so all 32 teeth
+  // are always visible without horizontal scrolling.
+  const archRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  useEffect(() => {
+    const el = archRef.current
+    if (!el) return
+    const update = () => {
+      const available = el.clientWidth - 64 // accounts for px-8 (2 * 32px) padding
+      setScale(Math.min(1, available / TOTAL_W))
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const historyByTooth = initialHistory.reduce<Record<number, DentalHistoryEntry[]>>((acc, h) => {
     if (!acc[h.tooth_number]) acc[h.tooth_number] = []
@@ -277,27 +295,31 @@ export default function DentalChart({
         </p>
       </div>
 
-      <div className="overflow-x-auto bg-black/20 rounded-xl border border-white/5">
-        <div className="min-w-max mx-auto px-8 py-5">
+      <div className="overflow-x-auto bg-black/20 rounded-xl border border-white/5" ref={archRef}>
+        <div className="mx-auto px-8 py-5" style={{ width: TOTAL_W * scale }}>
 
           {/* Upper jaw */}
           <div className="flex flex-col items-center gap-1 mb-4">
             <div className="text-xs font-bold tracking-wider text-slate-400 uppercase">{isAr ? 'الفك العلوي' : 'Upper Jaw'}</div>
-            <div className="relative" style={{ width: TOTAL_W, height: CONTAINER_H }}>
-              <svg className="absolute inset-0 pointer-events-none" width={TOTAL_W} height={CONTAINER_H} style={{ overflow: 'visible' }}>
-                <path d={upperGum} fill="none" stroke="rgba(244,114,182,0.25)" strokeWidth={10} strokeLinecap="round" />
-              </svg>
-              {ARCH.upper.map(renderTooth)}
+            <div className="relative" style={{ width: TOTAL_W * scale, height: CONTAINER_H * scale }}>
+              <div className="relative" style={{ width: TOTAL_W, height: CONTAINER_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                <svg className="absolute inset-0 pointer-events-none" width={TOTAL_W} height={CONTAINER_H} style={{ overflow: 'visible' }}>
+                  <path d={upperGum} fill="none" stroke="rgba(244,114,182,0.25)" strokeWidth={10} strokeLinecap="round" />
+                </svg>
+                {ARCH.upper.map(renderTooth)}
+              </div>
             </div>
           </div>
 
           {/* Lower jaw */}
           <div className="flex flex-col items-center gap-1 mt-4">
-            <div className="relative" style={{ width: TOTAL_W, height: CONTAINER_H }}>
-              <svg className="absolute inset-0 pointer-events-none" width={TOTAL_W} height={CONTAINER_H} style={{ overflow: 'visible' }}>
-                <path d={lowerGum} fill="none" stroke="rgba(244,114,182,0.25)" strokeWidth={10} strokeLinecap="round" />
-              </svg>
-              {ARCH.lower.map(renderTooth)}
+            <div className="relative" style={{ width: TOTAL_W * scale, height: CONTAINER_H * scale }}>
+              <div className="relative" style={{ width: TOTAL_W, height: CONTAINER_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                <svg className="absolute inset-0 pointer-events-none" width={TOTAL_W} height={CONTAINER_H} style={{ overflow: 'visible' }}>
+                  <path d={lowerGum} fill="none" stroke="rgba(244,114,182,0.25)" strokeWidth={10} strokeLinecap="round" />
+                </svg>
+                {ARCH.lower.map(renderTooth)}
+              </div>
             </div>
             <div className="text-xs font-bold tracking-wider text-slate-400 uppercase mt-2">{isAr ? 'الفك السفلي' : 'Lower Jaw'}</div>
           </div>

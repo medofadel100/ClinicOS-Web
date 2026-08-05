@@ -35,6 +35,7 @@ export default function PrescriptionActions({
   prescription,
   patientName,
   patientPhone,
+  patientAge,
   doctorName,
   clinicName,
   clinicLogo,
@@ -43,6 +44,7 @@ export default function PrescriptionActions({
   prescription: Prescription
   patientName: string
   patientPhone?: string
+  patientAge?: string | null
   doctorName?: string
   clinicName?: string
   clinicLogo?: string | null
@@ -56,7 +58,7 @@ export default function PrescriptionActions({
     lines.push(`${clinicName || 'Clinic'}`)
     lines.push(`═══════════════════════════════`)
     lines.push(``)
-    lines.push(`${isAr ? 'المريض' : 'Patient'}: ${patientName}`)
+    lines.push(`${isAr ? 'المريض' : 'Patient'}: ${patientName}${patientAge ? ` (${isAr ? 'العمر' : 'Age'}: ${patientAge})` : ''}`)
     lines.push(`${isAr ? 'التاريخ' : 'Date'}: ${new Date(prescription.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}`)
     if (doctorName) lines.push(`${isAr ? 'الطبيب' : 'Doctor'}: ${doctorName}`)
     lines.push(``)
@@ -121,6 +123,7 @@ export default function PrescriptionActions({
       const doc = generatePrescriptionPDF({
         prescription,
         patientName,
+        patientAge,
         doctorName,
         clinicName,
         isAr,

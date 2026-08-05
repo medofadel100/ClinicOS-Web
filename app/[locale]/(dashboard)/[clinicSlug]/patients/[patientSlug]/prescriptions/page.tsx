@@ -38,9 +38,19 @@ export default async function PatientPrescriptionsPage({
   // Fetch patient phone for WhatsApp
   const { data: patientFull } = await supabase
     .from('patients')
-    .select('phone, full_name')
+    .select('phone, full_name, date_of_birth')
     .eq('id', patient.id)
     .single()
+
+  let patientAge: string | null = null
+  if (patientFull?.date_of_birth) {
+    const dob = new Date(patientFull.date_of_birth)
+    const today = new Date()
+    let y = today.getFullYear() - dob.getFullYear()
+    const m = today.getMonth() - dob.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) y--
+    patientAge = y.toString()
+  }
 
   // Fetch clinic name and logo for prescription print
   const { data: clinicData } = await supabase
@@ -97,6 +107,7 @@ export default async function PatientPrescriptionsPage({
                         prescription={rx}
                         patientName={patientFull?.full_name || patient.full_name}
                         patientPhone={patientFull?.phone}
+                        patientAge={patientAge}
                         doctorName={rx.staff_members?.full_name}
                         clinicName={clinicData?.name}
                         clinicLogo={logoSetting?.setting_value}
