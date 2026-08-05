@@ -6,6 +6,7 @@ import { requireClinicId } from "@/lib/utils/clinic"
 import AttendanceTracker from './AttendanceTracker'
 import GeneratePayrollDialog from './GeneratePayrollDialog'
 import RequestLeaveDialog from './RequestLeaveDialog'
+import MarkPayrollPaidButton from './MarkPayrollPaidButton'
 import type { AttendanceRecord, PayrollRun } from '@/types'
 
 export default async function HRDashboard({
@@ -204,27 +205,38 @@ export default async function HRDashboard({
         </PremiumTableWrapper>
       </div>
 
-      {/* Payroll */}
+        {/* Payroll */}
       <div className="space-y-3">
         <h2 className="text-base font-semibold text-slate-200">{isAr ? 'الرواتب' : 'Payroll'}</h2>
         <PremiumTableWrapper>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                {(isAr ? ['الفترة', 'الموظف', 'الراتب الأساسي', 'صافي الدفع', 'الحالة'] : ['Period', 'Staff Member', 'Base Salary', 'Net Pay', 'Status']).map(h => (
+                {(isAr ? ['الفترة', 'الموظف', 'الراتب الأساسي', 'صافي الدفع', 'الدفع', 'الحالة'] : ['Period', 'Staff Member', 'Base Salary', 'Net Pay', 'Payment', 'Status']).map(h => (
                   <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {!payrollRuns.length ? (
-                <tr><td colSpan={5}><EmptyState icon={DollarSign} title={isAr ? 'لا توجد دورات رواتب بعد.' : 'No payroll runs yet.'} /></td></tr>
+                <tr><td colSpan={6}><EmptyState icon={DollarSign} title={isAr ? 'لا توجد دورات رواتب بعد.' : 'No payroll runs yet.'} /></td></tr>
               ) : payrollRuns.map((run, i) => (
                 <tr key={run.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: i < payrollRuns.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <td className="px-5 py-4 text-sm text-slate-400">{run.period_month}</td>
                   <td className="px-5 py-4 text-sm font-semibold text-slate-200">{run.clinic_staff_memberships?.staff_members?.full_name || '—'}</td>
                   <td className="px-5 py-4 text-sm text-slate-400">{Number(run.base_salary_egp || 0).toFixed(2)} EGP</td>
                   <td className="px-5 py-4 text-sm font-bold text-teal-400">{Number(run.net_pay_egp || 0).toFixed(2)} EGP</td>
+                  <td className="px-5 py-4 text-sm whitespace-nowrap">
+                    {run.status === 'paid' ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'hsl(168 100% 52%)' }}>
+                        ✓ {isAr ? 'مدفوع' : 'Paid'} {run.paid_at ? `· ${new Date(run.paid_at).toLocaleDateString()}` : ''}
+                      </span>
+                    ) : isFinanceAdmin ? (
+                      <MarkPayrollPaidButton clinicId={clinicId} locale={locale} payrollRunId={run.id} isAr={isAr} />
+                    ) : (
+                      <span className="text-xs text-slate-600">{isAr ? 'لم يدفع' : 'Unpaid'}</span>
+                    )}
+                  </td>
                   <td className="px-5 py-4"><StatusBadge status={run.status} /></td>
                 </tr>
               ))}

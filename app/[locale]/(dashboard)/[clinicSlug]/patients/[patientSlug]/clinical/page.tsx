@@ -52,6 +52,7 @@ export default async function PatientClinicalPage({
 
   // Fetch initial entries for the specific clinical module
   let clinicalData: any = []
+  let clinicalHistory: any = []
   
   if (clinicTypeCode === 'dental') {
     const { data } = await supabase.from('dental_chart_entries')
@@ -59,6 +60,12 @@ export default async function PatientClinicalPage({
       .eq('patient_id', patient.id)
       .eq('clinic_id', clinicId)
     clinicalData = data || []
+
+    const { data: history } = await supabase.from('dental_chart_history')
+      .select('*, staff_members(full_name)')
+      .eq('patient_id', patient.id)
+      .eq('clinic_id', clinicId)
+    clinicalHistory = history || []
   } else if (clinicTypeCode === 'orthopedics') {
     const { data } = await supabase.from('orthopedic_examinations')
       .select('*')
@@ -152,6 +159,7 @@ export default async function PatientClinicalPage({
         locale={locale}
         entitlements={entitlements}
         clinicalData={clinicalData}
+        clinicalHistory={clinicalHistory}
         freeNotesData={formattedFreeNotes}
       />
     </PremiumCard>

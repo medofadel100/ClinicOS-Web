@@ -30,28 +30,41 @@ export default async function FinancePage({
   let netIncome = 0
 
   try {
-    const { data: paymentsData } = await supabase
+    // Totals + chart data must be computed from ALL rows (not just the recent 50)
+    const [{ data: paymentsAll }, { data: expensesAll }] = await Promise.all([
+      supabase
+        .from('patient_payments')
+        .select('amount_egp, paid_at')
+        .eq('clinic_id', clinicId),
+      supabase
+        .from('clinic_expenses')
+        .select('amount_egp, start_date, created_at')
+        .eq('clinic_id', clinicId),
+    ])
+
+    totalRevenue = (paymentsAll || []).reduce((sum, p) => sum + Number(p.amount_egp || 0), 0)
+    totalExpenses = (expensesAll || []).reduce((sum, e) => sum + Number(e.amount_egp || 0), 0)
+
+    const { data: recentPaymentsData } = await supabase
       .from('patient_payments')
       .select(`*, patients(full_name), staff_members(full_name)`)
       .eq('clinic_id', clinicId)
       .order('paid_at', { ascending: false })
       .limit(50)
 
-    if (paymentsData) {
-      recentPayments = paymentsData
-      totalRevenue = paymentsData.reduce((sum, p) => sum + Number(p.amount_egp || 0), 0)
+    if (recentPaymentsData) {
+      recentPayments = recentPaymentsData
     }
 
-    const { data: expensesData } = await supabase
+    const { data: recentExpensesData } = await supabase
       .from('clinic_expenses')
       .select('*')
       .eq('clinic_id', clinicId)
       .order('created_at', { ascending: false })
       .limit(50)
 
-    if (expensesData) {
-      recentExpenses = expensesData
-      totalExpenses = expensesData.reduce((sum, e) => sum + Number(e.amount_egp || 0), 0)
+    if (recentExpensesData) {
+      recentExpenses = recentExpensesData
     }
 
     const { data: pendingData } = await supabase
@@ -79,14 +92,14 @@ export default async function FinancePage({
     }
 
     // Assign revenue
-    paymentsData?.forEach(p => {
+    paymentsAll?.forEach(p => {
       if (!p.paid_at) return
       const key = p.paid_at.substring(0, 7)
       if (monthlyMap[key]) monthlyMap[key].revenue += Number(p.amount_egp || 0)
     })
 
     // Assign expenses (using start_date or created_at for simplicity here)
-    expensesData?.forEach(e => {
+    expensesAll?.forEach(e => {
       const dateStr = e.start_date || e.created_at
       if (!dateStr) return
       const key = dateStr.substring(0, 7)

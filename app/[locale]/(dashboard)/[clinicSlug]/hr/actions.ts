@@ -269,3 +269,89 @@ export async function generatePayroll(clinicId: string, locale: string, periodMo
 
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/hr', 'page')
 }
+
+export async function markPayrollRunPaid(clinicId: string, locale: string, payrollRunId: string) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: staffMember } = await supabase
+    .from('staff_members')
+    .select('id')
+    .eq('auth_user_id', user.id)
+    .single()
+
+  if (!staffMember) throw new Error('Unauthorized')
+
+  const { data: membership } = await supabase
+    .from('clinic_staff_memberships')
+    .select('role')
+    .eq('staff_member_id', staffMember.id)
+    .eq('clinic_id', clinicId)
+    .eq('is_active', true)
+    .single()
+
+  if (!membership || (membership.role !== 'owner' && membership.role !== 'admin')) {
+    throw new Error('Forbidden: Requires Owner or Admin access')
+  }
+
+  const { data: run, error: runError } = await supabase
+    .from('payroll_runs')
+    .select('id, period_month, net_pay_egp, status, membership_id, expense_id')
+    .eq('id', payrollRunId)
+    .eq('clinic_id', clinicId)
+    .single()
+
+  if (runError || !run) throw new Error('Payroll run not found')
+  if (run.status === 'paid') throw new Error('This payroll run is already paid')
+  if (Number(run.net_pay_egp || 0) <= 0) throw new Error('Payroll run has no net amount to pay')
+
+  // Resolve staff name for the expense title
+  let staffName = ''
+  const { data: membershipData } = await supabase
+    .from('clinic_staff_memberships')
+    .select('staff_members ( full_name )')
+    .eq('id', run.membership_id)
+    .single()
+  staffName = (membershipData as any)?.staff_members?.full_name || 'Staff'
+
+  const periodLabel = String(run.period_month).substring(0, 7)
+  const isAr = locale === 'ar'
+
+  // Create the expense entry (category: salaries)
+  const { data: expense, error: expenseError } = await supabase
+    .from('clinic_expenses')
+    .insert({
+      clinic_id: clinicId,
+      title: isAr ? `راتب ${staffName} - ${periodLabel}` : `Salary - ${staffName} (${periodLabel})`,
+      category: 'salaries',
+      amount_egp: Number(run.net_pay_egp),
+      recurrence: 'one_time',
+      start_date: new Date().toISOString().slice(0, 10),
+      created_by: staffMember.id,
+    })
+    .select('id')
+    .single()
+
+  if (expenseError) {
+    console.error('Error creating salary expense:', expenseError)
+    throw new Error('Failed to create expense entry')
+  }
+
+  // Mark the run as paid and link the expense
+  const { error: updateError } = await supabase
+    .from('payroll_runs')
+    .update({
+      status: 'paid',
+      paid_at: new Date().toISOString(),
+      expense_id: expense.id,
+    })
+    .eq('id', payrollRunId)
+
+  if (updateError) {
+    console.error('Error marking payroll as paid:', updateError)
+    throw new Error('Failed to mark payroll as paid')
+  }
+
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/hr', 'page')
+}

@@ -87,6 +87,7 @@ export default function LoginForm({ locale }: { locale: string }) {
               <Input
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder="name@clinic.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -125,6 +126,7 @@ export default function LoginForm({ locale }: { locale: string }) {
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-11 pl-10 pr-11 text-sm text-slate-200 transition-all duration-200"

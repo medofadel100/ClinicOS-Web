@@ -63,6 +63,7 @@ export default async function WhatsAppSettingsPage({
         locale={locale}
         hasAIBot={hasAIBot}
         initialMode={config?.mode || 'none'}
+        initialAIConfig={config ? { personality: config.personality, custom_instructions: config.custom_instructions } : null}
       />
 
       {config?.mode === 'rule_based' && (

@@ -173,6 +173,15 @@ export default function ConnectionManager({
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {isAr ? 'اتصال واتساب' : 'Connect WhatsApp'}
             </button>
+            <div
+              className="w-full max-w-md p-3 rounded-lg text-left text-xs"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <p className="text-slate-400 mb-1">
+                {isAr ? 'ويب هوك الاستقبال (سجله في خدمة الواتساب):' : 'Inbound webhook (register this in your WhatsApp service):'}
+              </p>
+              <code className="text-teal-400 break-all select-all">https://clinicoseg.vercel.app/api/whatsapp/inbound</code>
+            </div>
           </div>
         )}
       </PremiumCard>

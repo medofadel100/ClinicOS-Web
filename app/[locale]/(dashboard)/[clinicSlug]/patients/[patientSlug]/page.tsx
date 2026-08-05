@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireClinicId } from '@/lib/utils/clinic'
-import { Activity, FileText } from 'lucide-react'
+import { Activity, FileText, Wallet } from 'lucide-react'
 import Link from 'next/link'
 import PatientTimeline, { TimelineEvent } from './components/PatientTimeline'
 import VitalsWidget from './components/VitalsWidget'
@@ -30,6 +30,10 @@ export default async function PatientOverviewPage({
       ),
       patient_payments (
         id, amount_egp, payment_method, paid_at
+      ),
+      treatment_plans (
+        total_price_egp, status,
+        patient_payments ( amount_egp )
       ),
       patient_clinical_notes (
         id, note_type, created_at, content
@@ -94,6 +98,12 @@ export default async function PatientOverviewPage({
   // Sort descending
   events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
+  // 3. Debt summary
+  const plans = patient.treatment_plans || []
+  const totalBilled = plans.reduce((s: number, p: any) => s + Number(p.total_price_egp || 0), 0)
+  const totalPaid = plans.reduce((s: number, p: any) => s + (p.patient_payments || []).reduce((x: number, y: any) => x + Number(y.amount_egp || 0), 0), 0)
+  const debt = Math.max(0, totalBilled - totalPaid)
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       
@@ -124,6 +134,33 @@ export default async function PatientOverviewPage({
           </div>
         </Link>
       </div>
+
+      {/* Debt Card */}
+      <Link
+        href={`/${locale}/${clinicSlug}/patients/${patient.display_id || patient.id}/billing`}
+        className="md:col-span-2 block rounded-2xl p-5 transition-all hover:bg-white/[0.03]"
+        style={{ background: debt > 0 ? 'rgba(239,68,68,0.04)' : 'rgba(0,212,170,0.04)', border: debt > 0 ? '1px solid rgba(239,68,68,0.18)' : '1px solid rgba(0,212,170,0.14)' }}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: debt > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(0,212,170,0.1)' }}>
+              <Wallet className="w-5 h-5" style={{ color: debt > 0 ? 'hsl(0 84% 65%)' : 'hsl(168 100% 52%)' }} />
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-sm">{isAr ? 'المديونية' : 'Debt Summary'}</h3>
+              <p className="text-xs text-slate-400">
+                {isAr ? 'إجمالي المطلوب' : 'Total Billed'}: {totalBilled.toLocaleString()} EGP · {isAr ? 'المدفوع' : 'Paid'}: {totalPaid.toLocaleString()} EGP
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold" style={{ color: debt > 0 ? 'hsl(0 84% 65%)' : 'hsl(168 100% 52%)' }}>
+              {debt > 0 ? `${debt.toLocaleString()} EGP` : (isAr ? 'مدفوع بالكامل' : 'Fully Paid')}
+            </div>
+            <div className="text-xs text-slate-500">{isAr ? 'المتبقي' : 'Remaining'} →</div>
+          </div>
+        </div>
+      </Link>
 
       <PatientTimeline events={events} />
 

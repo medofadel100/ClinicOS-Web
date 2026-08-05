@@ -70,6 +70,8 @@ export type PayrollRun = {
   base_salary_egp: number
   net_pay_egp: number
   status: string
+  paid_at: string | null
+  expense_id: string | null
   clinic_staff_memberships?: ClinicStaffMembership
 }
 

@@ -1,33 +1,41 @@
 'use client'
 
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { PremiumCard } from '@/components/layout/PageComponents'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { updateWhatsAppConfig } from './actions'
+import AISettings from './AISettings'
 import LockedFeature from '@/components/LockedFeature'
 
 export default function BotModeSettings({
   clinicId,
   locale,
   hasAIBot,
-  initialMode
+  initialMode,
+  initialAIConfig
 }: {
   clinicId: string
   locale: string
   hasAIBot: boolean
   initialMode: 'none' | 'rule_based' | 'ai'
+  initialAIConfig?: { personality: string | null; custom_instructions: string | null } | null
 }) {
+  const [mode, setMode] = useState<'none' | 'rule_based' | 'ai'>(initialMode)
+
   const handleModeChange = async (newMode: 'none' | 'rule_based' | 'ai') => {
+    setMode(newMode)
     try {
       await updateWhatsAppConfig(clinicId, locale, { mode: newMode })
     } catch {
+      setMode(initialMode)
       toast.error(isAr ? 'فشل في تحديث وضع البوت' : 'Failed to update bot mode.')
     }
   }
 
-  const isRuleBased = initialMode === 'rule_based'
-  const isAI = initialMode === 'ai'
+  const isRuleBased = mode === 'rule_based'
+  const isAI = mode === 'ai'
   const isAr = locale === 'ar'
 
   return (
@@ -90,6 +98,14 @@ export default function BotModeSettings({
             </div>
           </PremiumCard>
         </LockedFeature>
+      )}
+
+      {hasAIBot && isAI && (
+        <AISettings
+          clinicId={clinicId}
+          locale={locale}
+          initialConfig={initialAIConfig}
+        />
       )}
     </div>
   )

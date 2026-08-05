@@ -42,7 +42,8 @@ export default function DynamicClinicalModule({
   clinicId,
   locale,
   entitlements,
-  initialData
+  initialData,
+  initialHistory
 }: { 
   clinicTypeCode: string, 
   patientId: string, 
@@ -51,7 +52,9 @@ export default function DynamicClinicalModule({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entitlements: any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialData: any[]
+  initialData: any[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  initialHistory?: any[]
 }) {
 
   // Dynamically render modules based on clinic type
@@ -60,7 +63,7 @@ export default function DynamicClinicalModule({
       if (entitlements?.features?.includes('dental_module')) {
         return (
           <div className="h-full w-full overflow-y-auto">
-            <DentalChart patientId={patientId} clinicId={clinicId} locale={locale} initialEntries={initialData} />
+            <DentalChart patientId={patientId} clinicId={clinicId} locale={locale} initialEntries={initialData} initialHistory={initialHistory || []} />
           </div>
         )
       }

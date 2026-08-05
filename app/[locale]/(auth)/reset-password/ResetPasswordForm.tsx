@@ -195,6 +195,7 @@ export default function ResetPasswordForm({ locale }: { locale: string }) {
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full h-11 pl-10 pr-11 text-sm text-slate-200 transition-all duration-200 rounded-xl"
@@ -235,6 +236,7 @@ export default function ResetPasswordForm({ locale }: { locale: string }) {
               <input
                 id="confirmPassword"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full h-11 pl-10 pr-4 text-sm text-slate-200 transition-all duration-200 rounded-xl"

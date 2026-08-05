@@ -22,6 +22,7 @@ export default function ClinicalWorkspaceTabs({
   locale,
   entitlements,
   clinicalData,
+  clinicalHistory,
   freeNotesData
 }: {
   clinicTypeCode: string
@@ -34,6 +35,8 @@ export default function ClinicalWorkspaceTabs({
   entitlements: any
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   clinicalData: any[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  clinicalHistory?: any[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   freeNotesData: any[]
 }) {
@@ -79,6 +82,7 @@ export default function ClinicalWorkspaceTabs({
               locale={locale}
               entitlements={entitlements}
               initialData={clinicalData}
+              initialHistory={clinicalHistory}
             />
           </div>
         ) : (

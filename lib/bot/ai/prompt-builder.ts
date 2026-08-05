@@ -16,7 +16,7 @@ export async function buildSystemPrompt(clinicId: string, patientName: string) {
     .select(`
       id,
       staff_members ( full_name ),
-      doctor_profiles ( specialty_title, bio_en, bio_ar )
+      doctor_profiles ( specialty, bio )
     `)
     .eq('clinic_id', clinicId)
     .eq('role', 'doctor')
@@ -24,10 +24,9 @@ export async function buildSystemPrompt(clinicId: string, patientName: string) {
 
   // 3. Fetch services
   const { data: services } = await supabase
-    .from('services')
-    .select('id, name_en, name_ar, duration_minutes')
+    .from('clinic_services')
+    .select('id, name, duration_minutes')
     .eq('clinic_id', clinicId)
-    .eq('is_active', true)
 
   let prompt = `You are a helpful WhatsApp medical assistant for a clinic. You are chatting with a patient named ${patientName}.
 Your goal is to help the patient book appointments, answer basic questions about the clinic, and provide excellent service.
@@ -49,8 +48,8 @@ Your goal is to help the patient book appointments, answer basic questions about
   if (doctors && doctors.length > 0) {
     doctors.forEach((d: any) => {
       const name = d.staff_members?.full_name
-      const spec = d.doctor_profiles?.[0]?.specialty_title || 'General'
-      const bio = d.doctor_profiles?.[0]?.bio_en || 'No specific bio provided.'
+      const spec = d.doctor_profiles?.[0]?.specialty || 'General'
+      const bio = d.doctor_profiles?.[0]?.bio || 'No specific bio provided.'
       prompt += `- Dr. ${name} (ID: ${d.id})\n  Specialty: ${spec}\n  Bio: ${bio}\n`
     })
     prompt += `\n*Note on recommending doctors*: If a patient describes symptoms, use the doctor bios and specialties above to recommend the most appropriate doctor.`
@@ -61,7 +60,7 @@ Your goal is to help the patient book appointments, answer basic questions about
   prompt += `\n--- CLINIC SERVICES ---\n`
   if (services && services.length > 0) {
     services.forEach(s => {
-      prompt += `- ${s.name_en} / ${s.name_ar} (ID: ${s.id}, Duration: ${s.duration_minutes}m)\n`
+      prompt += `- ${s.name} (ID: ${s.id}, Duration: ${s.duration_minutes}m)\n`
     })
   } else {
     prompt += `No services listed.\n`

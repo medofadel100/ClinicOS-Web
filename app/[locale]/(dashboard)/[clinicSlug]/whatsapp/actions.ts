@@ -52,6 +52,78 @@ export async function updateWhatsAppConfig(
     throw new Error('Failed to update WhatsApp config')
   }
 
+  // Seed default menu options when enabling rule-based mode and none exist
+  if (updates.mode === 'rule_based') {
+    const { data: existing } = await supabase
+      .from('whatsapp_menu_options')
+      .select('id')
+      .eq('clinic_id', clinicId)
+
+    if (!existing || existing.length === 0) {
+      const { error: seedError } = await supabase
+        .from('whatsapp_menu_options')
+        .insert([
+          { clinic_id: clinicId, option_number: 1, label_ar: 'حجز موعد', label_en: 'Book Appointment', response_type: 'action_book', is_active: true },
+          { clinic_id: clinicId, option_number: 2, label_ar: 'إلغاء موعد', label_en: 'Cancel Appointment', response_type: 'action_cancel', is_active: true },
+          { clinic_id: clinicId, option_number: 3, label_ar: 'استفسار عام', label_en: 'General Inquiry', response_type: 'action_inquiry', is_active: true }
+        ])
+
+      if (seedError) {
+        console.error('Failed to seed default menu options:', seedError)
+      }
+    }
+  }
+
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/whatsapp', 'page')
+}
+
+export async function updateAIConfig(
+  clinicId: string,
+  locale: string,
+  updates: {
+    personality?: 'friendly' | 'formal' | 'playful'
+    custom_instructions?: string
+  }
+) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: staffMember } = await supabase
+    .from('staff_members')
+    .select('id')
+    .eq('auth_user_id', user.id)
+    .single()
+
+  if (!staffMember) throw new Error('Unauthorized')
+
+  const { data: membership } = await supabase
+    .from('clinic_staff_memberships')
+    .select('role')
+    .eq('staff_member_id', staffMember.id)
+    .eq('clinic_id', clinicId)
+    .eq('is_active', true)
+    .single()
+
+  if (!membership || membership.role !== 'owner') {
+    throw new Error('Forbidden')
+  }
+
+  const { error } = await supabase
+    .from('whatsapp_bot_config')
+    .upsert({
+      clinic_id: clinicId,
+      ...updates,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'clinic_id'
+    })
+
+  if (error) {
+    console.error('Failed to update AI config:', error)
+    throw new Error('Failed to update AI config')
+  }
+
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/whatsapp', 'page')
 }
 

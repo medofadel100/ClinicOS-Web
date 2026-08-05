@@ -219,6 +219,7 @@ export default function SerialRegistrationClient({
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
                     type="email"
+                    autoComplete="email"
                     required
                     value={email}
                     onChange={e => setEmail(e.target.value)}
@@ -254,6 +255,7 @@ export default function SerialRegistrationClient({
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
                     type="password"
+                    autoComplete="new-password"
                     required
                     minLength={6}
                     value={password}

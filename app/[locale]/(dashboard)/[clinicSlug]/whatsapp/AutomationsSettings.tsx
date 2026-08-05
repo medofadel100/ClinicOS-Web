@@ -29,7 +29,12 @@ export default function AutomationsSettings({
   const updateToggle = async (key: string, value: boolean) => {
     const newSettings = { ...settings, [key]: value }
     setSettings(newSettings)
-    await updateAutomationSettings(clinicId, locale, { [key]: value })
+    const payload: any = { [key]: value }
+    if (key === 'morning_summary_enabled' && value && !newSettings.morning_summary_time) {
+      payload.morning_summary_time = '08:00'
+      setSettings({ ...newSettings, morning_summary_time: '08:00' })
+    }
+    await updateAutomationSettings(clinicId, locale, payload)
   }
 
   const updateValue = async (key: string, value: any) => {

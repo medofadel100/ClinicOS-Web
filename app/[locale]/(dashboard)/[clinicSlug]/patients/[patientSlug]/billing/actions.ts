@@ -102,8 +102,9 @@ export async function recordPayment(
   patientId: string,
   amount: number,
   paymentType: 'deposit' | 'session_payment' | 'full_payment' | 'other',
-  paymentMethod: 'cash' | 'card' | 'bank_transfer' | 'other',
-  treatmentPlanId?: string
+  paymentMethod: 'cash' | 'bank_transfer' | 'vodafone_cash' | 'instapay' | 'other',
+  treatmentPlanId?: string,
+  paidAt?: string
 ) {
   const { supabase, staffMember } = await verifyAccess(clinicId)
 
@@ -116,6 +117,7 @@ export async function recordPayment(
       amount_egp: amount,
       payment_type: paymentType,
       payment_method: paymentMethod,
+      paid_at: paidAt || new Date().toISOString(),
       recorded_by: staffMember.id
     })
 

@@ -4,7 +4,7 @@ export async function lookupPatientInfo(clinicId: string, patientId: string) {
   const supabase = createAdminClient()
   const { data: apps } = await supabase
     .from('appointments')
-    .select('id, scheduled_at, status, clinic_services(name_en), clinic_staff_memberships(staff_members(full_name))')
+    .select('id, scheduled_at, status, clinic_services(name), clinic_staff_memberships(staff_members(full_name))')
     .eq('clinic_id', clinicId)
     .eq('patient_id', patientId)
     .in('status', ['scheduled', 'confirmed'])
@@ -19,7 +19,7 @@ export async function lookupPatientInfo(clinicId: string, patientId: string) {
       appointment_id: a.id,
       date_time: a.scheduled_at,
       status: a.status,
-      service: (a.clinic_services as { name_en?: string } | null)?.name_en,
+      service: (a.clinic_services as { name?: string } | null)?.name,
       doctor: (a.clinic_staff_memberships as { staff_members?: { full_name?: string } } | null)?.staff_members?.full_name
     }))
   }

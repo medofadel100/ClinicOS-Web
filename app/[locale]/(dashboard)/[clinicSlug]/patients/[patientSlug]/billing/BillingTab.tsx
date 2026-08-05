@@ -26,9 +26,18 @@ type TreatmentPlan = {
     id: string
     amount_egp: number
     payment_type: string
+    payment_method: string
     paid_at: string
   }[]
 }
+
+const methodLabels = (isAr: boolean): Record<string, string> => ({
+  cash: isAr ? 'نقداً' : 'Cash',
+  bank_transfer: isAr ? 'تحويل بنكي' : 'Bank Transfer',
+  vodafone_cash: isAr ? 'فودافون كاش' : 'Vodafone Cash',
+  instapay: isAr ? 'انستا باي' : 'InstaPay',
+  other: isAr ? 'أخرى' : 'Other',
+})
 
 export default function BillingTab({
   clinicId,
@@ -61,6 +70,14 @@ export default function BillingTab({
   const [plans, _setPlans] = useState(initialPlans)
   const [downloadingPlanId, setDownloadingPlanId] = useState<string | null>(null)
   const isAr = locale === 'ar'
+
+  const totalBilled = plans.reduce((sum, plan) => sum + Number(plan.total_price_egp || 0), 0)
+  const totalPaid = plans.reduce(
+    (sum, plan) => sum + plan.patient_payments.reduce((s, p) => s + Number(p.amount_egp || 0), 0),
+    0
+  )
+  const totalDebt = Math.max(0, totalBilled - totalPaid)
+  const methods = methodLabels(isAr)
 
   const handleToggleSession = async (sessionId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'pending' ? 'completed' : 'pending'
@@ -104,6 +121,24 @@ export default function BillingTab({
 
   return (
     <div className="space-y-6">
+      {/* Debt summary card */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="text-xs font-medium text-slate-500">{isAr ? 'إجمالي المبالغ المطلوبة' : 'Total Billed'}</div>
+          <div className="mt-1.5 text-2xl font-bold text-slate-200">{totalBilled.toLocaleString()} <span className="text-sm font-medium text-slate-500">EGP</span></div>
+        </div>
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(0,212,170,0.04)', border: '1px solid rgba(0,212,170,0.12)' }}>
+          <div className="text-xs font-medium text-slate-500">{isAr ? 'إجمالي المدفوع' : 'Total Paid'}</div>
+          <div className="mt-1.5 text-2xl font-bold" style={{ color: 'hsl(168 100% 52%)' }}>{totalPaid.toLocaleString()} <span className="text-sm font-medium text-slate-500">EGP</span></div>
+        </div>
+        <div className="rounded-2xl p-5" style={{ background: totalDebt > 0 ? 'rgba(239,68,68,0.06)' : 'rgba(0,212,170,0.04)', border: totalDebt > 0 ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(0,212,170,0.12)' }}>
+          <div className="text-xs font-medium text-slate-500">{isAr ? 'المديونية المتبقية' : 'Remaining Debt'}</div>
+          <div className="mt-1.5 text-2xl font-bold" style={{ color: totalDebt > 0 ? 'hsl(0 84% 65%)' : 'hsl(168 100% 52%)' }}>
+            {totalDebt.toLocaleString()} <span className="text-sm font-medium text-slate-500">EGP</span>
+          </div>
+        </div>
+      </div>
+
       <PremiumCard>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div>
@@ -123,8 +158,8 @@ export default function BillingTab({
         ) : (
           <div className="grid gap-6">
             {plans.map(plan => {
-              const totalPaid = plan.patient_payments.reduce((sum, p) => sum + p.amount_egp, 0)
-              const remainingBalance = plan.total_price_egp - totalPaid
+              const planPaid = plan.patient_payments.reduce((sum, p) => sum + Number(p.amount_egp || 0), 0)
+              const remainingBalance = Number(plan.total_price_egp || 0) - planPaid
 
               return (
                 <div key={plan.id} className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -136,6 +171,13 @@ export default function BillingTab({
                       </p>
                     </div>
                     <div className="mt-4 md:mt-0 flex items-center gap-3">
+                      <RecordPaymentDialog
+                        clinicId={clinicId}
+                        locale={locale}
+                        patientId={patientId}
+                        treatmentPlanId={plan.id}
+                        remainingBalance={Math.max(0, remainingBalance)}
+                      />
                       <button
                         onClick={() => handleDownloadInvoice(plan)}
                         disabled={downloadingPlanId === plan.id}
@@ -145,14 +187,14 @@ export default function BillingTab({
                         {downloadingPlanId === plan.id ? (isAr ? 'جاري التحميل...' : 'Generating...') : (isAr ? 'تحميل الفاتورة' : 'Invoice')}
                       </button>
                       <div className="text-left md:text-right bg-black/20 p-3 rounded-lg border border-white/5">
-                        <div className="text-xl font-bold text-slate-200">{plan.total_price_egp.toLocaleString()} EGP</div>
+                        <div className="text-xl font-bold text-slate-200">{Number(plan.total_price_egp || 0).toLocaleString()} EGP</div>
                         <div className={`text-sm mt-1 px-2 py-0.5 rounded inline-flex ${remainingBalance > 0 ? 'bg-red-500/10 text-red-400' : 'bg-teal-500/10 text-teal-400'}`}>
                           {remainingBalance > 0 ? `${remainingBalance.toLocaleString()} EGP ${isAr ? 'متبقي' : 'Remaining'}` : (isAr ? 'مدفوع بالكامل' : 'Fully Paid')}
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="p-5 space-y-8">
                     {/* Sessions */}
                     <div>
@@ -177,7 +219,7 @@ export default function BillingTab({
                               </span>
                             </div>
                             <span className={`text-sm font-semibold ${session.status === 'completed' ? 'text-slate-500' : 'text-slate-300'}`}>
-                              {session.session_price_egp.toLocaleString()} EGP
+                              {Number(session.session_price_egp || 0).toLocaleString()} EGP
                             </span>
                           </label>
                         ))}
@@ -198,13 +240,17 @@ export default function BillingTab({
                               <div>
                                 <div className="text-sm font-medium text-slate-300 capitalize flex items-center gap-2">
                                   {payment.payment_type.replace('_', ' ')}
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide"
+                                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'hsl(168 100% 52%)' }}>
+                                    {methods[payment.payment_method] || payment.payment_method?.replace('_', ' ')}
+                                  </span>
                                 </div>
                                 <div className="text-xs text-slate-500 mt-1">
-                                  {new Date(payment.paid_at).toLocaleDateString()}
+                                  {new Date(payment.paid_at).toLocaleString()}
                                 </div>
                               </div>
                               <span className="text-sm font-bold text-teal-400">
-                                +{payment.amount_egp.toLocaleString()} EGP
+                                +{Number(payment.amount_egp || 0).toLocaleString()} EGP
                               </span>
                             </div>
                           ))}

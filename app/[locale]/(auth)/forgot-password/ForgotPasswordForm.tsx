@@ -127,6 +127,7 @@ export default function ForgotPasswordForm({ locale }: { locale: string }) {
               <input
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder={t.placeholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
