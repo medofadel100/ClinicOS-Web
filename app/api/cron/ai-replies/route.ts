@@ -24,12 +24,25 @@ export async function GET(req: Request) {
   const supabase = createAdminClient()
 
   try {
-    const { data: queued } = await supabase
+    // Claim messages that are still pending, plus rows stuck in 'processing'
+    // for more than 5 minutes (a function that died mid-run).
+    const staleSince = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    const { data: queued, error: queueError } = await supabase
       .from('ai_reply_queue')
       .select('id, clinic_id, phone_number, message_body')
-      .eq('status', 'pending')
+      .or(
+        `status.eq.pending,and(status.eq.processing,created_at.lt.${staleSince})`
+      )
       .order('created_at', { ascending: true })
       .limit(BATCH_SIZE)
+
+    if (queueError) {
+      console.error('AI replies queue select failed:', queueError)
+      return NextResponse.json(
+        { error: 'Queue query failed', detail: queueError.message },
+        { status: 500 }
+      )
+    }
 
     if (!queued || queued.length === 0) {
       return NextResponse.json({ success: true, processed: 0 })

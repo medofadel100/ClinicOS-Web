@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendMessage } from '@/lib/whatsapp-client'
+import { phoneOrFilter } from '@/lib/bot/phone'
 import { buildSystemPrompt } from './prompt-builder'
 import { generateContent, type GeminiMessage } from './gemini-client'
 import {
@@ -53,7 +54,7 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
     .from('patients')
     .select('id, full_name')
     .eq('clinic_id', clinicId)
-    .eq('phone', from)
+    .or(phoneOrFilter(from))
     .single()
 
   if (!patient) {

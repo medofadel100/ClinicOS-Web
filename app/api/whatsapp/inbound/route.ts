@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { handleIncomingMessage } from '@/lib/bot/rule-based'
+import { handleAIMessage } from '@/lib/bot/ai/engine'
 import { createAdminClient } from '@/lib/supabase/admin'
+
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 export async function POST(req: Request) {
   try {
@@ -52,15 +56,41 @@ export async function POST(req: Request) {
       // but for Vercel serverless we generally must await otherwise the function exits.
       await handleIncomingMessage(clinicId, from, message)
     } else if (config.mode === 'ai') {
-      // AI replies are queued and answered by the /api/cron/ai-replies scheduler.
-      // This keeps Gemini traffic paced under free-tier rate limits and avoids
-      // Vercel function timeouts on slow LLM calls.
-      await supabase.from('ai_reply_queue').insert({
-        clinic_id: clinicId,
-        phone_number: from,
-        message_body: message || null,
-        status: 'pending'
-      })
+      // Queue the message (audit + fallback) then process it inline so the reply
+      // arrives in seconds instead of waiting for the next cron tick.
+      const { data: row } = await supabase
+        .from('ai_reply_queue')
+        .insert({
+          clinic_id: clinicId,
+          phone_number: from,
+          message_body: message || null,
+          status: 'pending'
+        })
+        .select('id')
+        .single()
+
+      const queueId = row?.id
+      try {
+        await handleAIMessage(clinicId, from, message || '')
+        if (queueId) {
+          await supabase
+            .from('ai_reply_queue')
+            .update({ status: 'done', processed_at: new Date().toISOString() })
+            .eq('id', queueId)
+        }
+      } catch (err) {
+        console.error('AI inline reply failed:', err)
+        if (queueId) {
+          await supabase
+            .from('ai_reply_queue')
+            .update({
+              status: 'failed',
+              error: err instanceof Error ? err.message.slice(0, 500) : 'Unknown error',
+              processed_at: new Date().toISOString(),
+            })
+            .eq('id', queueId)
+        }
+      }
     }
 
     return NextResponse.json({ success: true })

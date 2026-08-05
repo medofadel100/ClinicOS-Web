@@ -1,4 +1,5 @@
 import { sendMessage } from '@/lib/whatsapp-client'
+import { phoneOrFilter } from '@/lib/bot/phone'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export async function handleIncomingMedia(clinicId: string, from: string, mediaBase64: string, mimeType: string, supabase: SupabaseClient) {
@@ -20,7 +21,7 @@ export async function handleIncomingMedia(clinicId: string, from: string, mediaB
     .from('patients')
     .select('id')
     .eq('clinic_id', clinicId)
-    .eq('phone', from)
+    .or(phoneOrFilter(from))
     .single()
 
   if (!patient) {

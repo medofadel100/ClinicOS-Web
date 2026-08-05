@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendMessage } from '@/lib/whatsapp-client'
+import { phoneOrFilter } from '@/lib/bot/phone'
 
 export async function handleIncomingMessage(clinicId: string, from: string, messageBody: string) {
   const supabase = createAdminClient()
@@ -24,7 +25,7 @@ export async function handleIncomingMessage(clinicId: string, from: string, mess
     .from('patients')
     .select('id, full_name')
     .eq('clinic_id', clinicId)
-    .eq('phone', from)
+    .or(phoneOrFilter(from))
     .single()
 
   if (!patient) {
