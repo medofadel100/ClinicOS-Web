@@ -55,6 +55,55 @@ export async function lookupMedicalHistory(clinicId: string, patientId: string) 
     .order('created_at', { ascending: false })
     .limit(5)
 
+  // 4. Prescription items (the actual medicines) for each recent prescription
+  const prescriptionIds = (prescriptions || []).map(p => p.id)
+  const { data: items } =
+    prescriptionIds.length > 0
+      ? await supabase
+          .from('patient_prescription_items')
+          .select(
+            'prescription_id, dosage, frequency, timing, duration, instructions, clinic_medications(custom_brand_name, custom_generic_name, concentration, form, medications_global(brand_name_en, brand_name_ar, generic_name))'
+          )
+          .in('prescription_id', prescriptionIds)
+      : { data: [] }
+
+  const itemsByPrescription: Record<string, unknown[]> = {}
+  for (const item of items || []) {
+    if (!itemsByPrescription[item.prescription_id]) itemsByPrescription[item.prescription_id] = []
+    const med = item.clinic_medications as
+      | {
+          custom_brand_name?: string
+          custom_generic_name?: string
+          concentration?: string
+          form?: string
+          medications_global?: {
+            brand_name_en?: string
+            brand_name_ar?: string
+            generic_name?: string
+          }
+        }
+      | null
+      | undefined
+    const global = med?.medications_global
+    const name =
+      med?.custom_brand_name ||
+      med?.custom_generic_name ||
+      global?.brand_name_ar ||
+      global?.brand_name_en ||
+      global?.generic_name ||
+      'Unknown medication'
+    itemsByPrescription[item.prescription_id].push({
+      medication: name,
+      concentration: med?.concentration || null,
+      form: med?.form || null,
+      dosage: item.dosage || null,
+      frequency: item.frequency || null,
+      timing: item.timing || null,
+      duration: item.duration || null,
+      instructions: item.instructions || null,
+    })
+  }
+
   return {
     medical_history: history
       ? {
@@ -73,6 +122,7 @@ export async function lookupMedicalHistory(clinicId: string, patientId: string) 
       prescription_id: p.id,
       notes: p.notes || null,
       created_at: p.created_at,
+      medications: itemsByPrescription[p.id] || [],
     })),
   }
 }
@@ -82,6 +132,15 @@ export async function getAvailableSlots(clinicId: string, doctorId: string, date
   const targetDate = new Date(`${dateStr}T00:00:00.000Z`)
   if (isNaN(targetDate.getTime())) {
     return { error: 'Invalid date format. Please provide a YYYY-MM-DD string.' }
+  }
+
+  // Reject dates in the past - today or later only.
+  const today = new Date()
+  today.setUTCHours(0, 0, 0, 0)
+  if (targetDate.getTime() < today.getTime()) {
+    return {
+      error: `The date ${dateStr} is in the past. Please choose today or a future date, using the current date.`,
+    }
   }
 
   const supabase = createAdminClient()

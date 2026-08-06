@@ -2,8 +2,16 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-export async function buildSystemPrompt(clinicId: string, patientName: string) {
+export async function buildSystemPrompt(clinicId: string, patientName: string, patientPhone?: string) {
   const supabase = createAdminClient()
+
+  // 0. Fetch the clinic so the assistant can name it correctly
+  const { data: clinic } = await supabase
+    .from('clinics')
+    .select('name')
+    .eq('id', clinicId)
+    .single()
+  const clinicName = clinic?.name?.trim() || 'the clinic'
 
   // 1. Fetch clinic bot config
   const { data: config } = await supabase
@@ -56,9 +64,11 @@ export async function buildSystemPrompt(clinicId: string, patientName: string) {
 
   const botName = config?.bot_name?.trim() || 'the clinic assistant'
 
-  let prompt = `You are ${botName}, the WhatsApp assistant of a clinic. You are chatting with a patient named ${patientName}.
+  let prompt = `You are ${botName}, the WhatsApp assistant of ${clinicName} clinic (عيادة ${clinicName}). You are chatting with a patient named ${patientName}.
 Always respond in the same language the patient writes in (Arabic or English).
 Your goal is to help the patient book appointments, answer basic questions about the clinic, and provide excellent service.
+The patient is ALREADY identified and registered${patientPhone ? ` (phone ${patientPhone})` : ''}. NEVER ask them for their phone number or name, and never ask them to verify their identity.
+When you need to refer to the clinic, use its real name ${clinicName} - NEVER write placeholder text like "[اسم العيادة]", "[clinic name]", or any text inside square brackets.
 You may access the patient's own medical history and upcoming appointments to answer their questions. Never share a patient's data with anyone else.
 You are NOT a doctor. For urgent medical problems, advise the patient to come to the clinic or call emergency services.
 `

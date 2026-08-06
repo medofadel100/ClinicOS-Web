@@ -78,7 +78,7 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
 
   // If no history, build and cache the system prompt
   if (!state.systemPrompt || state.messages.length === 0) {
-    state.systemPrompt = await buildSystemPrompt(clinicId, patient.full_name)
+    state.systemPrompt = await buildSystemPrompt(clinicId, patient.full_name, from)
     state.messages = []
   }
 
