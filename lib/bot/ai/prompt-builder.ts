@@ -20,17 +20,30 @@ export async function buildSystemPrompt(clinicId: string, patientName: string, p
     .eq('clinic_id', clinicId)
     .single()
 
-  // 2. Fetch doctors
-  const { data: doctors } = await supabase
+  // 2. Fetch doctors: active doctor/owner memberships that have a doctor profile.
+  // (doctor_profiles has no FK to clinic_staff_memberships, so we fetch them
+  // separately and join by staff_member_id + clinic.)
+  const { data: doctorMembers } = await supabase
     .from('clinic_staff_memberships')
-    .select(`
-      id,
-      staff_members ( full_name ),
-      doctor_profiles ( id, specialty, bio )
-    `)
+    .select(`id, staff_member_id, staff_members ( full_name )`)
     .eq('clinic_id', clinicId)
     .in('role', ['doctor', 'owner'])
     .eq('is_active', true)
+
+  const { data: profiles } = await supabase
+    .from('doctor_profiles')
+    .select('id, staff_member_id, specialty, bio')
+    .eq('clinic_id', clinicId)
+
+  const profileByStaff = new Map(
+    (profiles || []).map((p: any) => [p.staff_member_id, p])
+  )
+  const doctors = (doctorMembers || [])
+    .filter((m: any) => profileByStaff.has(m.staff_member_id))
+    .map((m: any) => ({
+      ...m,
+      doctor_profiles: [profileByStaff.get(m.staff_member_id)],
+    }))
 
   // 2b. Fetch working hours for each doctor
   const doctorHoursByProfile: Record<string, string[]> = {}
