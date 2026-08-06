@@ -41,8 +41,8 @@ export default function PaperFormatSettings({
       await savePaperFormat(clinicId, JSON.stringify(format))
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } catch {
-      toast.error(isAr ? 'فشل في الحفظ' : 'Failed to save')
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل في الحفظ' : 'Failed to save'))
     } finally {
       setSaving(false)
     }

@@ -72,8 +72,8 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
       await upsertDoctorProfile(clinicId, formData)
       setOpen(false)
       toast.success(isAr ? 'تم حفظ بيانات الطبيب' : 'Doctor profile saved.')
-    } catch {
-      toast.error(isAr ? 'فشل حفظ بيانات الطبيب' : 'Failed to save doctor profile')
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل حفظ بيانات الطبيب' : 'Failed to save doctor profile'))
     } finally {
       setLoading(false)
     }
@@ -87,8 +87,8 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
       await upsertDoctorProfile(clinicId, formData)
       setEditOpen(false)
       toast.success(isAr ? 'تم تحديث بيانات الطبيب' : 'Doctor profile updated.')
-    } catch {
-      toast.error(isAr ? 'فشل تحديث بيانات الطبيب' : 'Failed to update doctor profile')
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل تحديث بيانات الطبيب' : 'Failed to update doctor profile'))
     } finally {
       setEditLoading(false)
     }
@@ -106,8 +106,8 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
           ? { day_of_week: d.value, start_time: String(found.start_time).slice(0, 5), end_time: String(found.end_time).slice(0, 5), is_active: found.is_active }
           : { day_of_week: d.value, start_time: '09:00', end_time: '17:00', is_active: false }
       }))
-    } catch {
-      toast.error(isAr ? 'فشل تحميل ساعات العمل' : 'Failed to load working hours.')
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل تحميل ساعات العمل' : 'Failed to load working hours.'))
     } finally {
       setHoursLoading(false)
     }
@@ -124,8 +124,8 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
       await upsertWorkingHours(clinicId, hoursDoctor.id, hours)
       toast.success(isAr ? 'تم حفظ ساعات العمل — يستخدمها بوت واتساب لحجز المواعيد.' : 'Working hours saved — the WhatsApp bot uses these for bookings.')
       setHoursOpen(false)
-    } catch {
-      toast.error(isAr ? 'فشل حفظ ساعات العمل' : 'Failed to save working hours.')
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل حفظ ساعات العمل' : 'Failed to save working hours.'))
     } finally {
       setHoursLoading(false)
     }

@@ -25,8 +25,8 @@ export default function GeneralSettingsTab({ clinicId, initialData }: { clinicId
     const formData = new FormData(e.currentTarget)
     try {
       await updateClinicSettings(clinicId, formData)
-    } catch {
-      toast.error('Failed to save settings')
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save settings')
     } finally {
       setLoading(false)
     }

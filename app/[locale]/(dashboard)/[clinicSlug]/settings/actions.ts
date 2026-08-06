@@ -174,9 +174,44 @@ export async function createServiceCategory(clinicId: string, formData: FormData
   const name = formData.get('name') as string
   const order_index = parseInt(formData.get('order_index') as string) || 0
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('service_categories')
     .insert({ clinic_id: clinicId, name, order_index })
+    .select('id')
+    .single()
+
+  if (error) throw new Error(error?.message || 'Database error')
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
+  return data
+}
+
+export async function updateServiceCategory(clinicId: string, formData: FormData) {
+  const supabase = await verifyOwner(clinicId)
+  const id = formData.get('id') as string
+  const name = formData.get('name') as string
+  const order_index = parseInt(formData.get('order_index') as string) || 0
+
+  const { data, error } = await supabase
+    .from('service_categories')
+    .update({ name, order_index })
+    .eq('id', id)
+    .eq('clinic_id', clinicId)
+    .select('id')
+    .single()
+
+  if (error) throw new Error(error?.message || 'Database error')
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
+  return data
+}
+
+export async function deleteServiceCategory(clinicId: string, categoryId: string) {
+  const supabase = await verifyOwner(clinicId)
+
+  const { error } = await supabase
+    .from('service_categories')
+    .delete()
+    .eq('id', categoryId)
+    .eq('clinic_id', clinicId)
 
   if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
@@ -191,7 +226,7 @@ export async function createClinicService(clinicId: string, formData: FormData) 
   const price = parseFloat(formData.get('price') as string) || 0
   const duration_minutes = parseInt(formData.get('duration_minutes') as string) || 30
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('clinic_services')
     .insert({
       clinic_id: clinicId,
@@ -201,6 +236,53 @@ export async function createClinicService(clinicId: string, formData: FormData) 
       price,
       duration_minutes
     })
+    .select('id')
+    .single()
+
+  if (error) throw new Error(error?.message || 'Database error')
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
+  return data
+}
+
+export async function updateClinicService(clinicId: string, formData: FormData) {
+  const supabase = await verifyOwner(clinicId)
+
+  const id = formData.get('id') as string
+  const category_id = formData.get('category_id') as string
+  const name = formData.get('name') as string
+  const description = formData.get('description') as string
+  const price = parseFloat(formData.get('price') as string) || 0
+  const duration_minutes = parseInt(formData.get('duration_minutes') as string) || 30
+
+  if (!id || !name) throw new Error('Missing required fields')
+
+  const { data, error } = await supabase
+    .from('clinic_services')
+    .update({
+      category_id,
+      name,
+      description,
+      price,
+      duration_minutes
+    })
+    .eq('id', id)
+    .eq('clinic_id', clinicId)
+    .select('id')
+    .single()
+
+  if (error) throw new Error(error?.message || 'Database error')
+  revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
+  return data
+}
+
+export async function deleteClinicService(clinicId: string, serviceId: string) {
+  const supabase = await verifyOwner(clinicId)
+
+  const { error } = await supabase
+    .from('clinic_services')
+    .delete()
+    .eq('id', serviceId)
+    .eq('clinic_id', clinicId)
 
   if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
@@ -580,7 +662,7 @@ export async function registerOwnerAsDoctor(clinicId: string, locale: string, sp
     .select('id')
     .eq('staff_member_id', staffMember.id)
     .eq('clinic_id', clinicId)
-    .single()
+    .maybeSingle()
 
   if (existing) {
     throw new Error(locale === 'ar' ? 'أنت مسجل كطبيب بالفعل.' : 'You are already registered as a doctor.')
@@ -595,7 +677,7 @@ export async function registerOwnerAsDoctor(clinicId: string, locale: string, sp
       bio: null
     })
 
-  if (error) throw new Error(error?.message || 'Database error')
+  if (error && error.code !== '23505') throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
@@ -683,9 +765,8 @@ export async function savePaperFormat(clinicId: string, format: string) {
     .from('clinic_settings')
     .upsert({
       clinic_id: clinicId,
-      setting_key: 'paper_format',
-      setting_value: format
-    }, { onConflict: 'clinic_id, setting_key' })
+      paper_format: format
+    }, { onConflict: 'clinic_id' })
 
   if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
@@ -698,9 +779,8 @@ export async function saveClinicLogo(clinicId: string, logoDataUrl: string) {
     .from('clinic_settings')
     .upsert({
       clinic_id: clinicId,
-      setting_key: 'clinic_logo',
-      setting_value: logoDataUrl
-    }, { onConflict: 'clinic_id, setting_key' })
+      clinic_logo: logoDataUrl
+    }, { onConflict: 'clinic_id' })
 
   if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')

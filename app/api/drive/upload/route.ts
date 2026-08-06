@@ -62,12 +62,11 @@ export async function POST(request: NextRequest) {
     // Get quota setting
     const { data: quotaSetting } = await supabase
       .from('clinic_settings')
-      .select('setting_value')
+      .select('storage_quota_mb')
       .eq('clinic_id', clinicId)
-      .eq('setting_key', 'storage_quota_mb')
-      .single()
+      .maybeSingle()
 
-    const quotaMB = parseInt(quotaSetting?.setting_value || '15000', 10) // Default 15GB
+    const quotaMB = parseInt(quotaSetting?.storage_quota_mb || '15000', 10) // Default 15GB
 
     // Get current usage
     const { data: usageRows } = await supabase

@@ -61,10 +61,9 @@ export default async function PatientPrescriptionsPage({
 
   const { data: logoSetting } = await supabase
     .from('clinic_settings')
-    .select('setting_value')
+    .select('clinic_logo')
     .eq('clinic_id', clinicId)
-    .eq('setting_key', 'clinic_logo')
-    .single()
+    .maybeSingle()
 
   // Fetch past prescriptions
   const pastPrescriptions = await getPatientPrescriptions(clinicId, patient.id)
@@ -111,7 +110,7 @@ export default async function PatientPrescriptionsPage({
                         patientAge={patientAge}
                         doctorName={rx.staff_members?.full_name}
                         clinicName={clinicData?.name}
-                        clinicLogo={logoSetting?.setting_value}
+                        clinicLogo={logoSetting?.clinic_logo}
                         isAr={isAr}
                       />
                     </div>

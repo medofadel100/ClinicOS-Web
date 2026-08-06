@@ -34,12 +34,36 @@ export async function smartSearchMedications(clinicId: string, query: string) {
   const { supabase } = await verifyAccess(clinicId)
 
   // 1. Search Global Medications (Arabic-normalized: hamza variants, partial/full names)
-  const { data: globalMeds } = (await supabase
-    .rpc('search_medications', { p_query: query })) as { data: any[] | null }
+  let globalMeds: any[] | null = null
+  try {
+    const { data, error } = await supabase.rpc('search_medications', { p_query: query })
+    if (error) throw error
+    globalMeds = data || null
+  } catch {
+    // Fallback: plain search if the RPC is unavailable (e.g. migration not applied yet)
+    const { data } = await supabase
+      .from('medications_global')
+      .select('*')
+      .or(`brand_name_ar.ilike.%${query}%,brand_name_en.ilike.%${query}%,generic_name.ilike.%${query}%`)
+      .limit(20)
+    globalMeds = data || null
+  }
 
   // 2. Search Custom Clinic Medications (ones without a global ID)
-  const { data: customMeds } = (await supabase
-    .rpc('search_clinic_medications', { p_clinic: clinicId, p_query: query })) as { data: any[] | null }
+  let customMeds: any[] | null = null
+  try {
+    const { data, error } = await supabase.rpc('search_clinic_medications', { p_clinic: clinicId, p_query: query })
+    if (error) throw error
+    customMeds = data || null
+  } catch {
+    const { data } = await supabase
+      .from('clinic_medications')
+      .select('*')
+      .eq('clinic_id', clinicId)
+      .or(`custom_brand_name.ilike.%${query}%,custom_generic_name.ilike.%${query}%`)
+      .limit(10)
+    customMeds = data || null
+  }
 
   // 3. Map globalMeds to see if they ALREADY exist in clinic_medications
   let existingGlobalMedsInClinic: any[] = []

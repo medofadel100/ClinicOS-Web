@@ -126,10 +126,9 @@ export default async function SettingsPage({
   // Fetch clinic logo
   const { data: logoSetting } = await supabase
     .from('clinic_settings')
-    .select('setting_value')
+    .select('clinic_logo')
     .eq('clinic_id', clinicId)
-    .eq('setting_key', 'clinic_logo')
-    .single()
+    .maybeSingle()
 
   // Check if owner already has a doctor profile
   let ownerIsDoctor = false
@@ -344,7 +343,7 @@ export default async function SettingsPage({
                 <LogoUpload
                   clinicId={clinicId}
                   locale={locale}
-                  currentLogoUrl={logoSetting?.setting_value}
+                  currentLogoUrl={logoSetting?.clinic_logo}
                 />
               </div>
             </PremiumCard>

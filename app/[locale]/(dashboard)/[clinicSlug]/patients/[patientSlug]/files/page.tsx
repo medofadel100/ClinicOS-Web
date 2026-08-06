@@ -37,12 +37,11 @@ export default async function PatientFilesPage({
   // Get storage quota info
   const { data: quotaSetting } = await supabase
     .from('clinic_settings')
-    .select('setting_value')
+    .select('storage_quota_mb')
     .eq('clinic_id', clinicId)
-    .eq('setting_key', 'storage_quota_mb')
-    .single()
+    .maybeSingle()
 
-  const quotaMB = parseInt(quotaSetting?.setting_value || '15000', 10)
+  const quotaMB = parseInt(quotaSetting?.storage_quota_mb || '15000', 10)
 
   const files = patient.patient_uploaded_files || []
   const totalUsedBytes = files.reduce((sum: number, f: { file_size?: number }) => sum + (f.file_size || 0), 0)

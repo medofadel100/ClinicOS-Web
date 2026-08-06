@@ -40,8 +40,8 @@ export default function LogoUpload({
         setLogoUrl(dataUrl)
       }
       reader.readAsDataURL(file)
-    } catch {
-      toast.error(isAr ? 'فشل رفع الشعار' : 'Upload failed')
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل رفع الشعار' : 'Upload failed'))
     } finally {
       setUploading(false)
     }

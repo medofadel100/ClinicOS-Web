@@ -75,8 +75,8 @@ export default function InviteStaffDialog({ clinicId, locale = 'en' }: { clinicI
       const lang = window.location.pathname.split('/')[1] || 'en'
       const link = `${window.location.origin}/${lang}/invite/${token}`
       setInviteLink(link)
-    } catch {
-      toast.error(isAr ? 'حدث خطأ أثناء إنشاء الرابط' : 'Failed to generate invite link')
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'حدث خطأ أثناء إنشاء الرابط' : 'Failed to generate invite link'))
     } finally {
       setLoading(false)
     }
@@ -88,8 +88,8 @@ export default function InviteStaffDialog({ clinicId, locale = 'en' }: { clinicI
     try {
       await addStaffMemberDirectly(clinicId, locale, directName.trim(), role, directPhone.trim() || undefined)
       setSuccess(true)
-    } catch {
-      toast.error(isAr ? 'فشل في الإضافة' : 'Failed to add member')
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل في الإضافة' : 'Failed to add member'))
     } finally {
       setLoading(false)
     }
