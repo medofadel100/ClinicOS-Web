@@ -17,6 +17,7 @@ const MAX_TOOL_ROUNDS = 3
 type ConversationState = {
   systemPrompt?: string
   messages: { role: 'user' | 'assistant' | 'system'; content: string }[]
+  lastError?: string
 }
 
 const TOOL_FUNCTIONS: Record<string, (args: any, ctx: { clinicId: string; patientId: string }) => Promise<Record<string, unknown>>> = {
@@ -98,7 +99,7 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
       const reply = await generateContent({
         systemPrompt: state.systemPrompt,
         messages,
-        allowWait: false,
+        allowWait: true,
       })
 
       const toolCall = parseToolCall(reply)
@@ -126,6 +127,7 @@ export async function handleAIMessage(clinicId: string, from: string, messageBod
     }
   } catch (err) {
     console.error('Gemini Error:', err)
+    state.lastError = err instanceof Error ? err.message : String(err)
     finalReply =
       "Sorry, I'm having trouble thinking right now. Please try again later or call the clinic."
   }
