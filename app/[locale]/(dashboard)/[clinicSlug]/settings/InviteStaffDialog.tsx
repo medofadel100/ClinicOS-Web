@@ -46,7 +46,7 @@ export default function InviteStaffDialog({ clinicId, locale = 'en' }: { clinicI
     modeInvite: isAr ? 'دعوة عبر رابط' : 'Invite via Link',
     modeInviteDesc: isAr ? 'يرسل له رابط يسجّل بنفسه ويدخل السيستم' : 'Send them a link to create their own account',
     modeDirect: isAr ? 'إضافة مباشرة' : 'Add Directly',
-    modeDirectDesc: isAr ? 'موظف في العيادة بس مش لازم يدخل السيستم (نضافه، بوفيه، إلخ)' : 'Staff who don\'t need system access (cleaning, cafeteria, etc.)',
+    modeDirectDesc: isAr ? 'إضافة عضو بدون حساب دخول (طبيب، استقبال، إلخ)' : 'Add staff without a login account (doctor, reception, etc.)',
     role: isAr ? 'الدور' : 'Role',
     doctor: isAr ? 'طبيب' : 'Doctor',
     nurse: isAr ? 'ممرض/ة' : 'Nurse',
@@ -219,8 +219,10 @@ export default function InviteStaffDialog({ clinicId, locale = 'en' }: { clinicI
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="other">{t.cleaner}</SelectItem>
-                  <SelectItem value="other">{t.cafeteria}</SelectItem>
+                  <SelectItem value="doctor">{t.doctor}</SelectItem>
+                  <SelectItem value="nurse">{t.nurse}</SelectItem>
+                  <SelectItem value="reception">{t.reception}</SelectItem>
+                  <SelectItem value="accountant">{t.accountant}</SelectItem>
                   <SelectItem value="other">{t.other}</SelectItem>
                 </SelectContent>
               </Select>

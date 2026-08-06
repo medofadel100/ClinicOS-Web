@@ -49,7 +49,7 @@ export async function updateClinicGeneralInfo(clinicId: string, locale: string, 
     })
     .eq('id', clinicId)
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
@@ -73,7 +73,7 @@ export async function updateClinicSettings(clinicId: string, formData: FormData)
       timezone
     }, { onConflict: 'clinic_id' })
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
@@ -91,12 +91,12 @@ export async function upsertDoctorProfile(clinicId: string, formData: FormData) 
       .update({ bio, specialty })
       .eq('id', id)
       .eq('clinic_id', clinicId)
-    if (error) throw error
+    if (error) throw new Error(error?.message || 'Database error')
   } else {
     const { error } = await supabase
       .from('doctor_profiles')
       .insert({ clinic_id: clinicId, staff_member_id, bio, specialty })
-    if (error) throw error
+    if (error) throw new Error(error?.message || 'Database error')
   }
 
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
@@ -137,7 +137,7 @@ export async function upsertWorkingHours(clinicId: string, doctorProfileId: stri
     .delete()
     .eq('doctor_profile_id', doctorProfileId)
   
-  if (deleteError) throw deleteError
+  if (deleteError) throw new Error(deleteError?.message || 'Failed to clear working hours')
 
   if (hours.length > 0) {
     const { error: insertError } = await supabase
@@ -150,7 +150,7 @@ export async function upsertWorkingHours(clinicId: string, doctorProfileId: stri
         is_active: h.is_active
       })))
       
-    if (insertError) throw insertError
+    if (insertError) throw new Error(insertError?.message || 'Failed to save working hours')
   }
 
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
@@ -165,7 +165,7 @@ export async function getDoctorWorkingHours(clinicId: string, doctorProfileId: s
     .eq('doctor_profile_id', doctorProfileId)
     .order('day_of_week', { ascending: true })
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   return data || []
 }
 
@@ -178,7 +178,7 @@ export async function createServiceCategory(clinicId: string, formData: FormData
     .from('service_categories')
     .insert({ clinic_id: clinicId, name, order_index })
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
@@ -202,7 +202,7 @@ export async function createClinicService(clinicId: string, formData: FormData) 
       duration_minutes
     })
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
@@ -264,7 +264,7 @@ export async function revokeStaffInvite(clinicId: string, inviteId: string) {
     .eq('clinic_id', clinicId)
     .eq('status', 'pending')
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
@@ -276,7 +276,7 @@ export async function changeClinicType(clinicId: string, locale: string, newClin
     .update({ clinic_type_id: newClinicTypeId })
     .eq('id', clinicId)
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
@@ -288,7 +288,7 @@ export async function fetchClinicTypes(_locale: string) {
     .eq('is_active', true)
     .order('name_en')
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   return data || []
 }
 
@@ -595,7 +595,7 @@ export async function registerOwnerAsDoctor(clinicId: string, locale: string, sp
       bio: null
     })
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
@@ -618,7 +618,7 @@ export async function addStaffMemberDirectly(
     .select('id')
     .single()
 
-  if (staffErr) throw staffErr
+  if (staffErr) throw new Error(staffErr?.message || 'Failed to add staff member')
 
   const { error: memErr } = await supabase
     .from('clinic_staff_memberships')
@@ -629,7 +629,15 @@ export async function addStaffMemberDirectly(
       is_active: true
     })
 
-  if (memErr) throw memErr
+  if (memErr) throw new Error(memErr?.message || 'Failed to add membership')
+
+  // Doctors need a doctor profile so they appear in the Doctors tab and the WhatsApp bot
+  if (role === 'doctor') {
+    const { error: docErr } = await supabase
+      .from('doctor_profiles')
+      .insert({ staff_member_id: newStaff.id, clinic_id: clinicId, specialty: null, bio: null })
+    if (docErr) throw new Error(docErr?.message || 'Failed to add doctor profile')
+  }
 
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
@@ -679,7 +687,7 @@ export async function savePaperFormat(clinicId: string, format: string) {
       setting_value: format
     }, { onConflict: 'clinic_id, setting_key' })
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }
 
@@ -694,6 +702,6 @@ export async function saveClinicLogo(clinicId: string, logoDataUrl: string) {
       setting_value: logoDataUrl
     }, { onConflict: 'clinic_id, setting_key' })
 
-  if (error) throw error
+  if (error) throw new Error(error?.message || 'Database error')
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
 }

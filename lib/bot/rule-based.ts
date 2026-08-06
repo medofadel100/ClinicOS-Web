@@ -128,7 +128,7 @@ export async function handleIncomingMessage(clinicId: string, from: string, mess
       .from('clinic_staff_memberships')
       .select('id')
       .eq('clinic_id', clinicId)
-      .eq('role', 'doctor')
+      .in('role', ['doctor', 'owner'])
       .eq('is_active', true)
       .limit(1)
       .single()

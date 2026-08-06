@@ -29,7 +29,7 @@ export async function buildSystemPrompt(clinicId: string, patientName: string, p
       doctor_profiles ( id, specialty, bio )
     `)
     .eq('clinic_id', clinicId)
-    .eq('role', 'doctor')
+    .in('role', ['doctor', 'owner'])
     .eq('is_active', true)
 
   // 2b. Fetch working hours for each doctor

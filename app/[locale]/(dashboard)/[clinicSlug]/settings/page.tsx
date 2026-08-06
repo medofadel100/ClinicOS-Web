@@ -80,15 +80,33 @@ export default async function SettingsPage({
     .eq('clinic_id', clinicId)
     .order('created_at', { ascending: false })
 
-  // Fetch doctors (doctor profiles) + all staff for the "add doctor" picker
+  // Fetch doctors (doctor profiles) + clinic staff for the "add doctor" picker
   const { data: doctorProfiles } = await supabase
     .from('doctor_profiles')
     .select('id, specialty, bio, staff_members ( id, full_name )')
     .eq('clinic_id', clinicId)
 
-  const { data: allStaff } = await supabase
-    .from('staff_members')
-    .select('id, full_name')
+  // Only staff of THIS clinic who don't already have a doctor profile can be added
+  const { data: clinicStaff } = await supabase
+    .from('clinic_staff_memberships')
+    .select('staff_members ( id, full_name )')
+    .eq('clinic_id', clinicId)
+    .eq('is_active', true)
+
+  const doctorStaffIds = new Set(
+    (doctorProfiles || [])
+      .map((p: any) => (p as any).staff_members?.id)
+      .filter(Boolean)
+  )
+  const allStaff = Array.from(
+    new Map(
+      (clinicStaff || [])
+        .map((m: any) => m.staff_members)
+        .filter(Boolean)
+        .filter((s: any) => !doctorStaffIds.has(s.id))
+        .map((s: any) => [s.id, s])
+    ).values()
+  )
 
   // Fetch service categories with services
   const { data: serviceCategories } = await supabase

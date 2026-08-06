@@ -64,7 +64,7 @@ export async function GET(req: Request) {
             .from('clinic_staff_memberships')
             .select('id, staff_members(phone, full_name)')
             .eq('clinic_id', config.clinic_id)
-            .eq('role', 'doctor')
+            .in('role', ['doctor', 'owner'])
             .eq('is_active', true)
 
           for (const doc of doctors || []) {

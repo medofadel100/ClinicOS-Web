@@ -55,6 +55,11 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
     is_active: false,
   })))
 
+  // Edit doctor profile state
+  const [editDoctor, setEditDoctor] = useState<DoctorProfile | null>(null)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
+
   useEffect(() => {
     setIsAr(document.documentElement.lang === 'ar')
   }, [])
@@ -71,6 +76,21 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
       toast.error(isAr ? 'فشل حفظ بيانات الطبيب' : 'Failed to save doctor profile')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setEditLoading(true)
+    const formData = new FormData(e.currentTarget)
+    try {
+      await upsertDoctorProfile(clinicId, formData)
+      setEditOpen(false)
+      toast.success(isAr ? 'تم تحديث بيانات الطبيب' : 'Doctor profile updated.')
+    } catch {
+      toast.error(isAr ? 'فشل تحديث بيانات الطبيب' : 'Failed to update doctor profile')
+    } finally {
+      setEditLoading(false)
     }
   }
 
@@ -165,14 +185,43 @@ export default function DoctorsTab({ clinicId, initialData, availableStaff }: { 
                   <p className="font-medium">{doc.staff_members?.full_name}</p>
                   <p className="text-sm text-muted-foreground">{doc.specialty}</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => openHours(doc)}>
-                  {isAr ? 'ساعات العمل' : 'Working Hours'}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => { setEditDoctor(doc); setEditOpen(true) }}>
+                    {isAr ? 'تعديل' : 'Edit'}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => openHours(doc)}>
+                    {isAr ? 'ساعات العمل' : 'Working Hours'}
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </CardContent>
+
+      {/* Edit doctor profile dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isAr ? 'تعديل بيانات الطبيب' : 'Edit Doctor Profile'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <input type="hidden" name="id" value={editDoctor?.id || ''} />
+            <div className="space-y-2">
+              <Label htmlFor="edit-specialty">{isAr ? 'التخصص' : 'Specialty'}</Label>
+              <Input id="edit-specialty" name="specialty" defaultValue={editDoctor?.specialty || ''} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-bio">{isAr ? 'نبذة' : 'Bio'}</Label>
+              <Input id="edit-bio" name="bio" defaultValue={editDoctor?.bio || ''} />
+            </div>
+            <Button type="submit" className="w-full" disabled={editLoading}>
+              {editLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2 inline" /> : null}
+              {editLoading ? (isAr ? 'جارٍ الحفظ...' : 'Saving...') : (isAr ? 'حفظ' : 'Save')}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Working hours dialog */}
       <Dialog open={hoursOpen} onOpenChange={setHoursOpen}>
