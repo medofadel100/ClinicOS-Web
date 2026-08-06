@@ -96,7 +96,7 @@ export async function upsertDoctorProfile(clinicId: string, formData: FormData) 
     const { error } = await supabase
       .from('doctor_profiles')
       .insert({ clinic_id: clinicId, staff_member_id, bio, specialty })
-    if (error) throw new Error(error?.message || 'Database error')
+    if (error && error.code !== '23505') throw new Error(error?.message || 'Database error')
   }
 
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')
@@ -636,7 +636,7 @@ export async function addStaffMemberDirectly(
     const { error: docErr } = await supabase
       .from('doctor_profiles')
       .insert({ staff_member_id: newStaff.id, clinic_id: clinicId, specialty: null, bio: null })
-    if (docErr) throw new Error(docErr?.message || 'Failed to add doctor profile')
+    if (docErr && docErr.code !== '23505') throw new Error(docErr?.message || 'Failed to add doctor profile')
   }
 
   revalidatePath('/[locale]/(dashboard)/[clinicSlug]/settings', 'page')

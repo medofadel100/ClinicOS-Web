@@ -33,21 +33,13 @@ async function verifyAccess(clinicId: string) {
 export async function smartSearchMedications(clinicId: string, query: string) {
   const { supabase } = await verifyAccess(clinicId)
 
-  // 1. Search Global Medications
-  const { data: globalMeds } = await supabase
-    .from('medications_global')
-    .select('*')
-    .or(`brand_name_en.ilike.%${query}%,brand_name_ar.ilike.%${query}%,generic_name.ilike.%${query}%`)
-    .limit(15)
+  // 1. Search Global Medications (Arabic-normalized: hamza variants, partial/full names)
+  const { data: globalMeds } = (await supabase
+    .rpc('search_medications', { p_query: query })) as { data: any[] | null }
 
   // 2. Search Custom Clinic Medications (ones without a global ID)
-  const { data: customMeds } = await supabase
-    .from('clinic_medications')
-    .select('*')
-    .eq('clinic_id', clinicId)
-    .is('medication_global_id', null)
-    .or(`custom_brand_name.ilike.%${query}%,custom_generic_name.ilike.%${query}%`)
-    .limit(10)
+  const { data: customMeds } = (await supabase
+    .rpc('search_clinic_medications', { p_clinic: clinicId, p_query: query })) as { data: any[] | null }
 
   // 3. Map globalMeds to see if they ALREADY exist in clinic_medications
   let existingGlobalMedsInClinic: any[] = []
@@ -72,7 +64,9 @@ export async function smartSearchMedications(clinicId: string, query: string) {
         clinic_medication_id: existing?.id || null,
         medication_global_id: gMed.id,
         brandName: gMed.brand_name_en,
+        brandNameAr: gMed.brand_name_ar || '',
         genericName: gMed.generic_name,
+        genericNameAr: gMed.generic_name_ar || '',
         dosage: existing?.default_dosage || '',
         frequency: existing?.default_frequency || '',
         duration: existing?.default_duration || '',
@@ -89,7 +83,9 @@ export async function smartSearchMedications(clinicId: string, query: string) {
         clinic_medication_id: cMed.id,
         medication_global_id: null,
         brandName: cMed.custom_brand_name,
+        brandNameAr: '',
         genericName: cMed.custom_generic_name,
+        genericNameAr: '',
         dosage: cMed.default_dosage || '',
         frequency: cMed.default_frequency || '',
         duration: cMed.default_duration || '',
@@ -125,12 +121,9 @@ export async function ensureClinicMedication(clinicId: string, globalMedId: stri
 
 export async function getMedicationAlternatives(genericName: string) {
   const supabase = createClient()
-  const { data, error } = await supabase
-    .from('medications_global')
-    .select('*')
-    .ilike('generic_name', genericName)
-    .limit(20)
-    
+  const { data, error } = (await supabase
+    .rpc('search_medications_by_generic', { p_query: genericName })) as { data: any[] | null, error: any }
+
   if (error) throw error
   return data || []
 }

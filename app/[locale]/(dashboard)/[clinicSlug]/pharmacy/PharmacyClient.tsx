@@ -111,6 +111,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
           const brandName = global?.brand_name_en || med.custom_brand_name
           const brandNameAr = global?.brand_name_ar
           const genericName = global?.generic_name || med.custom_generic_name
+          const genericNameAr = global?.generic_name_ar
           const concentration = global?.concentration || med.concentration
           const form = global?.form || med.form
           const manufacturer = global?.manufacturer
@@ -127,7 +128,7 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
                     {global && <span title="Global Drug Index"><Globe className="w-3.5 h-3.5 text-blue-400" /></span>}
                   </h3>
                   {brandNameAr && <div className="text-xs text-slate-400 font-arabic">{brandNameAr}</div>}
-                  <p className="text-sm text-slate-400 mt-1">{genericName}</p>
+                  <p className="text-sm text-slate-400 mt-1">{(isAr && genericNameAr) ? genericNameAr : genericName}</p>
                   <div className="flex gap-2 mt-2">
                     <span className="px-2 py-0.5 bg-white/5 text-slate-300 rounded text-xs">{form}</span>
                     {manufacturer && <span className="px-2 py-0.5 bg-white/5 text-slate-300 rounded text-xs">{manufacturer}</span>}
@@ -188,8 +189,8 @@ export default function PharmacyClient({ clinicId, initialMeds, locale }: { clin
                     searchResults.map(result => (
                       <div key={result.id} className="p-3 border-b border-white/5 hover:bg-white/5 flex items-center justify-between cursor-pointer transition-colors" onClick={() => handleAddGlobal(result)}>
                         <div>
-                          <div className="font-semibold text-slate-200">{result.brand_name_en} {result.concentration}</div>
-                          <div className="text-xs text-slate-400">{result.generic_name} • {result.form}</div>
+                          <div className="font-semibold text-slate-200">{(isAr && result.brand_name_ar) ? result.brand_name_ar : result.brand_name_en} {result.concentration}</div>
+                          <div className="text-xs text-slate-400">{(isAr && result.generic_name_ar) ? result.generic_name_ar : result.generic_name} • {result.form}</div>
                         </div>
                         <Plus className="w-4 h-4 text-violet-400" />
                       </div>

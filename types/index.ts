@@ -80,7 +80,9 @@ export type MedicationSearchResult = {
   clinic_medication_id: string | null
   medication_global_id: string | null
   brandName: string
+  brandNameAr?: string
   genericName: string
+  genericNameAr?: string
   dosage: string
   frequency: string
   duration: string
@@ -109,6 +111,7 @@ export type PrescriptionTemplateItem = {
       brand_name_en?: string
       brand_name_ar?: string
       generic_name?: string
+      generic_name_ar?: string
     }
   }
 }

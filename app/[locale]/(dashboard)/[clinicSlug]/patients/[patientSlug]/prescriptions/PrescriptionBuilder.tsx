@@ -11,7 +11,9 @@ interface DraftItem {
   id: string; // temp id
   clinic_medication_id: string;
   brandName: string;
+  brandNameAr: string;
   genericName: string;
+  genericNameAr: string;
   dosage: string;
   frequency: string;
   timing: string;
@@ -40,7 +42,7 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
 
   // Alternatives
   const [showAlternativesFor, setShowAlternativesFor] = useState<string | null>(null)
-  const [alternatives, setAlternatives] = useState<{ id: string; brand_name_en: string; concentration: string; manufacturer: string; generic_name: string }[]>([])
+  const [alternatives, setAlternatives] = useState<{ id: string; brand_name_en: string; brand_name_ar?: string; concentration: string; manufacturer: string; generic_name: string; generic_name_ar?: string }[]>([])
   const [loadingAlternatives, setLoadingAlternatives] = useState(false)
 
   useEffect(() => {
@@ -83,7 +85,9 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
       id: Math.random().toString(36).substr(2, 9),
       clinic_medication_id: clinicMedId || '',
       brandName: med.brandName || '',
+      brandNameAr: med.brandNameAr || '',
       genericName: med.genericName || '',
+      genericNameAr: med.genericNameAr || '',
       dosage: med.dosage || '',
       frequency: med.frequency || '',
       timing: '',
@@ -120,7 +124,9 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
         id: Math.random().toString(36).substr(2, 9),
         clinic_medication_id: item.clinic_medication_id,
         brandName: (global?.brand_name_en || med?.custom_brand_name) || '',
+        brandNameAr: global?.brand_name_ar || '',
         genericName: (global?.generic_name || med?.custom_generic_name) || '',
+        genericNameAr: global?.generic_name_ar || '',
         dosage: item.dosage,
         frequency: item.frequency,
         timing: item.timing || '',
@@ -206,12 +212,14 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
                         </div>
                         <div>
                           <div className="font-semibold text-slate-200 text-sm flex items-center gap-2">
-                            {result.brandName}
+                            {(isAr && result.brandNameAr) ? result.brandNameAr : result.brandName}
                             {result.type === 'new_global' && (
                               <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">Global</span>
                             )}
                           </div>
-                          <div className="text-xs text-slate-500">{result.genericName}</div>
+                          <div className="text-xs text-slate-500">
+                            {(isAr && result.genericNameAr) ? result.genericNameAr : result.genericName}
+                          </div>
                         </div>
                       </div>
                       <Plus className="w-4 h-4 text-violet-400" />
@@ -260,7 +268,7 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
                 </div>
                 <div className="flex-1">
                   <h4 className="font-bold text-white flex items-center gap-2">
-                    {item.brandName}
+                    {(isAr && item.brandNameAr) ? item.brandNameAr : item.brandName}
                     {item.genericName && (
                       <button 
                         onClick={() => loadAlternatives(item.genericName)}
@@ -270,7 +278,10 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
                       </button>
                     )}
                   </h4>
-                  <p className="text-xs text-slate-400">Active Ingredient: {item.genericName}</p>
+                  <p className="text-xs text-slate-400">
+                    {isAr ? 'المادة الفعالة: ' : 'Active Ingredient: '}
+                    {(isAr && item.genericNameAr) ? item.genericNameAr : item.genericName}
+                  </p>
                 </div>
               </div>
 
@@ -403,8 +414,13 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
               alternatives.map(alt => (
                 <div key={alt.id} className="p-3 bg-white/5 border border-white/10 rounded-lg flex items-center justify-between">
                   <div>
-                    <div className="font-semibold text-white">{alt.brand_name_en} {alt.concentration && `(${alt.concentration})`}</div>
-                    <div className="text-xs text-slate-400">{alt.manufacturer}</div>
+                    <div className="font-semibold text-white">
+                      {(isAr && alt.brand_name_ar) ? alt.brand_name_ar : alt.brand_name_en} {alt.concentration && `(${alt.concentration})`}
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      {alt.manufacturer}
+                      {alt.generic_name ? ` — ${(isAr && alt.generic_name_ar) ? alt.generic_name_ar : alt.generic_name}` : ''}
+                    </div>
                   </div>
                   <button 
                     onClick={() => {
@@ -413,7 +429,9 @@ export default function PrescriptionBuilder({ clinicId, patientId }: { clinicId:
                         clinic_medication_id: null,
                         medication_global_id: alt.id,
                         brandName: alt.brand_name_en,
+                        brandNameAr: alt.brand_name_ar || '',
                         genericName: alt.generic_name,
+                        genericNameAr: alt.generic_name_ar || '',
                         dosage: '', frequency: '', duration: '', original: alt as unknown as Record<string, unknown>
                       })
                       setShowAlternativesFor(null)

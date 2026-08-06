@@ -31,14 +31,11 @@ async function verifyAccess(clinicId: string) {
 
 export async function searchGlobalMedications(query: string) {
   const supabase = createClient()
-  const { data, error } = await supabase
-    .from('medications_global')
-    .select('*')
-    .or(`brand_name_en.ilike.%${query}%,brand_name_ar.ilike.%${query}%,generic_name.ilike.%${query}%`)
-    .limit(20)
+  const { data, error } = (await supabase
+    .rpc('search_medications', { p_query: query })) as { data: any[] | null, error: any }
 
   if (error) throw error
-  return data
+  return data || []
 }
 
 export async function addClinicMedication(clinicId: string, medicationData: any) {

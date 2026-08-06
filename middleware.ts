@@ -19,6 +19,8 @@ function isPublicPath(pathname: string): boolean {
   if (pathname.includes('/contact')) return true
   // Terms of service
   if (pathname.includes('/terms')) return true
+  // Invite acceptance page (must be reachable without a session)
+  if (pathname.includes('/invite/')) return true
   return false
 }
 
